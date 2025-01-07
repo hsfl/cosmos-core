@@ -761,7 +761,7 @@ int32_t Simulator::ParseTargetJson(json11::Json jargs)	{
         if (!data["radius"].is_null())
         {
             float radius = data["radius"].number_value();
-            targ.area = M_PI * radius * radius * 1000;
+            targ.area = M_PI * radius * radius;
         }
 
         AddTarget(targ);
@@ -1209,9 +1209,21 @@ int32_t Simulator::Propagate(vector<vector<cosmosstruc> > &results, uint32_t run
 int32_t Simulator::Target()
 {
     int32_t iretn = 0;
-    for (uint16_t i=0; i<cnodes.size(); ++i)
+    uint32_t mincount = -1;
+    for (uint16_t i=1; i<cnodes.size(); ++i)
     {
         update_target(&cnodes[i]->currentinfo);
+        for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
+        {
+            if (cnodes[i]->currentinfo.target[j].elto > 0.087 && cnodes[i]->currentinfo.target[j].cover[0].count < mincount)
+            {
+                mincount = cnodes[i]->currentinfo.target[j].cover[0].count;
+            }
+        }
+    }
+
+    for (uint16_t i=1; i<cnodes.size(); ++i)
+    {
         cnodes[i]->currentinfo.target_idx = -1;
         double targetrange = 1e9;
         for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
@@ -1219,11 +1231,18 @@ int32_t Simulator::Target()
             if (cnodes[i]->currentinfo.target[j].elto > 0.087)
             {
                 bool taken = false;
-                for (uint16_t ii=i-1; ii<cnodes.size(); --ii)
+                if (cnodes[i]->currentinfo.target[j].cover[0].count > mincount)
                 {
-                    if (cnodes[ii]->currentinfo.target_idx == j)
+                    taken = true;
+                }
+                if (!taken)
+                {
+                    for (uint16_t ii=i-1; ii>0; --ii)
                     {
-                        taken = true;
+                        if (cnodes[ii]->currentinfo.target_idx == j)
+                        {
+                            taken = true;
+                        }
                     }
                 }
                 if (!taken && cnodes[i]->currentinfo.target[j].range < targetrange)
@@ -1239,6 +1258,7 @@ int32_t Simulator::Target()
         }
         if (cnodes[i]->currentinfo.target_idx < cnodes[i]->currentinfo.target.size())
         {
+            cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].cover[0].count++;
             cnodes[i]->currentinfo.node.loc.att.geoc.s = q_drotate_between_rv(rv_unitz(), rv_sub(cnodes[i]->currentinfo.node.loc.pos.geoc.s, cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].loc.pos.geoc.s));
             cnodes[i]->currentinfo.node.loc.att.geoc.v = rv_zero();
             cnodes[i]->currentinfo.node.loc.att.geoc.a = rv_zero();
@@ -1261,6 +1281,22 @@ int32_t Simulator::Target()
 int32_t Simulator::Target(vector<vector<cosmosstruc> > &results)
 {
     int32_t iretn = 0;
+    uint32_t mincount = -1;
+    for (uint32_t tstep=0; tstep<results.size(); ++tstep)
+    {
+        for (uint16_t i=0; i<results[tstep].size(); ++i)
+        {
+            update_target(&results[tstep][i]);
+            for (uint16_t j=0; j<results[tstep][i].target.size(); ++j)
+            {
+                if (results[tstep][i].target[j].elto > 0.087 && results[tstep][i].target[j].cover[0].count < mincount)
+                {
+                    mincount = results[tstep][i].target[j].cover[0].count;
+                }
+            }
+        }
+    }
+
     for (uint32_t tstep=0; tstep<results.size(); ++tstep)
     {
         for (uint16_t i=0; i<results[tstep].size(); ++i)
@@ -1275,7 +1311,7 @@ int32_t Simulator::Target(vector<vector<cosmosstruc> > &results)
                     bool taken = false;
                     for (uint16_t ii=i-1; ii<results[tstep].size(); --ii)
                     {
-                        if (results[tstep][ii].target_idx == j)
+                        if (results[tstep][ii].target_idx == j || results[tstep][i].target[j].cover[0].count > mincount)
                         {
                             taken = true;
                         }
@@ -1293,6 +1329,7 @@ int32_t Simulator::Target(vector<vector<cosmosstruc> > &results)
             }
             if (results[tstep][i].target_idx < results[tstep][i].target.size())
             {
+                results[tstep][i].target[results[tstep][i].target_idx].cover[0].count++;
                 results[tstep][i].node.loc.att.geoc.s = q_drotate_between_rv(rv_unitz(), rv_sub(results[tstep][i].node.loc.pos.geoc.s, results[tstep][i].target[results[tstep][i].target_idx].loc.pos.geoc.s));
                 results[tstep][i].node.loc.att.geoc.v = rv_zero();
                 results[tstep][i].node.loc.att.geoc.a = rv_zero();
@@ -1363,9 +1400,13 @@ int32_t Simulator::Thrust()
 
 int32_t Simulator::Formation(string type, double spacing)
 {
-    if (type == "string")
+    if (type == "nochange")
     {
-        for (uint16_t i=0; i<cnodes.size(); ++i)
+        return 0;
+    }
+    else if (type == "string")
+    {
+        for (uint16_t i=1; i<cnodes.size(); ++i)
         {
             cnodes[i]->currentinfo.node.loc.pos.lvlh.s = rv_zero();
             cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[1] = -spacing * i;
@@ -1375,16 +1416,24 @@ int32_t Simulator::Formation(string type, double spacing)
     }
     else if (type == "diamond")
     {
-        for (uint16_t i=2; i<cnodes.size()-1; ++i)
+        for (uint16_t i=1; i<cnodes.size(); ++i)
         {
-            lvlh2ric(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc.pos.lvlh, cnodes[i]->currentinfo.node.loc.pos.lvlh);
-            if (i%2)
+            cnodes[i]->currentinfo.node.loc.pos.lvlh.s = rv_zero();
+//            lvlh2ric(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc.pos.lvlh, cnodes[i]->currentinfo.node.loc.pos.lvlh);
+            if (i == 2)
             {
-                cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[2] = -spacing * uint16_t((i + 1) / 2);
+                cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[1] = -spacing * 2.5;
+                cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[2] = -spacing * 1.5;
+            }
+            else if (i == 3)
+            {
+                cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[1] = -spacing * 2.5;
+                cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[2] = spacing * 1.5;
             }
             else
             {
-                cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[2] = spacing * uint16_t((i + 1) / 2);
+                cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[1] = -spacing * i;
+                cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[2] = 0;
             }
             ric2lvlh(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc.pos.lvlh, cnodes[i]->currentinfo.node.loc.pos.lvlh);
         }
@@ -1394,7 +1443,9 @@ int32_t Simulator::Formation(string type, double spacing)
     {
         for (uint16_t i=1; i<cnodes.size(); ++i)
         {
-            lvlh2ric(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc.pos.lvlh, cnodes[i]->currentinfo.node.loc.pos.lvlh);
+            cnodes[i]->currentinfo.node.loc.pos.lvlh.s = rv_zero();
+            cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[1] = -spacing * i;
+//            lvlh2ric(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc.pos.lvlh, cnodes[i]->currentinfo.node.loc.pos.lvlh);
             if (i%2)
             {
                 cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[2] = -spacing * uint16_t((i + 1) / 2);

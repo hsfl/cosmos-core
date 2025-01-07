@@ -2804,14 +2804,13 @@ int32_t MetricGenerator::Propagate(double nextutc)
         geoc2geod(cpointing, gpointing);
         for (uint16_t it=0; it<currentinfo->target.size(); ++it)
         {
-            currentinfo->target[it].cover.clear();
             // Must be at least 5 degrees
+            currentinfo->target[it].cover[id].area = 0.;
+            currentinfo->target[it].cover[id].percent = 0.;
             if (currentinfo->target[it].elto > 0.087)
             {
-                Physics::coverage cover;
-                cover.specmin = currentinfo->devspec.cam[id].specmin;
-                cover.specmax = currentinfo->devspec.cam[id].specmax;
-                cover.area = 0.;
+                currentinfo->target[it].cover[id].specmin = currentinfo->devspec.cam[id].specmin;
+                currentinfo->target[it].cover[id].specmax = currentinfo->devspec.cam[id].specmax;
                 double dr = nadirradius / sin(currentinfo->target[it].elto);
                 double dr2 = dr * dr;
                 double sep;
@@ -2821,30 +2820,29 @@ int32_t MetricGenerator::Propagate(double nextutc)
                 double tr2 = tr * tr;
                 if (sep < dr + tr)
                 {
-                    cover.elevation = currentinfo->target[it].elto;
-                    cover.azimuth = currentinfo->target[it].azto;
-                    cover.resolution = currentinfo->target[it].range * currentinfo->devspec.cam[id].ifov;
-                    cover.specmin = currentinfo->devspec.cam[id].specmin;
-                    cover.specmax = currentinfo->devspec.cam[id].specmax;
+                    currentinfo->target[it].cover[id].elevation = currentinfo->target[it].elto;
+                    currentinfo->target[it].cover[id].azimuth = currentinfo->target[it].azto;
+                    currentinfo->target[it].cover[id].resolution = currentinfo->target[it].range * currentinfo->devspec.cam[id].ifov;
+                    currentinfo->target[it].cover[id].specmin = currentinfo->devspec.cam[id].specmin;
+                    currentinfo->target[it].cover[id].specmax = currentinfo->devspec.cam[id].specmax;
                     if (sep > fabs(tr - dr))
                     {
-                        cover.area = dr2 * acos((sep2 + dr2 - tr2) / (2 * sep * dr)) + tr2 * acos((sep2 + tr2 - dr2) / (2 * sep * tr));
-                        cover.area -= sqrt((-sep + tr + dr) * (sep + tr - dr) * (sep - tr + dr) * (sep + tr + dr)) / 2.;
-                        cover.area *= sin(currentinfo->target[it].elto);
+                        currentinfo->target[it].cover[id].area = dr2 * acos((sep2 + dr2 - tr2) / (2 * sep * dr)) + tr2 * acos((sep2 + tr2 - dr2) / (2 * sep * tr));
+                        currentinfo->target[it].cover[id].area -= sqrt((-sep + tr + dr) * (sep + tr - dr) * (sep - tr + dr) * (sep + tr + dr)) / 2.;
+                        currentinfo->target[it].cover[id].area *= sin(currentinfo->target[it].elto);
                     }
                     else
                     {
-                        cover.area = dr < tr ? DPI * dr2 * sin(currentinfo->target[it].elto) : currentinfo->target[it].area;
+                        currentinfo->target[it].cover[id].area = dr < tr ? DPI * dr2 * sin(currentinfo->target[it].elto) : currentinfo->target[it].area;
                     }
-                    if (cover.area < currentinfo->target[it].area)
+                    if (currentinfo->target[it].cover[id].area < currentinfo->target[it].area)
                     {
-                        cover.percent = cover.area / currentinfo->target[it].area;
+                        currentinfo->target[it].cover[id].percent = currentinfo->target[it].cover[id].area / currentinfo->target[it].area;
                     }
                     else
                     {
-                        cover.percent = 1.;
+                        currentinfo->target[it].cover[id].percent = 1.;
                     }
-                    currentinfo->target[it].cover.push_back(cover);
                 }
             }
         }

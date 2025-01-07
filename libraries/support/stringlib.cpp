@@ -681,11 +681,11 @@ string to_fixed(double value, uint16_t digits, uint16_t precision, bool zerofill
     return output;
 }
 
-string to_floating(float value, uint16_t precision) {
-    string output="";
+string to_floating(float value, int16_t precision) {
+    string output="                 ";
+    if (precision >= 0) {
     output.resize(17+precision);
-    if (precision) {
-        sprintf(&output[0], "%.*f", precision, static_cast<double>(value));
+        sprintf(&output[0], "%0.*f", precision, static_cast<double>(value));
     } else {
         sprintf(&output[0], "%f", static_cast<double>(value));
     }
@@ -693,25 +693,26 @@ string to_floating(float value, uint16_t precision) {
     return output;
 }
 
-string to_floating(double value, uint16_t precision)
+string to_floating(double value, int16_t precision)
 {
     uint16_t digits = abs(log10(value));
     string output="";
-    output.resize(digits+17+precision);
-    if (precision) {
-        sprintf(&output[0], "%.*f", precision, value);
-    } else {
+    if (precision >= 0) {
+        output.resize(digits+17+precision);
+        sprintf(&output[0], "%0.*f", precision, value);
+            } else {
+        output.resize(digits+17);
         sprintf(&output[0], "%f", value);
     }
     output.resize(strlen(&output[0]));
     return output;
 }
 
-string to_floatexp(float value, uint16_t precision) {
-    string output="";
-    output.resize(17+precision);
-    if (precision) {
-        sprintf(&output[0], "%.*e", precision, static_cast<double>(value));
+string to_floatexp(float value, int16_t precision) {
+    string output="                 ";
+    if (precision >= 0) {
+        output.resize(17+precision);
+        sprintf(&output[0], "%0.*e", precision, static_cast<double>(value));
     } else {
         sprintf(&output[0], "%e", static_cast<double>(value));
     }
@@ -719,23 +720,23 @@ string to_floatexp(float value, uint16_t precision) {
     return output;
 }
 
-string to_floatexp(double value, uint16_t precision) {
+string to_floatexp(double value, int16_t precision) {
     string output="";
-    if (!precision)
+    if (precision < 0)
     {
         precision = 8;
     }
     output.resize(17+precision);
-    sprintf(&output[0], "%.*e", precision, value);
+    sprintf(&output[0], "%0.*e", precision, value);
     output.resize(strlen(&output[0]));
     return output;
 }
 
-string to_floatany(float value, uint16_t precision) {
-    string output="";
-    output.resize(17+precision);
-    if (precision) {
-        sprintf(&output[0], "%.*g", precision, static_cast<double>(value));
+string to_floatany(float value, int16_t precision) {
+    string output="                 ";
+    if (precision >= 0) {
+        output.resize(17+precision);
+        sprintf(&output[0], "%0.*g", precision, static_cast<double>(value));
     } else {
         sprintf(&output[0], "%.*g", std::numeric_limits<float>::digits10, static_cast<double>(value));
     }
@@ -743,14 +744,14 @@ string to_floatany(float value, uint16_t precision) {
     return output;
 }
 
-string to_floatany(double value, uint16_t precision) {
+string to_floatany(double value, int16_t precision) {
     string output="";
     if (!precision)
     {
         precision = std::numeric_limits<double>::digits10;
     }
     output.resize(17+precision);
-    sprintf(&output[0], "%.*g", precision, value);
+    sprintf(&output[0], "%0.*g", precision, value);
     output.resize(strlen(&output[0]));
     return output;
 }

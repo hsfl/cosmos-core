@@ -1,0 +1,17 @@
+#!/bin/tcsh
+echo "$2 500 " > batch_$1_$2.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":60000,"spacing":500,"satfile":"sats_'$1'_string_0500.dat","formation":"'$2'"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_$1_$2.out
+echo "$2 1000 " >> batch_$1_$2.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":60000,"spacing":1000,"satfile":"sats_'$1'_string_1000.dat","formation":"'$2'"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_$1_$2.out
+echo "$2 1500 " >> batch_$1_$2.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":60000,"spacing":1500,"satfile":"sats_'$1'_string_1500.dat","formation":"'$2'"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_$1_$2.out
+echo "$2 2000 " >> batch_$1_$2.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":60000,"spacing":2000,"satfile":"sats_'$1'_string_2000.dat","formation":"'$2'"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_$1_$2.out
+echo "$2 2500 " >> batch_$1_$2.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":60000,"spacing":2500,"satfile":"sats_'$1'_string_2500.dat","formation":"'$2'"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_$1_$2.out
+echo "$2 3000 " >> batch_$1_$2.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":60000,"spacing":3000,"satfile":"sats_'$1'_string_3000.dat","formation":"'$2'"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_$1_$2.out
+echo "$2 3500 " >> batch_$1_$2.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":60000,"spacing":3500,"satfile":"sats_'$1'_string_3500.dat","formation":"'$2'"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_$1_$2.out
+echo "$2 4000 " >> batch_$1_$2.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":60000,"spacing":4000,"satfile":"sats_'$1'_string_4000.dat","formation":"'$2'"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_$1_$2.out

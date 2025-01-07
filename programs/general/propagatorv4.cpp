@@ -193,7 +193,7 @@ vector<size_t> indices_of_targets_observed(
 			// for each target
 			for (size_t target_num : target_nums)	{
 				// if observed
-				if(!results[t][sat_num].target[target_num].cover.empty()) {
+                if(results[t][sat_num].target[target_num].cover[0].area != 0.) {
 					// note that it has been observed
 					target_observed[target_num] = true;
 				}
@@ -237,9 +237,9 @@ double extract_results_min_resolution(
 		for (size_t t=start_timestep; t<=stop_timestep; ++t)	{
 			// for each target
 			for (size_t target_num : target_nums)	{
-				// if target was observed
-				if(!results[t][sat_num].target[target_num].cover.empty()) {
-					// record minimum resolution
+                // if target was observed
+                if(results[t][sat_num].target[target_num].cover[0].area != 0.) {
+                    // record minimum resolution
 					if(results[t][sat_num].target[target_num].cover[0].resolution<min_resolution)	{
 						min_resolution=results[t][sat_num].target[target_num].cover[0].resolution;
 					}
@@ -268,7 +268,7 @@ double extract_results_average_percent(
             // Iterate over targets
             for (size_t target_num : target_nums) {
                 // If the target was observed
-                if (!results[t][sat_num].target[target_num].cover.empty()) {
+                if(results[t][sat_num].target[target_num].cover[0].area != 0.) {
                     // Update the running average
                     double percent = results[t][sat_num].target[target_num].cover[0].percent;
                     count++;
@@ -299,7 +299,7 @@ double extract_results_total_area(
             // Iterate over targets
             for (size_t target_num : target_nums) {
                 // If the target was observed
-                if (!results[t][sat_num].target[target_num].cover.empty()) {
+                if(results[t][sat_num].target[target_num].cover[0].area != 0.) {
                     // Accumulate the area
                     total_area += results[t][sat_num].target[target_num].cover[0].area;
                 }
@@ -337,9 +337,9 @@ void extract_results(
 			// for each time step
 			for (size_t t=start_timestep; t<=stop_timestep; ++t)	{
 				// for each target
-				for (size_t target_num : target_nums)	{
-					if(!results[t][sat_num].target[target_num].cover.empty()) {
-							out<<"cover[0].resolution == "<<results[t][sat_num].target[target_num].cover[0].resolution<<endl;
+                for (size_t target_num : target_nums)	{
+                    if(results[t][sat_num].target[target_num].cover[0].area != 0.) {
+                            out<<"cover[0].resolution == "<<results[t][sat_num].target[target_num].cover[0].resolution<<endl;
 					}
 				}
 			}

@@ -3718,7 +3718,7 @@ int32_t ric2lvlh(double radius, cartpos ric, cartpos& lvlh)
     // Position
     lvlh.s.col[0] = radius * sin(iangle);
     lvlh.s.col[1] = -radius * sin(cangle);
-    lvlh.s.col[2] += lvlh.s.col[2] * (1. - cos(tangle)) - ric.s.col[0] * sin(tangle);
+    lvlh.s.col[2] = lvlh.s.col[2] * (1. - cos(tangle)) - ric.s.col[0] * sin(tangle);
 
     // Velocity
     lvlh.v.col[0] = ric.v.col[1] * sin(iangle);
