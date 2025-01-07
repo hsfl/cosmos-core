@@ -22,6 +22,7 @@ Agent *agent;
 //uint16_t thrustctl = 0;
 double simdt = 1.;
 uint16_t realtime=1;
+uint16_t summarize=0;
 uint16_t settle=0;
 uint16_t printevent=0;
 uint16_t postevent=0;
@@ -85,6 +86,10 @@ int main(int argc, char *argv[])
     sim->Init(simdt, realmname);
     sim->ParseOrbitFile();
     sim->ParseSatFile(satfile);
+    if (satfile.find("/") != string::npos)
+    {
+        satfile = satfile.substr(satfile.find_last_of('/'));
+    }
     lvlhoffset.resize(sim->cnodes.size());
     sim->ParseTargetFile();
     if (realtime)
@@ -111,6 +116,12 @@ int main(int argc, char *argv[])
     {
         delta[i].s.col[0] = 1.;
         settled[i] = false;
+    }
+    vector<vector<Physics::coverage>> summaries;
+    summaries.resize(sim->cnodes.size() + 1);
+    for (uint16_t i=0; i<sim->cnodes.size()+1; ++i)
+    {
+        summaries[i].resize(sim->targets.size() + 1);
     }
     sim->Formation(formation, spacing);
     sim->Thrust();
@@ -295,52 +306,734 @@ int main(int argc, char *argv[])
                 agent->post(Agent::AgentMessage::SOH, json_of_list(jstring, sim->cnodes[i]->sohstring, &sim->cnodes[i]->currentinfo));
             }
         }
-//        if (printevent)
-//        {
-//            printf("\n");
-//            fflush(stdout);
-//        }
+        //        if (printevent)
+        //        {
+        //            printf("\n");
+        //            fflush(stdout);
+        //        }
         sim->Propagate();
         sim->Thrust();
         sim->Target();
         sim->Metric();
+        if (summarize)
+        {
+            for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+            {
+                for (uint16_t j=0; j<sim->targets.size(); ++j)
+                {
+                    if (sim->cnodes[i]->currentinfo.target[j].cover[0].area != 0.)
+                    {
+                        ++summaries[i][j].count;
+                        summaries[i][j].area += sim->cnodes[i]->currentinfo.target[j].cover[0].area;
+                        summaries[i][j].percent += sim->cnodes[i]->currentinfo.target[j].cover[0].percent;
+                        summaries[i][j].resolution += sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+                        summaries[i][j].resstd += sim->cnodes[i]->currentinfo.target[j].cover[0].resolution * sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+                        summaries[i][j].azimuth += sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+                        summaries[i][j].azstd += sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth * sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+                        summaries[i][j].elevation += sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+                        summaries[i][j].elstd += sim->cnodes[i]->currentinfo.target[j].cover[0].elevation * sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+
+//                        if (summaries[i][j].resmin == 0. || sim->cnodes[i]->currentinfo.target[j].cover[0].resolution < summaries[i][j].resmin)
+//                        {
+//                            summaries[i][j].resmin = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+//                        }
+//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].resolution > summaries[i][j].resmax)
+//                        {
+//                            summaries[i][j].resmax = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+//                        }
+
+//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth < summaries[i][j].azmin)
+//                        {
+//                            summaries[i][j].azmin = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+//                        }
+//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth > summaries[i][j].azmax)
+//                        {
+//                            summaries[i][j].azmax = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+//                        }
+
+//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation < summaries[i][j].elmin)
+//                        {
+//                            summaries[i][j].elmin = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+//                        }
+//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation > summaries[i][j].elmax)
+//                        {
+//                            summaries[i][j].elmax = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+//                        }
+
+                        ++summaries[i][sim->targets.size()].count;
+                        summaries[i][sim->targets.size()].area += sim->cnodes[i]->currentinfo.target[j].cover[0].area;
+                        summaries[i][sim->targets.size()].percent += sim->cnodes[i]->currentinfo.target[j].cover[0].percent;
+                        summaries[i][sim->targets.size()].resolution += sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+                        summaries[i][sim->targets.size()].azimuth += sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+                        summaries[i][sim->targets.size()].elevation += sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+                        summaries[i][sim->targets.size()].resstd += sim->cnodes[i]->currentinfo.target[j].cover[0].resolution * sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+                        summaries[i][sim->targets.size()].azstd += sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth * sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+                        summaries[i][sim->targets.size()].elstd += sim->cnodes[i]->currentinfo.target[j].cover[0].elevation * sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+
+//                        if (summaries[i][sim->targets.size()].resmin == 0. || sim->cnodes[i]->currentinfo.target[j].cover[0].resolution < summaries[i][sim->targets.size()].resmin)
+//                        {
+//                            summaries[i][sim->targets.size()].resmin = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+//                        }
+//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].resolution > summaries[i][sim->targets.size()].resmax)
+//                        {
+//                            summaries[i][sim->targets.size()].resmax = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+//                        }
+
+//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth < summaries[i][sim->targets.size()].azmin)
+//                        {
+//                            summaries[i][sim->targets.size()].azmin = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+//                        }
+//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth > summaries[i][sim->targets.size()].azmax)
+//                        {
+//                            summaries[i][sim->targets.size()].azmax = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+//                        }
+
+//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation < summaries[i][sim->targets.size()].elmin)
+//                        {
+//                            summaries[i][sim->targets.size()].elmin = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+//                        }
+//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation > summaries[i][sim->targets.size()].elmax)
+//                        {
+//                            summaries[i][sim->targets.size()].elmax = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+//                        }
+
+                        ++summaries[sim->cnodes.size()][sim->targets.size()].count;
+                        summaries[sim->cnodes.size()][sim->targets.size()].area += sim->cnodes[i]->currentinfo.target[j].cover[0].area;
+                        summaries[sim->cnodes.size()][sim->targets.size()].percent += sim->cnodes[i]->currentinfo.target[j].cover[0].percent;
+                        summaries[sim->cnodes.size()][sim->targets.size()].resolution += sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+                        summaries[sim->cnodes.size()][sim->targets.size()].azimuth += sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+                        summaries[sim->cnodes.size()][sim->targets.size()].elevation += sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+                        summaries[sim->cnodes.size()][sim->targets.size()].resstd += sim->cnodes[i]->currentinfo.target[j].cover[0].resolution * sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+                        summaries[sim->cnodes.size()][sim->targets.size()].azstd += sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth * sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+                        summaries[sim->cnodes.size()][sim->targets.size()].elstd += sim->cnodes[i]->currentinfo.target[j].cover[0].elevation * sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+
+//                        if (summaries[sim->cnodes.size()][sim->targets.size()].resmin == 0. || sim->cnodes[i]->currentinfo.target[j].cover[0].resolution < summaries[sim->cnodes.size()][sim->targets.size()].resmin)
+//                        {
+//                            summaries[sim->cnodes.size()][sim->targets.size()].resmin = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+//                        }
+//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].resolution > summaries[sim->cnodes.size()][sim->targets.size()].resmax)
+//                        {
+//                            summaries[sim->cnodes.size()][sim->targets.size()].resmax = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+//                        }
+
+//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth < summaries[sim->cnodes.size()][sim->targets.size()].azmin)
+//                        {
+//                            summaries[sim->cnodes.size()][sim->targets.size()].azmin = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+//                        }
+//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth > summaries[sim->cnodes.size()][sim->targets.size()].azmax)
+//                        {
+//                            summaries[sim->cnodes.size()][sim->targets.size()].azmax = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+//                        }
+
+//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation < summaries[sim->cnodes.size()][sim->targets.size()].elmin)
+//                        {
+//                            summaries[sim->cnodes.size()][sim->targets.size()].elmin = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+//                        }
+//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation > summaries[sim->cnodes.size()][sim->targets.size()].elmax)
+//                        {
+//                            summaries[sim->cnodes.size()][sim->targets.size()].elmax = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+//                        }
+                    }
+                }
+            }
+        }
         if (realtime)
         {
             agent->finish_active_loop();
             elapsed += simdt;
-            //            if (++tcount > 10)
-            //            {
-            //                printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f | %8.1f %8.1f %8.1f %8.1f %8.1f %8.1f | %8.1f %8.1f %8.1f %8.2f %8.2f %8.2f | %8.4f %8.2f %8.1f\n",
-            //                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.a.col[0],
-            //                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.a.col[1],
-            //                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.a.col[2],
-            //                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.a.col[0],
-            //                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.a.col[1],
-            //                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.a.col[2],
-            //                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[0],
-            //                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[1],
-            //                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.v.col[2],
-            //                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[0],
-            //                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[1],
-            //                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.v.col[2],
-            //                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.s.col[0],
-            //                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.s.col[1],
-            //                       sim->cnodes[0]->currentinfo.node.loc.pos.eci.s.col[2],
-            //                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.s.col[0],
-            //                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.s.col[1],
-            //                       sim->cnodes[1]->currentinfo.node.loc.pos.eci.s.col[2],
-            //                       length_rv(sim->cnodes[1]->currentinfo.node.loc.pos.eci.a-sim->cnodes[0]->currentinfo.node.loc.pos.eci.a),
-            //                       length_rv(sim->cnodes[1]->currentinfo.node.loc.pos.eci.v-sim->cnodes[0]->currentinfo.node.loc.pos.eci.v),
-            //                       length_rv(sim->cnodes[1]->currentinfo.node.loc.pos.eci.s-sim->cnodes[0]->currentinfo.node.loc.pos.eci.s)
-            //                       );
-            //                fflush(stdout);
-            //                tcount = 0;
-            //            }
         }
         else
         {
             ++elapsed;
         }
+    }
+    if (summarize)
+    {
+        // Heading
+        printf("file\ttype\tnode");
+        for (uint16_t j=0; j<sim->targets.size(); ++j)
+        {
+            printf("\tT%02u", j);
+        }
+        printf("\n");
+
+        // Count
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            printf("%s\tcount", satfile.c_str());
+            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                printf("\t%u", summaries[i][j].count);
+            }
+            printf("\n");
+        }
+
+        // Area
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            printf("%s\tarea", satfile.c_str());
+            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].count > 1)
+                {
+                    summaries[i][j].area /= summaries[i][j].count;
+                }
+                printf("\t%0.0f", summaries[i][j].area);
+            }
+            printf("\n");
+        }
+
+        // Percent
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            printf("%s\tpercent", satfile.c_str());
+            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                summaries[i][j].percent *= 100.;
+                if (summaries[i][j].count > 1)
+                {
+                    summaries[i][j].percent /= summaries[i][j].count;
+                }
+                printf("\t%0.2f", summaries[i][j].percent);
+            }
+            printf("\n");
+        }
+
+        // Mean Resolution
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            printf("%s\tresmean", satfile.c_str());
+            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].count > 1)
+                {
+                    summaries[i][j].resstd = sqrt((summaries[i][j].resstd - summaries[i][j].resolution * summaries[i][j].resolution / summaries[i][j].count) / (summaries[i][j].count - 1));
+                    summaries[i][j].resolution /= summaries[i][j].count;
+                }
+                printf("\t%0.2f", summaries[i][j].resolution);
+            }
+            printf("\n");
+        }
+
+        // StDev Resolution
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            printf("%s\tresstd", satfile.c_str());
+            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                printf("\t%0.2f", summaries[i][j].resstd);
+            }
+            printf("\n");
+        }
+
+        // Mean Azimuth
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            printf("%s\tazmean", satfile.c_str());
+            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].count > 1)
+                {
+                    summaries[i][j].azstd = sqrt((summaries[i][j].azstd - summaries[i][j].azimuth * summaries[i][j].azimuth / summaries[i][j].count) / (summaries[i][j].count - 1));
+                    summaries[i][j].azimuth /= summaries[i][j].count;
+                }
+                printf("\t%0.2f", summaries[i][j].azimuth);
+            }
+            printf("\n");
+        }
+
+        // StDev Azimuth
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            printf("%s\tazstd", satfile.c_str());
+            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                printf("\t%0.2f", summaries[i][j].azstd);
+            }
+            printf("\n");
+        }
+
+        // Mean Elevation
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            printf("%s\telmean", satfile.c_str());
+            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].count > 1)
+                {
+                    summaries[i][j].elstd = sqrt((summaries[i][j].elstd - summaries[i][j].elevation * summaries[i][j].elevation / summaries[i][j].count) / (summaries[i][j].count - 1));
+                    summaries[i][j].elevation /= summaries[i][j].count;
+                }
+                printf("\t%0.2f", summaries[i][j].elevation);
+            }
+            printf("\n");
+        }
+
+        // StDev Elevation
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            printf("%s\telstd", satfile.c_str());
+            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                printf("\t%0.2f", summaries[i][j].elstd);
+            }
+            printf("\n");
+        }
+        printf("\n");
+
+        // Heading
+        printf("file\ttype");
+        for (uint16_t j=0; j<11; ++j)
+        {
+            printf("\tBin%02u", j);
+        }
+        printf("\n");
+
+        vector<double> histbin(11, 0.);
+        vector<uint32_t> histcnt(11, 0);
+        double binmax;
+
+        // Count
+        binmax = 0.;
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].count > binmax)
+                {
+                    binmax = summaries[i][j].count;
+                }
+            }
+        }
+
+        binmax /= 9.5;
+        histcnt[0] = 0;
+        for (uint16_t i=0; i<10; ++i)
+        {
+            histbin[i+1] = binmax * ( 0.5 + i);
+            histcnt[i+1] = 0;
+        }
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].count)
+                {
+                    uint16_t bin = summaries[i][j].count / binmax;
+                    ++histcnt[bin];
+                }
+                else
+                {
+                ++histcnt[0];
+                }
+            }
+        }
+        printf("%s\tcount_bin", satfile.c_str());
+        for (uint16_t i=0; i<11; ++i)
+        {
+            printf("\t%0.2f", histbin[i]);
+        }
+        printf("\n");
+        printf("%s\tcount_value", satfile.c_str());
+        for (uint16_t i=0; i<11; ++i)
+        {
+            printf("\t%u", histcnt[i]);
+        }
+        printf("\n");
+
+        // Area
+        binmax = 0.;
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].area > binmax)
+                {
+                    binmax = summaries[i][j].area;
+                }
+            }
+        }
+
+        binmax /= 9.5;
+        histcnt[0] = 0;
+        for (uint16_t i=0; i<10; ++i)
+        {
+            histbin[i+1] = binmax * ( 0.5 + i);
+            histcnt[i+1] = 0;
+        }
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].count)
+                {
+                    uint16_t bin = summaries[i][j].area / binmax;
+                    ++histcnt[bin];
+                }
+                else
+                {
+                    ++histcnt[0];
+                }
+            }
+        }
+        printf("%s\tarea_bin", satfile.c_str());
+        for (uint16_t i=0; i<11; ++i)
+        {
+            printf("\t%0.2f", histbin[i]);
+        }
+        printf("\n");
+        printf("%s\tarea_value", satfile.c_str());
+        for (uint16_t i=0; i<11; ++i)
+        {
+            printf("\t%u", histcnt[i]);
+        }
+        printf("\n");
+
+        // Percent
+        binmax = 0.;
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].percent > binmax)
+                {
+                    binmax = summaries[i][j].percent;
+                }
+            }
+        }
+
+        binmax /= 9.5;
+        histcnt[0] = 0;
+        for (uint16_t i=0; i<10; ++i)
+        {
+            histbin[i+1] = binmax * ( 0.5 + i);
+            histcnt[i+1] = 0;
+        }
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].count)
+                {
+                    uint16_t bin = summaries[i][j].percent / binmax;
+                    ++histcnt[bin];
+                }
+                else
+                {
+                    ++histcnt[0];
+                }
+            }
+        }
+        printf("%s\tpercent_bin", satfile.c_str());
+        for (uint16_t i=0; i<11; ++i)
+        {
+            printf("\t%0.2f", histbin[i]);
+        }
+        printf("\n");
+        printf("%s\tpercent_value", satfile.c_str());
+        for (uint16_t i=0; i<11; ++i)
+        {
+            printf("\t%u", histcnt[i]);
+        }
+        printf("\n");
+
+        // Mean Resolution
+        binmax = 0.;
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].resolution > binmax)
+                {
+                    binmax = summaries[i][j].resolution;
+                }
+            }
+        }
+
+        binmax /= 9.5;
+        histcnt[0] = 0;
+        for (uint16_t i=0; i<10; ++i)
+        {
+            histbin[i+1] = binmax * ( 0.5 + i);
+            histcnt[i+1] = 0;
+        }
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].count)
+                {
+                    uint16_t bin = summaries[i][j].resolution / binmax;
+                    ++histcnt[bin];
+                }
+                else
+                {
+                    ++histcnt[0];
+                }
+            }
+        }
+        printf("%s\tresolution_bin", satfile.c_str());
+        for (uint16_t i=0; i<11; ++i)
+        {
+            printf("\t%0.2f", histbin[i]);
+        }
+        printf("\n");
+        printf("%s\tresolution_value", satfile.c_str());
+        for (uint16_t i=0; i<11; ++i)
+        {
+            printf("\t%u", histcnt[i]);
+        }
+        printf("\n");
+
+        // Stdev Resolution
+        binmax = 0.;
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].resstd > binmax)
+                {
+                    binmax = summaries[i][j].resstd;
+                }
+            }
+        }
+
+        binmax /= 9.5;
+        histcnt[0] = 0;
+        for (uint16_t i=0; i<10; ++i)
+        {
+            histbin[i+1] = binmax * ( 0.5 + i);
+            histcnt[i+1] = 0;
+        }
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].count)
+                {
+                    uint16_t bin = summaries[i][j].resstd / binmax;
+                    ++histcnt[bin];
+                }
+                else
+                {
+                    ++histcnt[0];
+                }
+            }
+        }
+        printf("%s\tresstd_bin", satfile.c_str());
+        for (uint16_t i=0; i<11; ++i)
+        {
+            printf("\t%0.2f", histbin[i]);
+        }
+        printf("\n");
+        printf("%s\tresstd_value", satfile.c_str());
+        for (uint16_t i=0; i<11; ++i)
+        {
+            printf("\t%u", histcnt[i]);
+        }
+        printf("\n");
+
+        // Mean Azimuth
+        binmax = 0.;
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].azimuth > binmax)
+                {
+                    binmax = summaries[i][j].azimuth;
+                }
+            }
+        }
+
+        binmax /= 9.5;
+        histcnt[0] = 0;
+        for (uint16_t i=0; i<10; ++i)
+        {
+            histbin[i+1] = binmax * ( 0.5 + i);
+            histcnt[i+1] = 0;
+        }
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].count)
+                {
+                    uint16_t bin = summaries[i][j].azimuth / binmax;
+                    ++histcnt[bin];
+                }
+                else
+                {
+                    ++histcnt[0];
+                }
+            }
+        }
+        printf("%s\tazimuth_bin", satfile.c_str());
+        for (uint16_t i=0; i<11; ++i)
+        {
+            printf("\t%0.2f", histbin[i]);
+        }
+        printf("\n");
+        printf("%s\tazimuth_value", satfile.c_str());
+        for (uint16_t i=0; i<11; ++i)
+        {
+            printf("\t%u", histcnt[i]);
+        }
+        printf("\n");
+
+        // Stdev Azimuth
+        binmax = 0.;
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].azstd > binmax)
+                {
+                    binmax = summaries[i][j].azstd;
+                }
+            }
+        }
+
+        binmax /= 9.5;
+        histcnt[0] = 0;
+        for (uint16_t i=0; i<10; ++i)
+        {
+            histbin[i+1] = binmax * ( 0.5 + i);
+            histcnt[i+1] = 0;
+        }
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].count)
+                {
+                    uint16_t bin = summaries[i][j].azstd / binmax;
+                    ++histcnt[bin];
+                }
+                else
+                {
+                    ++histcnt[0];
+                }
+            }
+        }
+        printf("%s\tazstd_bin", satfile.c_str());
+        for (uint16_t i=0; i<11; ++i)
+        {
+            printf("\t%0.2f", histbin[i]);
+        }
+        printf("\n");
+        printf("%s\tazstd_value", satfile.c_str());
+        for (uint16_t i=0; i<11; ++i)
+        {
+            printf("\t%u", histcnt[i]);
+        }
+        printf("\n");
+
+        // Mean Elevation
+        binmax = 0.;
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].elevation > binmax)
+                {
+                    binmax = summaries[i][j].elevation;
+                }
+            }
+        }
+
+        binmax /= 9.5;
+        histcnt[0] = 0;
+        for (uint16_t i=0; i<10; ++i)
+        {
+            histbin[i+1] = binmax * ( 0.5 + i);
+            histcnt[i+1] = 0;
+        }
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].count)
+                {
+                    uint16_t bin = summaries[i][j].elevation / binmax;
+                    ++histcnt[bin];
+                }
+                else
+                {
+                    ++histcnt[0];
+                }
+            }
+        }
+        printf("%s\televation_bin", satfile.c_str());
+        for (uint16_t i=0; i<11; ++i)
+        {
+            printf("\t%0.2f", histbin[i]);
+        }
+        printf("\n");
+        printf("%s\televation_value", satfile.c_str());
+        for (uint16_t i=0; i<11; ++i)
+        {
+            printf("\t%u", histcnt[i]);
+        }
+        printf("\n");
+
+        // Stdev Elevation
+        binmax = 0.;
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].elstd > binmax)
+                {
+                    binmax = summaries[i][j].elstd;
+                }
+            }
+        }
+
+        binmax /= 9.5;
+        histcnt[0] = 0;
+        for (uint16_t i=0; i<10; ++i)
+        {
+            histbin[i+1] = binmax * ( 0.5 + i);
+            histcnt[i+1] = 0;
+        }
+        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        {
+            for (uint16_t j=0; j<sim->targets.size(); ++j)
+            {
+                if (summaries[i][j].count)
+                {
+                    uint16_t bin = summaries[i][j].elstd / binmax;
+                    ++histcnt[bin];
+                }
+                else
+                {
+                    ++histcnt[0];
+                }
+            }
+        }
+        printf("%s\telstd_bin", satfile.c_str());
+        for (uint16_t i=0; i<11; ++i)
+        {
+            printf("\t%0.2f", histbin[i]);
+        }
+        printf("\n");
+        printf("%s\telstd_value", satfile.c_str());
+        for (uint16_t i=0; i<11; ++i)
+        {
+            printf("\t%u", histcnt[i]);
+        }
+        printf("\n");
+
     }
 }
 
@@ -354,6 +1047,11 @@ int32_t parse_control(string args)
     //        ++argcount;
     //        thrustctl = jargs["thrustctl"].number_value();
     //    }
+    if (!jargs["summarize"].is_null())
+    {
+        ++argcount;
+        summarize = jargs["summarize"].number_value();
+    }
     if (!jargs["settle"].is_null())
     {
         ++argcount;
@@ -669,24 +1367,24 @@ int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
     }
     // locstruc
     json11::Json jobj = json11::Json::object({
-        {"node_name", cinfo->node.name },
-        {"node_loc", json11::Json::object({
-            {"pos", json11::Json::object({
-                {"eci", json11::Json::object({
-                    { "utc", cinfo->node.loc.pos.eci.utc },
-                    { "s", cinfo->node.loc.pos.eci.s },
-                    { "v", cinfo->node.loc.pos.eci.v }
-                })}
-            })},
-            {"att", json11::Json::object({
-                {"icrf", json11::Json::object({
-                    { "utc", cinfo->node.loc.att.icrf.utc },
-                    { "s", cinfo->node.loc.att.icrf.s },
-                    { "v", cinfo->node.loc.att.icrf.v }
-                })}
-            })}
-        })},
-    });
+                                              {"node_name", cinfo->node.name },
+                                              {"node_loc", json11::Json::object({
+                                                               {"pos", json11::Json::object({
+                                                                           {"eci", json11::Json::object({
+                                                                                       { "utc", cinfo->node.loc.pos.eci.utc },
+                                                                                       { "s", cinfo->node.loc.pos.eci.s },
+                                                                                       { "v", cinfo->node.loc.pos.eci.v }
+                                                                                   })}
+                                                                       })},
+                                                               {"att", json11::Json::object({
+                                                                           {"icrf", json11::Json::object({
+                                                                                        { "utc", cinfo->node.loc.att.icrf.utc },
+                                                                                        { "s", cinfo->node.loc.att.icrf.s },
+                                                                                        { "v", cinfo->node.loc.att.icrf.v }
+                                                                                    })}
+                                                                       })}
+                                                           })},
+                                              });
     int32_t iretn = socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
     if (iretn < 0) { return iretn; }
 
@@ -714,13 +1412,13 @@ void reset_db(Physics::Simulator* sim)
         // Repopulate node table
         json11::Json jobj = json11::Json::object({
             {"node", json11::Json::object({
-                { "node_id", id },
-                { "node_name", (*sit)->currentinfo.node.name },
-                { "node_type", (*sit)->currentinfo.node.type },
-                { "agent_name", (*sit)->currentinfo.agent0.name },
-                { "utc", sim->currentutc },
-                { "utcstart", sim->initialutc }
-            })}
+                         { "node_id", id },
+                         { "node_name", (*sit)->currentinfo.node.name },
+                         { "node_type", (*sit)->currentinfo.node.type },
+                         { "agent_name", (*sit)->currentinfo.agent0.name },
+                         { "utc", sim->currentutc },
+                         { "utcstart", sim->initialutc }
+                     })}
         });
         socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
     }

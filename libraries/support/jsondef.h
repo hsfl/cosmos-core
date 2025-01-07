@@ -2009,7 +2009,7 @@ class sim_param	{
             gvector size = {0., 0., 0.};
             float area;
             float resolution;
-            vector <Physics::coverage> cover;
+            Physics::coverage cover[4];
 //            Physics::coverage vis;
 //            Physics::coverage swir;
 //            Physics::coverage mwir;
