@@ -3401,27 +3401,26 @@ int32_t pos_origin2lvlh(locstruc& loc)
     rvector lvlh_x;
     rvector lvlh_y;
     rvector lvlh_z;
-    //    locstruc tloc1 = loc;
 
 //    cartpos origin = loc.pos.geoc;
     // 1 Get lvlh basis vectors
-    lvlh_z = -rv_normal(loc.pos.eci.s);
-    lvlh_y = rv_normal(rv_cross(lvlh_z, loc.pos.eci.v));
+    lvlh_z = -rv_normal(loc.pos.geoc.s);
+    lvlh_y = rv_normal(rv_cross(lvlh_z, loc.pos.geoc.v));
     lvlh_x = rv_normal(rv_cross(lvlh_y, lvlh_z));
 
     // 2 Convert LVLH offsets into ECI
-    cartpos eci_offset;
-    eci_offset.s.col[0] = lvlh_x.col[0]*loc.pos.lvlh.s.col[0] + lvlh_y.col[0]*loc.pos.lvlh.s.col[1] + lvlh_z.col[0]*loc.pos.lvlh.s.col[2];
-    eci_offset.s.col[1] = lvlh_x.col[1]*loc.pos.lvlh.s.col[0] + lvlh_y.col[1]*loc.pos.lvlh.s.col[1] + lvlh_z.col[1]*loc.pos.lvlh.s.col[2];
-    eci_offset.s.col[2] = lvlh_x.col[2]*loc.pos.lvlh.s.col[0] + lvlh_y.col[2]*loc.pos.lvlh.s.col[1] + lvlh_z.col[2]*loc.pos.lvlh.s.col[2];
-    eci_offset.v.col[0] = lvlh_x.col[0]*loc.pos.lvlh.v.col[0] + lvlh_y.col[0]*loc.pos.lvlh.v.col[1] + lvlh_z.col[0]*loc.pos.lvlh.v.col[2];
-    eci_offset.v.col[1] = lvlh_x.col[1]*loc.pos.lvlh.v.col[0] + lvlh_y.col[1]*loc.pos.lvlh.v.col[1] + lvlh_z.col[1]*loc.pos.lvlh.v.col[2];
-    eci_offset.v.col[2] = lvlh_x.col[2]*loc.pos.lvlh.v.col[0] + lvlh_y.col[2]*loc.pos.lvlh.v.col[1] + lvlh_z.col[2]*loc.pos.lvlh.v.col[2];
-    eci_offset.a.col[0] = lvlh_x.col[0]*loc.pos.lvlh.a.col[0] + lvlh_y.col[0]*loc.pos.lvlh.a.col[1] + lvlh_z.col[0]*loc.pos.lvlh.a.col[2];
-    eci_offset.a.col[1] = lvlh_x.col[1]*loc.pos.lvlh.a.col[0] + lvlh_y.col[1]*loc.pos.lvlh.a.col[1] + lvlh_z.col[1]*loc.pos.lvlh.a.col[2];
-    eci_offset.a.col[2] = lvlh_x.col[2]*loc.pos.lvlh.a.col[0] + lvlh_y.col[2]*loc.pos.lvlh.a.col[1] + lvlh_z.col[2]*loc.pos.lvlh.a.col[2];
+    cartpos geoc_offset;
+    geoc_offset.s.col[0] = lvlh_x.col[0]*loc.pos.lvlh.s.col[0] + lvlh_y.col[0]*loc.pos.lvlh.s.col[1] + lvlh_z.col[0]*loc.pos.lvlh.s.col[2];
+    geoc_offset.s.col[1] = lvlh_x.col[1]*loc.pos.lvlh.s.col[0] + lvlh_y.col[1]*loc.pos.lvlh.s.col[1] + lvlh_z.col[1]*loc.pos.lvlh.s.col[2];
+    geoc_offset.s.col[2] = lvlh_x.col[2]*loc.pos.lvlh.s.col[0] + lvlh_y.col[2]*loc.pos.lvlh.s.col[1] + lvlh_z.col[2]*loc.pos.lvlh.s.col[2];
+    geoc_offset.v.col[0] = lvlh_x.col[0]*loc.pos.lvlh.v.col[0] + lvlh_y.col[0]*loc.pos.lvlh.v.col[1] + lvlh_z.col[0]*loc.pos.lvlh.v.col[2];
+    geoc_offset.v.col[1] = lvlh_x.col[1]*loc.pos.lvlh.v.col[0] + lvlh_y.col[1]*loc.pos.lvlh.v.col[1] + lvlh_z.col[1]*loc.pos.lvlh.v.col[2];
+    geoc_offset.v.col[2] = lvlh_x.col[2]*loc.pos.lvlh.v.col[0] + lvlh_y.col[2]*loc.pos.lvlh.v.col[1] + lvlh_z.col[2]*loc.pos.lvlh.v.col[2];
+    geoc_offset.a.col[0] = lvlh_x.col[0]*loc.pos.lvlh.a.col[0] + lvlh_y.col[0]*loc.pos.lvlh.a.col[1] + lvlh_z.col[0]*loc.pos.lvlh.a.col[2];
+    geoc_offset.a.col[1] = lvlh_x.col[1]*loc.pos.lvlh.a.col[0] + lvlh_y.col[1]*loc.pos.lvlh.a.col[1] + lvlh_z.col[1]*loc.pos.lvlh.a.col[2];
+    geoc_offset.a.col[2] = lvlh_x.col[2]*loc.pos.lvlh.a.col[0] + lvlh_y.col[2]*loc.pos.lvlh.a.col[1] + lvlh_z.col[2]*loc.pos.lvlh.a.col[2];
 
-    loc.pos.eci.s = loc.pos.eci.s + eci_offset.s;
+    loc.pos.geoc.s = loc.pos.geoc.s + geoc_offset.s;
 
     // This is the equation to find the velocity of a point using observations
     // from a translating and rotating reference frame B
@@ -3438,17 +3437,17 @@ int32_t pos_origin2lvlh(locstruc& loc)
     // A_w_B: The angular velocity of reference frame B
     // r_P/Q: The distance between points P and Q (in reference frame A)
 
-    // B_v_P/Q = eci_offset.v
-    // A_v_Q = loc.pos.eci.v
+    // B_v_P/Q = geoc_offset.v
+    // A_v_Q = loc.pos.geoc.v
     // A_w_B = angular velocity = (s x v) / ||s||^2
-    rvector angular_velocity = rv_smult(1./pow(length_rv(loc.pos.eci.s),2),rv_cross(loc.pos.eci.s,loc.pos.eci.v));
-    // r_P/Q = eci_offset.s
+    rvector angular_velocity = rv_smult(1./pow(length_rv(loc.pos.geoc.s),2),rv_cross(loc.pos.geoc.s,loc.pos.geoc.v));
+    // r_P/Q = geoc_offset.s
 
     // A_w_B x r_P/Q
-    rvector w_x_r = rv_cross(angular_velocity, eci_offset.s);
+    rvector w_x_r = rv_cross(angular_velocity, geoc_offset.s);
 
     // Compute B_v_P/Q + A_v_Q + (A_w_B x r_P/Q)
-    loc.pos.eci.v = loc.pos.eci.v + eci_offset.v + w_x_r;
+    loc.pos.geoc.v = loc.pos.geoc.v + geoc_offset.v + w_x_r;
 
     // This is the equation to find the acceleration of a point using observations
     // from a rotating and translating reference frame B
@@ -3462,25 +3461,23 @@ int32_t pos_origin2lvlh(locstruc& loc)
     // B_a_P/Q: The acceleration of point P in reference frame B as observed from point Q.
     // A_alpha_B = The angular acceleration of reference frame B as observed by reference frame A.
 
-    // A_a_Q = loc.pos.eci.a
-    // B_a_P/Q = eci_offset.a
+    // A_a_Q = loc.pos.geoc.a
+    // B_a_P/Q = geoc_offset.a
     // A_alpha_B = angular acceleration = (s x a) / ||s||^2
-    rvector angular_acceleration = rv_smult(1./pow(length_rv(loc.pos.eci.s),2),rv_cross(loc.pos.eci.s,loc.pos.eci.a));
+    rvector angular_acceleration = rv_smult(1./pow(length_rv(loc.pos.geoc.s),2),rv_cross(loc.pos.geoc.s,loc.pos.geoc.a));
 
     // Compute
     // A_a_P = A_a_Q + B_a_P/Q
-    loc.pos.eci.a = loc.pos.eci.a + eci_offset.a
+    loc.pos.geoc.a = loc.pos.geoc.a + geoc_offset.a
                      //     + A_alpha_B x r_P/Q        = Euler acceleration
-                     + rv_cross(angular_acceleration, eci_offset.s)
+                     + rv_cross(angular_acceleration, geoc_offset.s)
                      //     + 2 * A_w_B x B_v_P/Q      = Coriolis acceleration
-                     + 2 * rv_cross(angular_velocity, eci_offset.v)
+                     + 2 * rv_cross(angular_velocity, geoc_offset.v)
                      //     + A_w_B x (A_w_B x r_P/Q)  = Centripetal acceleration
                      + rv_cross(angular_velocity, w_x_r);
 
-    loc.pos.eci.pass = std::max(loc.pos.eci.pass, loc.pos.geos.pass) + 1;
-    //    tloc1.pos.eci.utc = origin.utc;
-    //    ++tloc1.pos.eci.pass;
-    pos_eci(loc);
+    loc.pos.geoc.pass = std::max(loc.pos.eci.pass, loc.pos.geos.pass) + 1;
+    pos_geoc(loc);
 
     return 0;
 }
