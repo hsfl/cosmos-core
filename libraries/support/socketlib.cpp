@@ -1058,8 +1058,13 @@ int32_t socket_poll(socket_bus &bus, vector<uint8_t> &buffer, size_t maxlen, int
 {
     for (socket_channel channel : bus)
     {
+#ifdef COSMOS_WIN_OS
+        u_long count=0;
+        if (ioctlsocket(channel.cudp, FIONREAD, &count) == 0 && count)
+#else
         int count=0;
         if (ioctl(channel.cudp, FIONREAD, count) == 0 && count)
+#endif
         {
             return socket_recvfrom(channel, buffer, maxlen, flags);
         }
