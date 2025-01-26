@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SummaryPanel</class>
+ <widget class="QWidget" name="SummaryPanel">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>307</width>
+    <height>439</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>ADCS</string>
+  </property>
+  <widget class="Model3DView" name="Model3DView0(autoname)" native="true">
+   <property name="geometry">
+    <rect>
+     <x>4</x>
+     <y>4</y>
+     <width>299</width>
+     <height>215</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="QLabel0(autoname)">
+   <property name="geometry">
+    <rect>
+     <x>62</x>
+     <y>248</y>
+     <width>64</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Attitude</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="QLabel1(autoname)">
+   <property name="geometry">
+    <rect>
+     <x>128</x>
+     <y>248</y>
+     <width>104</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Rotation Rate</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="QLabel2(autoname)">
+   <property name="geometry">
+    <rect>
+     <x>215</x>
+     <y>248</y>
+     <width>96</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Acceleration</string>
+   </property>
+  </widget>
+  <widget class="RotationView" name="RotationView0" native="true">
+   <property name="geometry">
+    <rect>
+     <x>12</x>
+     <y>268</y>
+     <width>114</width>
+     <height>80</height>
+    </rect>
+   </property>
+   <property name="modeLocked" stdset="0">
+    <bool>false</bool>
+   </property>
+   <property name="showLabels" stdset="0">
+    <bool>true</bool>
+   </property>
+   <property name="eulerHLabel" stdset="0">
+    <string>Yaw</string>
+   </property>
+   <property name="eulerELabel" stdset="0">
+    <string>Pitch</string>
+   </property>
+   <property name="eulerBLabel" stdset="0">
+    <string>Roll</string>
+   </property>
+   <widget class="COSMOSDatumWdgt" name="data" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>10</width>
+      <height>10</height>
+     </rect>
+    </property>
+    <property name="acceptDrops">
+     <bool>false</bool>
+    </property>
+    <property name="valueName" stdset="0">
+     <string>node_loc_att_lvlh_s</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QComboBox" name="RefFrameSelector">
+   <property name="geometry">
+    <rect>
+     <x>4</x>
+     <y>220</y>
+     <width>83</width>
+     <height>29</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="RotationView" name="RotationView1" native="true">
+   <property name="geometry">
+    <rect>
+     <x>128</x>
+     <y>268</y>
+     <width>80</width>
+     <height>80</height>
+    </rect>
+   </property>
+   <property name="modeLocked" stdset="0">
+    <bool>false</bool>
+   </property>
+   <property name="showLabels" stdset="0">
+    <bool>false</bool>
+   </property>
+   <widget class="COSMOSDatumWdgt" name="data_2" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>10</width>
+      <height>10</height>
+     </rect>
+    </property>
+    <property name="acceptDrops">
+     <bool>false</bool>
+    </property>
+    <property name="valueName" stdset="0">
+     <string>node_loc_att_lvlh_v</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="RotationView" name="RotationView2" native="true">
+   <property name="geometry">
+    <rect>
+     <x>211</x>
+     <y>268</y>
+     <width>80</width>
+     <height>80</height>
+    </rect>
+   </property>
+   <property name="modeLocked" stdset="0">
+    <bool>false</bool>
+   </property>
+   <property name="showLabels" stdset="0">
+    <bool>false</bool>
+   </property>
+   <widget class="COSMOSDatumWdgt" name="data_3" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>10</width>
+      <height>10</height>
+     </rect>
+    </property>
+    <property name="acceptDrops">
+     <bool>false</bool>
+    </property>
+    <property name="valueName" stdset="0">
+     <string>node_loc_att_lvlh_a</string>
+    </property>
+   </widget>
+  </widget>
+  <zorder>Model3DView0(autoname)</zorder>
+  <zorder>QLabel0(autoname)</zorder>
+  <zorder>QLabel1(autoname)</zorder>
+  <zorder>QLabel2(autoname)</zorder>
+  <zorder>RotationView0</zorder>
+  <zorder>RefFrameSelector</zorder>
+  <zorder>RotationView2(autoname)</zorder>
+  <zorder>RotationView1</zorder>
+  <zorder>RotationView2</zorder>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Model3DView</class>
+   <extends>QWidget</extends>
+   <header>model3dview.h</header>
+  </customwidget>
+  <customwidget>
+   <class>RotationView</class>
+   <extends>QWidget</extends>
+   <header>rotationview.h</header>
+  </customwidget>
+  <customwidget>
+   <class>COSMOSDatumWdgt</class>
+   <extends>QWidget</extends>
+   <header>cosmosdata.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

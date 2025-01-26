@@ -1,0 +1,609 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+    <class>DetailPanel</class>
+    <widget class="QWidget" name="DetailPanel">
+        <property name="windowTitle">
+            <string>EPS</string>
+        </property>
+        <widget class="QGroupBox" name="load">
+            <property name="geometry">
+                <rect>
+                    <x>4</x>
+                    <y>4</y>
+                    <width>151</width>
+                    <height>185</height>
+                </rect>
+            </property>
+            <property name="title">
+                <string>Power Used</string>
+            </property>
+            <widget class="PieChart" name="COSMOSPowerPieChart">
+                <property name="geometry">
+                    <rect>
+                        <x>3</x>
+                        <y>13</y>
+                        <width>144</width>
+                        <height>144</height>
+                    </rect>
+                </property>
+                <property name="background">
+                    <color>
+                        <red>120</red>
+                        <green>120</green>
+                        <blue>120</blue>
+                    </color>
+                </property>
+                <property name="maxJSON">
+                    <string>node_powgen</string>
+                </property>
+            </widget>
+            <widget class="QLabel" name="QLabel0(autoname)">
+                <property name="geometry">
+                    <rect>
+                        <x>10</x>
+                        <y>160</y>
+                        <width>71</width>
+                        <height>16</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Total (Watts)</string>
+                </property>
+            </widget>
+            <widget class="QLineEdit" name="COSMOSinfo_powuse">
+                <property name="geometry">
+                    <rect>
+                        <x>77</x>
+                        <y>160</y>
+                        <width>61</width>
+                        <height>20</height>
+                    </rect>
+                </property>
+            </widget>
+        </widget>
+        <widget class="QLabel" name="QLabel1(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>10</x>
+                    <y>188</y>
+                    <width>184</width>
+                    <height>16</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Power Generated (Watts)</string>
+            </property>
+        </widget>
+        <widget class="QLineEdit" name="COSMOSnode_powgen">
+            <property name="geometry">
+                <rect>
+                    <x>35</x>
+                    <y>208</y>
+                    <width>81</width>
+                    <height>20</height>
+                </rect>
+            </property>
+        </widget>
+        <widget class="QLabel" name="QLabel2(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>20</x>
+                    <y>230</y>
+                    <width>64</width>
+                    <height>16</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Charging</string>
+            </property>
+        </widget>
+        <widget class="IndicatorLight" name="IndicatorLight0(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>90</x>
+                    <y>230</y>
+                    <width>41</width>
+                    <height>16</height>
+                </rect>
+            </property>
+            <property name="valueJSON">
+                <string>info_powchg</string>
+            </property>
+        </widget>
+        <widget class="QGroupBox" name="QGroupBox0(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>10</x>
+                    <y>251</y>
+                    <width>141</width>
+                    <height>71</height>
+                </rect>
+            </property>
+            <property name="title">
+                <string>Battery 1</string>
+            </property>
+            <widget class="LevelBar" name="BattLev1">
+                <property name="geometry">
+                    <rect>
+                        <x>3</x>
+                        <y>14</y>
+                        <width>135</width>
+                        <height>32</height>
+                    </rect>
+                </property>
+                <property name="valueJSON">
+                    <string>device_batt_lev_000</string>
+                </property>
+                <property name="maxJSON">
+                    <string>device_batt_cap_000</string>
+                </property>
+                <property name="title">
+                    <string>Battery 1</string>
+                </property>
+                <property name="barColor">
+                    <color>
+                        <red>0</red>
+                        <green>255</green>
+                        <blue>0</blue>
+                    </color>
+                </property>
+                <property name="horizontal">
+                    <bool>true</bool>
+                </property>
+            </widget>
+            <widget class="QLineEdit" name="COSMOSdevice_batt_lev_000">
+                <property name="geometry">
+                    <rect>
+                        <x>3</x>
+                        <y>48</y>
+                        <width>133</width>
+                        <height>20</height>
+                    </rect>
+                </property>
+            </widget>
+        </widget>
+        <widget class="QLabel" name="QLabel3(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>161</x>
+                    <y>5</y>
+                    <width>96</width>
+                    <height>16</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Solar Panels</string>
+            </property>
+        </widget>
+        <widget class="QLabel" name="QLabel4(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>161</x>
+                    <y>27</y>
+                    <width>136</width>
+                    <height>16</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>solarpanel-side-1</string>
+            </property>
+        </widget>
+        <widget class="LevelBar" name="PanelLev1">
+            <property name="geometry">
+                <rect>
+                    <x>161</x>
+                    <y>46</y>
+                    <width>75</width>
+                    <height>30</height>
+                </rect>
+            </property>
+            <property name="valueJSON">
+                <string>device_strg_pow_000</string>
+            </property>
+            <property name="maxJSON">
+                <string>device_strg_max_000</string>
+            </property>
+            <property name="title">
+                <string>solarpanel-side-1</string>
+            </property>
+            <property name="barColor">
+                <color>
+                    <red>255</red>
+                    <green>255</green>
+                    <blue>0</blue>
+                </color>
+            </property>
+            <property name="horizontal">
+                <bool>true</bool>
+            </property>
+        </widget>
+        <widget class="QLabel" name="QLabel5(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>244</x>
+                    <y>27</y>
+                    <width>136</width>
+                    <height>16</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>solarpanel-side-2</string>
+            </property>
+        </widget>
+        <widget class="LevelBar" name="PanelLev2">
+            <property name="geometry">
+                <rect>
+                    <x>244</x>
+                    <y>46</y>
+                    <width>75</width>
+                    <height>30</height>
+                </rect>
+            </property>
+            <property name="valueJSON">
+                <string>device_strg_pow_001</string>
+            </property>
+            <property name="maxJSON">
+                <string>device_strg_max_001</string>
+            </property>
+            <property name="title">
+                <string>solarpanel-side-2</string>
+            </property>
+            <property name="barColor">
+                <color>
+                    <red>255</red>
+                    <green>255</green>
+                    <blue>0</blue>
+                </color>
+            </property>
+            <property name="horizontal">
+                <bool>true</bool>
+            </property>
+        </widget>
+        <widget class="QLabel" name="QLabel6(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>327</x>
+                    <y>27</y>
+                    <width>136</width>
+                    <height>16</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>solarpanel-side-3</string>
+            </property>
+        </widget>
+        <widget class="LevelBar" name="PanelLev3">
+            <property name="geometry">
+                <rect>
+                    <x>327</x>
+                    <y>46</y>
+                    <width>75</width>
+                    <height>30</height>
+                </rect>
+            </property>
+            <property name="valueJSON">
+                <string>device_strg_pow_002</string>
+            </property>
+            <property name="maxJSON">
+                <string>device_strg_max_002</string>
+            </property>
+            <property name="title">
+                <string>solarpanel-side-3</string>
+            </property>
+            <property name="barColor">
+                <color>
+                    <red>255</red>
+                    <green>255</green>
+                    <blue>0</blue>
+                </color>
+            </property>
+            <property name="horizontal">
+                <bool>true</bool>
+            </property>
+        </widget>
+        <widget class="QLabel" name="QLabel7(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>410</x>
+                    <y>27</y>
+                    <width>136</width>
+                    <height>16</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>solarpanel-side-4</string>
+            </property>
+        </widget>
+        <widget class="LevelBar" name="PanelLev4">
+            <property name="geometry">
+                <rect>
+                    <x>410</x>
+                    <y>46</y>
+                    <width>75</width>
+                    <height>30</height>
+                </rect>
+            </property>
+            <property name="valueJSON">
+                <string>device_strg_pow_003</string>
+            </property>
+            <property name="maxJSON">
+                <string>device_strg_max_003</string>
+            </property>
+            <property name="title">
+                <string>solarpanel-side-4</string>
+            </property>
+            <property name="barColor">
+                <color>
+                    <red>255</red>
+                    <green>255</green>
+                    <blue>0</blue>
+                </color>
+            </property>
+            <property name="horizontal">
+                <bool>true</bool>
+            </property>
+        </widget>
+        <widget class="QLabel" name="QLabel8(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>493</x>
+                    <y>27</y>
+                    <width>136</width>
+                    <height>16</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>solarpanel-side-5</string>
+            </property>
+        </widget>
+        <widget class="LevelBar" name="PanelLev5">
+            <property name="geometry">
+                <rect>
+                    <x>493</x>
+                    <y>46</y>
+                    <width>75</width>
+                    <height>30</height>
+                </rect>
+            </property>
+            <property name="valueJSON">
+                <string>device_strg_pow_004</string>
+            </property>
+            <property name="maxJSON">
+                <string>device_strg_max_004</string>
+            </property>
+            <property name="title">
+                <string>solarpanel-side-5</string>
+            </property>
+            <property name="barColor">
+                <color>
+                    <red>255</red>
+                    <green>255</green>
+                    <blue>0</blue>
+                </color>
+            </property>
+            <property name="horizontal">
+                <bool>true</bool>
+            </property>
+        </widget>
+        <widget class="QLabel" name="QLabel9(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>576</x>
+                    <y>27</y>
+                    <width>136</width>
+                    <height>16</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>solarpanel-side-6</string>
+            </property>
+        </widget>
+        <widget class="LevelBar" name="PanelLev6">
+            <property name="geometry">
+                <rect>
+                    <x>576</x>
+                    <y>46</y>
+                    <width>75</width>
+                    <height>30</height>
+                </rect>
+            </property>
+            <property name="valueJSON">
+                <string>device_strg_pow_005</string>
+            </property>
+            <property name="maxJSON">
+                <string>device_strg_max_005</string>
+            </property>
+            <property name="title">
+                <string>solarpanel-side-6</string>
+            </property>
+            <property name="barColor">
+                <color>
+                    <red>255</red>
+                    <green>255</green>
+                    <blue>0</blue>
+                </color>
+            </property>
+            <property name="horizontal">
+                <bool>true</bool>
+            </property>
+        </widget>
+        <widget class="QLabel" name="QLabel10(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>659</x>
+                    <y>27</y>
+                    <width>136</width>
+                    <height>16</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>solarpanel-side-7</string>
+            </property>
+        </widget>
+        <widget class="LevelBar" name="PanelLev7">
+            <property name="geometry">
+                <rect>
+                    <x>659</x>
+                    <y>46</y>
+                    <width>75</width>
+                    <height>30</height>
+                </rect>
+            </property>
+            <property name="valueJSON">
+                <string>device_strg_pow_006</string>
+            </property>
+            <property name="maxJSON">
+                <string>device_strg_max_006</string>
+            </property>
+            <property name="title">
+                <string>solarpanel-side-7</string>
+            </property>
+            <property name="barColor">
+                <color>
+                    <red>255</red>
+                    <green>255</green>
+                    <blue>0</blue>
+                </color>
+            </property>
+            <property name="horizontal">
+                <bool>true</bool>
+            </property>
+        </widget>
+        <widget class="QLabel" name="QLabel11(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>161</x>
+                    <y>77</y>
+                    <width>120</width>
+                    <height>16</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>solarpanel-side</string>
+            </property>
+        </widget>
+        <widget class="LevelBar" name="PanelLev8">
+            <property name="geometry">
+                <rect>
+                    <x>161</x>
+                    <y>96</y>
+                    <width>75</width>
+                    <height>30</height>
+                </rect>
+            </property>
+            <property name="valueJSON">
+                <string>device_strg_pow_007</string>
+            </property>
+            <property name="maxJSON">
+                <string>device_strg_max_007</string>
+            </property>
+            <property name="title">
+                <string>solarpanel-side</string>
+            </property>
+            <property name="barColor">
+                <color>
+                    <red>255</red>
+                    <green>255</green>
+                    <blue>0</blue>
+                </color>
+            </property>
+            <property name="horizontal">
+                <bool>true</bool>
+            </property>
+        </widget>
+        <widget class="QLabel" name="QLabel12(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>244</x>
+                    <y>77</y>
+                    <width>152</width>
+                    <height>16</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>solarpanel-zenith-1</string>
+            </property>
+        </widget>
+        <widget class="LevelBar" name="PanelLev9">
+            <property name="geometry">
+                <rect>
+                    <x>244</x>
+                    <y>96</y>
+                    <width>75</width>
+                    <height>30</height>
+                </rect>
+            </property>
+            <property name="valueJSON">
+                <string>device_strg_pow_008</string>
+            </property>
+            <property name="maxJSON">
+                <string>device_strg_max_008</string>
+            </property>
+            <property name="title">
+                <string>solarpanel-zenith-1</string>
+            </property>
+            <property name="barColor">
+                <color>
+                    <red>255</red>
+                    <green>255</green>
+                    <blue>0</blue>
+                </color>
+            </property>
+            <property name="horizontal">
+                <bool>true</bool>
+            </property>
+        </widget>
+        <widget class="QLabel" name="QLabel13(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>327</x>
+                    <y>77</y>
+                    <width>136</width>
+                    <height>16</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>solarpanel-zenith</string>
+            </property>
+        </widget>
+        <widget class="LevelBar" name="PanelLev10">
+            <property name="geometry">
+                <rect>
+                    <x>327</x>
+                    <y>96</y>
+                    <width>75</width>
+                    <height>30</height>
+                </rect>
+            </property>
+            <property name="valueJSON">
+                <string>device_strg_pow_009</string>
+            </property>
+            <property name="maxJSON">
+                <string>device_strg_max_009</string>
+            </property>
+            <property name="title">
+                <string>solarpanel-zenith</string>
+            </property>
+            <property name="barColor">
+                <color>
+                    <red>255</red>
+                    <green>255</green>
+                    <blue>0</blue>
+                </color>
+            </property>
+            <property name="horizontal">
+                <bool>true</bool>
+            </property>
+        </widget>
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>800</width>
+                <height>130</height>
+            </rect>
+        </property>
+    </widget>
+    <resources/>
+    <connections/>
+</ui>
