@@ -808,7 +808,15 @@ int32_t Simulator::ParseTargetString(string line)
             std::cerr << "Error parsing JSON: " << estring << std::endl;
             return -1;
         }
-        targ.name = "target_" + to_unsigned(targets.size(), 3, true);
+
+        if (!data["name"].is_null())
+        {
+            targ.name = data["name"].string_value();
+        }
+        if (targ.name.empty())
+        {
+            targ.name = "target_" + to_unsigned(targets.size(), 3, true);
+        }
 
         // Extract Type
         targ.type = 0;
