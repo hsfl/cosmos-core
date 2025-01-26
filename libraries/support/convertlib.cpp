@@ -3401,7 +3401,6 @@ int32_t pos_origin2lvlh(locstruc& loc)
     rvector lvlh_x;
     rvector lvlh_y;
     rvector lvlh_z;
-    //    locstruc tloc1 = loc;
 
 //    cartpos origin = loc.pos.geoc;
     // 1 Get lvlh basis vectors
@@ -3478,43 +3477,7 @@ int32_t pos_origin2lvlh(locstruc& loc)
                      + rv_cross(angular_velocity, w_x_r);
 
     loc.pos.geoc.pass = std::max(loc.pos.eci.pass, loc.pos.geos.pass) + 1;
-    //    tloc1.pos.geoc.utc = origin.utc;
-    //    ++tloc1.pos.geoc.pass;
     pos_geoc(loc);
-
-    //    locstruc tloc = loc;
-    //    eci_offset.s = rv_mmult(tloc.pos.extra.p2l, lvlh.s);
-    //    tloc.pos.eci.s += eci_offset.s;
-    //    tloc.pos.eci.v += rv_mmult(tloc.pos.extra.dp2l, lvlh.v);
-    //    tloc.pos.eci.a += rv_mmult(tloc.pos.extra.ddp2l, lvlh.a);
-    //    tloc.pos.eci.pass++;
-    //    pos_eci(tloc);
-
-    //    lvlh_x = drotate(loc.pos.extra.e2l, rvector(1., 0., 0.));
-    //    lvlh_y = drotate(loc.pos.extra.e2l, rvector(0., 1., 0.));
-
-    //    loc.pos.geoc.v += drotate(loc.pos.extra.e2l, lvlh.v);
-    //    loc.pos.geoc.a += drotate(loc.pos.extra.e2l, lvlh.a);
-    //    loc.pos.geoc.j += drotate(loc.pos.extra.e2l, lvlh.j);
-
-    //    double r = length_rv(loc.pos.geoc.s);
-
-    //    // Rotate around LVLH y axis by -dx/r
-    //    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_y, -lvlh.s.col[0] / r);
-
-    //    // Rotate forwards around LVLH x axis by dy/r
-    //    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_x, lvlh.s.col[1] / r);
-
-    //    // Scale the whole thing by dz/z
-    //    loc.pos.geoc.s *= ((r - lvlh.s.col[2]) / r);
-
-    //    // Set LVLH
-    //    loc.pos.lvlh = lvlh;
-    //    loc.pos.lvlh.utc = loc.pos.geoc.utc;
-
-    //    // Set geoc
-    //    ++loc.pos.geoc.pass;
-    //    pos_geoc(loc);
 
     return 0;
 }
@@ -3948,39 +3911,12 @@ Convert::cartpos eci2hill(const Convert::cartpos& tgteci, const Convert::cartpos
     inthill.v.col[1] = magrtgt * (lambdadotint - lambdadottgt); // vhill(2) = magrtgt * (lambdadotint - lambdadottgt);
     inthill.v.col[2] = magrtgt * phidotint;                     // vhill(3) = magrtgt * phidotint;
 
-    // Swap around to match COSMOS's definition of the axises
-    std::swap(inthill.s.col[0], inthill.s.col[2]);
-    std::swap(inthill.s.col[0], inthill.s.col[1]);
-    std::swap(inthill.v.col[0], inthill.v.col[2]);
-    std::swap(inthill.v.col[0], inthill.v.col[1]);
-    inthill.s.col[1] *= -1;
-    inthill.s.col[2] *= -1;
-    inthill.v.col[1] *= -1;
-    inthill.v.col[2] *= -1;
-
     return inthill;
 }
 
 Convert::cartpos hill2eci (const Convert::cartpos& tgteci, const Convert::cartpos& inthill, bool relative_accel)
 {
-    // Swap around to match this derivation's definition of the axises,
-    // which defines the HILL frame with basis vectors:
-    // 0: Radial vector (i.e., reverse-nadir) of target
-    // 1: Normal to orbital plane in direction of velocity of target
-    // 2: Cross-product
     Convert::cartpos hill = inthill;
-    hill.s.col[1] *= -1;
-    hill.s.col[2] *= -1;
-    hill.v.col[1] *= -1;
-    hill.v.col[2] *= -1;
-    hill.a.col[1] *= -1;
-    hill.a.col[2] *= -1;
-    std::swap(hill.s.col[0], hill.s.col[1]);
-    std::swap(hill.s.col[0], hill.s.col[2]);
-    std::swap(hill.v.col[0], hill.v.col[1]);
-    std::swap(hill.v.col[0], hill.v.col[2]);
-    std::swap(hill.a.col[0], hill.a.col[1]);
-    std::swap(hill.a.col[0], hill.a.col[2]);
 
 
     // RSW basis vectors and rotation matrix
