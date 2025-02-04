@@ -1502,11 +1502,6 @@ int32_t Structure::add_vertex(Vector point)
 
 int32_t State::Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, tlestruc tle, double utc, qatt icrf)
 {
-    dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
-    dtj = dt / 86400.;
-
-    currentinfo.node.name = name;
-    currentinfo.agent0.name = "sim";
     currentinfo.node.loc.utc = utc;
     tle2eci(currentinfo.node.loc.utc, tle, currentinfo.node.loc.pos.eci);
     currentinfo.node.loc.tle = tle;
@@ -1516,174 +1511,198 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     currentinfo.node.loc.att.icrf.pass++;
     att_icrf(currentinfo.node.loc);
 
-    uint32_t ctruc_idx = currentinfo.node.phys.strucs.size();
-    structure = new Structure(&currentinfo.node.phys);
-    structure->Setup(stype);
-    this->stype = stype;
-    for (uint32_t i=ctruc_idx; i<currentinfo.node.phys.strucs.size(); ++i)
-    {
-        piecestruc piece;
-        piece.name = currentinfo.node.phys.strucs[i].name;
-        piece.density = currentinfo.node.phys.strucs[i].mass / currentinfo.node.phys.strucs[i].volume;
-        //        piece.area = currentphys->faces[iretn].area;
-        piece.volume = currentinfo.node.phys.strucs[i].volume;
-        piece.mass = currentinfo.node.phys.strucs[i].mass;
-        piece.com = currentinfo.node.phys.strucs[i].com;
-        piece.struc_idx = i;
-        currentinfo.pieces.push_back(piece);
-        json_mappieceentry(currentinfo.pieces.size()-1, &currentinfo);
-        json_togglepieceentry(currentinfo.pieces.size()-1, &currentinfo, true);
-    }
-    currentinfo.piece_cnt = currentinfo.pieces.size();
+    return Init(name, idt, stype, ptype, atype, ttype, etype);
 
-    switch (ptype)
-    {
-    case Propagator::Type::PositionInertial:
-        inposition = new InertialPositionPropagator(&currentinfo, dt);
-        dt = inposition->dt;
-        dtj = inposition->dtj;
-        break;
-    case Propagator::Type::PositionIterative:
-        itposition = new IterativePositionPropagator(&currentinfo, dt);
-        dt = itposition->dt;
-        dtj = itposition->dtj;
-        break;
-    case Propagator::Type::PositionGaussJackson:
-        gjposition = new GaussJacksonPositionPropagator(&currentinfo, dt, 6);
-        dt = gjposition->dt;
-        dtj = gjposition->dtj;
-        gjposition->Init();
-        break;
-    case Propagator::Type::PositionGeo:
-        geoposition = new GeoPositionPropagator(&currentinfo, dt);
-        dt = geoposition->dt;
-        dtj = geoposition->dtj;
-        break;
-    case Propagator::Type::PositionTle:
-        tleposition = new TlePositionPropagator(&currentinfo, dt);
-        dt = tleposition->dt;
-        dtj = tleposition->dtj;
-        break;
-    case Propagator::Type::PositionLvlh:
-        lvlhposition = new LvlhPositionPropagator(&currentinfo, dt);
-        dt = lvlhposition->dt;
-        dtj = lvlhposition->dtj;
-        break;
-    default:
-        inposition = new InertialPositionPropagator(&currentinfo, dt);
-        dt = inposition->dt;
-        dtj = inposition->dtj;
-        break;
-    }
-    this->ptype = ptype;
+    // dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
+    // dtj = dt / 86400.;
 
-    switch (atype)
-    {
-    case Propagator::Type::AttitudeInertial:
-        inattitude = new InertialAttitudePropagator(&currentinfo, dt);
-        currentinfo.node.loc.att.icrf.pass++;
-        att_icrf(currentinfo.node.loc);
-        AttAccel(currentinfo.node.loc, currentinfo.node.phys);
-        break;
-    case Propagator::Type::AttitudeIterative:
-        itattitude = new IterativeAttitudePropagator(&currentinfo, dt);
-        currentinfo.node.loc.att.icrf.pass++;
-        att_icrf(currentinfo.node.loc);
-        AttAccel(currentinfo.node.loc, currentinfo.node.phys);
-        break;
-    case Propagator::Type::AttitudeLVLH:
-        lvattitude = new LvlhAttitudePropagator(&currentinfo, dt);
-        currentinfo.node.loc.att.lvlh.s = q_eye();
-        currentinfo.node.loc.att.lvlh.v = rv_zero();
-        currentinfo.node.loc.att.lvlh.a = rv_zero();
-        currentinfo.node.loc.att.lvlh.utc = utc;
-        currentinfo.node.loc.att.lvlh.pass++;
-        att_lvlh(currentinfo.node.loc);
-        break;
-    case Propagator::Type::AttitudeGeo:
-        geoattitude = new GeoAttitudePropagator(&currentinfo, dt);
-        currentinfo.node.loc.att.geoc.pass++;
-        att_geoc(currentinfo.node.loc);
-        break;
-    case Propagator::Type::AttitudeSolar:
-        solarattitude = new SolarAttitudePropagator(&currentinfo, dt);
-        currentinfo.node.loc.att.icrf.pass++;
-        att_icrf(currentinfo.node.loc);
-        AttAccel(currentinfo.node.loc, currentinfo.node.phys);
-        break;
-    case Propagator::Type::AttitudeTarget:
-    {
-        targetattitude = new TargetAttitudePropagator(&currentinfo, dt);
-        lvattitude = new LvlhAttitudePropagator(&currentinfo, dt);
-        currentinfo.node.loc.att.lvlh.s = q_eye();
-        currentinfo.node.loc.att.lvlh.v = rv_zero();
-        currentinfo.node.loc.att.lvlh.a = rv_zero();
-        currentinfo.node.loc.att.lvlh.utc = utc;
-        currentinfo.node.loc.att.lvlh.pass++;
-        att_lvlh(currentinfo.node.loc);
-        break;
-    }
-    case Propagator::Type::AttitudeRequest:
-    {
-        requestattitude = new RequestAttitudePropagator(&currentinfo, dt);
-        currentinfo.node.loc.att.icrf = currentinfo.node.loc_req.att.icrf;
-        currentinfo.node.loc.att.icrf.pass++;
-        att_icrf(currentinfo.node.loc);
-        break;
-    }
-    default:
-    {
-        inattitude = new InertialAttitudePropagator(&currentinfo, dt);
-        currentinfo.node.loc.att.icrf.pass++;
-        att_icrf(currentinfo.node.loc);
-        AttAccel(currentinfo.node.loc, currentinfo.node.phys);
-        break;
-    }
-    }
-    this->atype = atype;
+    // currentinfo.node.name = name;
+    // currentinfo.agent0.name = "sim";
 
-    switch (ttype)
-    {
-    case Propagator::Type::Thermal:
-        thermal = new ThermalPropagator(&currentinfo, dt, 300.);
-        break;
-    default:
-        thermal = new ThermalPropagator(&currentinfo, dt, 300.);
-        break;
-    }
-    this->ttype = ttype;
+    // uint32_t ctruc_idx = currentinfo.node.phys.strucs.size();
+    // structure = new Structure(&currentinfo.node.phys);
+    // structure->Setup(stype);
+    // this->stype = stype;
+    // for (uint32_t i=ctruc_idx; i<currentinfo.node.phys.strucs.size(); ++i)
+    // {
+    //     if (currentinfo.node.phys.strucs[i].name.find("panel") != string::npos)
+    //     {
+    //         int32_t  pidx = json_addpiece(&currentinfo, i, DeviceType::PVSTRG, i);
+    //         if (pidx < 0)
+    //         {
+    //             return pidx;
+    //         }
+    //         uint16_t cidx = currentinfo.pieces[pidx].cidx;
+    //         json_mapcompentry(cidx, &currentinfo);
+    //         json_togglecompentry(cidx, &currentinfo, true);
+    //         json_mapdeviceentry(currentinfo.device[cidx], &currentinfo);
+    //         json_toggledeviceentry(currentinfo.device[cidx]->didx, DeviceType::PVSTRG, &currentinfo, true);
+    //     }
+    //     else
+    //     {
+    //         json_addpiece(&currentinfo, i, DeviceType::NONE);
+    //     }
+    //     // piecestruc piece;
+    //     // piece.name = currentinfo.node.phys.strucs[i].name;
+    //     // piece.density = currentinfo.node.phys.strucs[i].mass / currentinfo.node.phys.strucs[i].volume;
+    //     // piece.volume = currentinfo.node.phys.strucs[i].volume;
+    //     // piece.mass = currentinfo.node.phys.strucs[i].mass;
+    //     // piece.com = currentinfo.node.phys.strucs[i].com;
+    //     // piece.struc_idx = i;
+    //     // currentinfo.pieces.push_back(piece);
+    //     json_mappieceentry(currentinfo.pieces.size()-1, &currentinfo);
+    //     json_togglepieceentry(currentinfo.pieces.size()-1, &currentinfo, true);
+    // }
+    // currentinfo.piece_cnt = currentinfo.pieces.size();
 
-    switch (etype)
-    {
-    case Propagator::Type::Electrical:
-        electrical = new ElectricalPropagator(&currentinfo, dt, .5);
-        break;
-    default:
-        electrical = new ElectricalPropagator(&currentinfo, dt, .5);
-        break;
-    }
-    this->etype = etype;
+    // switch (ptype)
+    // {
+    // case Propagator::Type::PositionInertial:
+    //     inposition = new InertialPositionPropagator(&currentinfo, dt);
+    //     dt = inposition->dt;
+    //     dtj = inposition->dtj;
+    //     break;
+    // case Propagator::Type::PositionIterative:
+    //     itposition = new IterativePositionPropagator(&currentinfo, dt);
+    //     dt = itposition->dt;
+    //     dtj = itposition->dtj;
+    //     break;
+    // case Propagator::Type::PositionGaussJackson:
+    //     gjposition = new GaussJacksonPositionPropagator(&currentinfo, dt, 6);
+    //     dt = gjposition->dt;
+    //     dtj = gjposition->dtj;
+    //     gjposition->Init();
+    //     break;
+    // case Propagator::Type::PositionGeo:
+    //     geoposition = new GeoPositionPropagator(&currentinfo, dt);
+    //     dt = geoposition->dt;
+    //     dtj = geoposition->dtj;
+    //     break;
+    // case Propagator::Type::PositionTle:
+    //     tleposition = new TlePositionPropagator(&currentinfo, dt);
+    //     dt = tleposition->dt;
+    //     dtj = tleposition->dtj;
+    //     break;
+    // case Propagator::Type::PositionLvlh:
+    //     lvlhposition = new LvlhPositionPropagator(&currentinfo, dt);
+    //     dt = lvlhposition->dt;
+    //     dtj = lvlhposition->dtj;
+    //     break;
+    // default:
+    //     inposition = new InertialPositionPropagator(&currentinfo, dt);
+    //     dt = inposition->dt;
+    //     dtj = inposition->dtj;
+    //     break;
+    // }
+    // this->ptype = ptype;
 
-    if (ptype == Propagator::PositionGeo)
-    {
-        currentinfo.node.loc.pos.geod.pass++;
-        pos_geod(currentinfo.node.loc);
-    }
-    else
-    {
-        currentinfo.node.loc.pos.eci.pass++;
-        pos_eci(currentinfo.node.loc);
-        PosAccel(currentinfo.node.loc, currentinfo.node.phys);
-    }
+    // switch (atype)
+    // {
+    // case Propagator::Type::AttitudeInertial:
+    //     inattitude = new InertialAttitudePropagator(&currentinfo, dt);
+    //     currentinfo.node.loc.att.icrf.pass++;
+    //     att_icrf(currentinfo.node.loc);
+    //     AttAccel(currentinfo.node.loc, currentinfo.node.phys);
+    //     break;
+    // case Propagator::Type::AttitudeIterative:
+    //     itattitude = new IterativeAttitudePropagator(&currentinfo, dt);
+    //     currentinfo.node.loc.att.icrf.pass++;
+    //     att_icrf(currentinfo.node.loc);
+    //     AttAccel(currentinfo.node.loc, currentinfo.node.phys);
+    //     break;
+    // case Propagator::Type::AttitudeLVLH:
+    //     lvattitude = new LvlhAttitudePropagator(&currentinfo, dt);
+    //     currentinfo.node.loc.att.lvlh.s = q_eye();
+    //     currentinfo.node.loc.att.lvlh.v = rv_zero();
+    //     currentinfo.node.loc.att.lvlh.a = rv_zero();
+    //     currentinfo.node.loc.att.lvlh.utc = utc;
+    //     currentinfo.node.loc.att.lvlh.pass++;
+    //     att_lvlh(currentinfo.node.loc);
+    //     break;
+    // case Propagator::Type::AttitudeGeo:
+    //     geoattitude = new GeoAttitudePropagator(&currentinfo, dt);
+    //     currentinfo.node.loc.att.geoc.pass++;
+    //     att_geoc(currentinfo.node.loc);
+    //     break;
+    // case Propagator::Type::AttitudeSolar:
+    //     solarattitude = new SolarAttitudePropagator(&currentinfo, dt);
+    //     currentinfo.node.loc.att.icrf.pass++;
+    //     att_icrf(currentinfo.node.loc);
+    //     AttAccel(currentinfo.node.loc, currentinfo.node.phys);
+    //     break;
+    // case Propagator::Type::AttitudeTarget:
+    // {
+    //     targetattitude = new TargetAttitudePropagator(&currentinfo, dt);
+    //     lvattitude = new LvlhAttitudePropagator(&currentinfo, dt);
+    //     currentinfo.node.loc.att.lvlh.s = q_eye();
+    //     currentinfo.node.loc.att.lvlh.v = rv_zero();
+    //     currentinfo.node.loc.att.lvlh.a = rv_zero();
+    //     currentinfo.node.loc.att.lvlh.utc = utc;
+    //     currentinfo.node.loc.att.lvlh.pass++;
+    //     att_lvlh(currentinfo.node.loc);
+    //     break;
+    // }
+    // case Propagator::Type::AttitudeRequest:
+    // {
+    //     requestattitude = new RequestAttitudePropagator(&currentinfo, dt);
+    //     currentinfo.node.loc.att.icrf = currentinfo.node.loc_req.att.icrf;
+    //     currentinfo.node.loc.att.icrf.pass++;
+    //     att_icrf(currentinfo.node.loc);
+    //     break;
+    // }
+    // default:
+    // {
+    //     inattitude = new InertialAttitudePropagator(&currentinfo, dt);
+    //     currentinfo.node.loc.att.icrf.pass++;
+    //     att_icrf(currentinfo.node.loc);
+    //     AttAccel(currentinfo.node.loc, currentinfo.node.phys);
+    //     break;
+    // }
+    // }
+    // this->atype = atype;
 
-    orbitalevent = new OrbitalEventGenerator(&currentinfo, dt);
-    orbitalevent->Init();
-    metric = new MetricGenerator(&currentinfo, dt);
+    // switch (ttype)
+    // {
+    // case Propagator::Type::Thermal:
+    //     thermal = new ThermalPropagator(&currentinfo, dt, 300.);
+    //     break;
+    // default:
+    //     thermal = new ThermalPropagator(&currentinfo, dt, 300.);
+    //     break;
+    // }
+    // this->ttype = ttype;
 
-    initialloc = currentinfo.node.loc;
-    initialphys = currentinfo.node.phys;
-    currentinfo.node.utc = currentinfo.node.loc.utc;
-    return 0;
+    // switch (etype)
+    // {
+    // case Propagator::Type::Electrical:
+    //     electrical = new ElectricalPropagator(&currentinfo, dt, .5);
+    //     break;
+    // default:
+    //     electrical = new ElectricalPropagator(&currentinfo, dt, .5);
+    //     break;
+    // }
+    // this->etype = etype;
+
+    // if (ptype == Propagator::PositionGeo)
+    // {
+    //     currentinfo.node.loc.pos.geod.pass++;
+    //     pos_geod(currentinfo.node.loc);
+    // }
+    // else
+    // {
+    //     currentinfo.node.loc.pos.eci.pass++;
+    //     pos_eci(currentinfo.node.loc);
+    //     PosAccel(currentinfo.node.loc, currentinfo.node.phys);
+    // }
+
+    // orbitalevent = new OrbitalEventGenerator(&currentinfo, dt);
+    // orbitalevent->Init();
+    // metric = new MetricGenerator(&currentinfo, dt);
+
+    // initialloc = currentinfo.node.loc;
+    // initialphys = currentinfo.node.phys;
+    // currentinfo.node.utc = currentinfo.node.loc.utc;
+    // return 0;
 }
 
 int32_t State::Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, qatt icrf)
@@ -1782,15 +1801,22 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     this->stype = stype;
     for (uint32_t i=ctruc_idx; i<currentinfo.node.phys.strucs.size(); ++i)
     {
+        if (currentinfo.node.phys.strucs[i].name.find("panel") != string::npos)
+        {
+            json_addpiece(&currentinfo, i, DeviceType::PVSTRG, i);
+        }
+        else
+        {
+            json_addpiece(&currentinfo, i, DeviceType::NONE);
+        }
         piecestruc piece;
-        piece.name = currentinfo.node.phys.strucs[i].name;
-        piece.density = currentinfo.node.phys.strucs[i].mass / currentinfo.node.phys.strucs[i].volume;
-        //        piece.area = currentphys->faces[iretn].area;
-        piece.volume = currentinfo.node.phys.strucs[i].volume;
-        piece.mass = currentinfo.node.phys.strucs[i].mass;
-        piece.com = currentinfo.node.phys.strucs[i].com;
-        piece.struc_idx = i;
-        currentinfo.pieces.push_back(piece);
+        // piece.name = currentinfo.node.phys.strucs[i].name;
+        // piece.density = currentinfo.node.phys.strucs[i].mass / currentinfo.node.phys.strucs[i].volume;
+        // piece.volume = currentinfo.node.phys.strucs[i].volume;
+        // piece.mass = currentinfo.node.phys.strucs[i].mass;
+        // piece.com = currentinfo.node.phys.strucs[i].com;
+        // piece.struc_idx = i;
+        // currentinfo.pieces.push_back(piece);
     }
     json_map_node(&currentinfo);
 
@@ -2618,30 +2644,49 @@ int32_t ElectricalPropagator::Propagate(double nextutc)
     while ((nextutc - currentutc) > dtj / 2.)
     {
         currentutc += dtj;
+
         currentinfo->node.phys.powgen = 0.;
-        for (trianglestruc& triangle : currentinfo->node.phys.triangles)
+        for (pvstrgstruc& pv : currentinfo->devspec.pvstrg)
         {
-            if (triangle.external)
+            pv.power = 0;
+            for (uint32_t fidx : currentinfo->node.phys.strucs[currentinfo->pieces[pv.pidx].struc_idx].face_idx)
             {
-                if (triangle.pcell > 0.)
+                for (uint32_t tidx : currentinfo->node.phys.faces[fidx].triangle_idx)
                 {
-                    if (triangle.ecellbase > 0.)
-                    {
-                        double efficiency = triangle.ecellbase + triangle.ecellslope * triangle.temp;
-                        triangle.power = efficiency * triangle.sirradiation;
-                        triangle.volt = triangle.vcell;
-                        triangle.amp = -triangle.power / triangle.volt;
-                        currentinfo->node.phys.powgen += triangle.power;
-                    }
+                    double efficiency = currentinfo->node.phys.triangles[tidx].ecellbase + currentinfo->node.phys.triangles[tidx].ecellslope * currentinfo->node.phys.triangles[tidx].temp;
+                    currentinfo->node.phys.triangles[tidx].power = efficiency * currentinfo->node.phys.triangles[tidx].sirradiation;
+                    currentinfo->node.phys.triangles[tidx].volt = currentinfo->node.phys.triangles[tidx].vcell;
+                    currentinfo->node.phys.triangles[tidx].amp = -currentinfo->node.phys.triangles[tidx].power / currentinfo->node.phys.triangles[tidx].volt;
+                    currentinfo->node.phys.powgen += currentinfo->node.phys.triangles[tidx].power;
+                    pv.power += currentinfo->node.phys.triangles[tidx].power;
                 }
             }
-            else
-            {
-                triangle.power = 0.;
-                triangle.volt = 0.;
-                triangle.amp = 0.;
-            }
         }
+
+    // for (trianglestruc& triangle : currentinfo->node.phys.triangles)
+    //     {
+    //         if (triangle.external)
+    //         {
+    //             if (triangle.pcell > 0.)
+    //             {
+    //                 if (triangle.ecellbase > 0.)
+    //                 {
+    //                     double efficiency = triangle.ecellbase + triangle.ecellslope * triangle.temp;
+    //                     triangle.power = efficiency * triangle.sirradiation;
+    //                     triangle.volt = triangle.vcell;
+    //                     triangle.amp = -triangle.power / triangle.volt;
+    //                     currentinfo->node.phys.powgen += triangle.power;
+    //                 }
+    //             }
+    //         }
+    //         else
+    //         {
+    //             triangle.power = 0.;
+    //             triangle.volt = 0.;
+    //             triangle.amp = 0.;
+    //         }
+    //     }
+
         currentinfo->node.phys.powuse = 0.;
         for (devicestruc* dev : currentinfo->device)
         {

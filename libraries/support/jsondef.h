@@ -3684,16 +3684,16 @@ union as a ::devicestruc.
         };
 
         //! PV String (STRG) structure.
-        /*! Efficiency is goven as effbase + effslope * Tkelvin.
+        /*! Efficiency is goven as effbase + effslope * TCelsius.
 */
         struct pvstrgstruc : public devicestruc
         {
             //! BCREG index
             uint16_t bcidx = 0;
             //! Efficiency 0th order term
-            float effbase = 0.f;
+            float effbase = 0.3f;
             //! Efficiency 1st order term
-            float effslope = 0.f;
+            float effslope = -0.003f;
             //! Maximum power generation in Watts
             float maxpower = 0.f;
             //! Current power being generated in Watts.
