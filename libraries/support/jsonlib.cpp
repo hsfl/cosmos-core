@@ -12589,7 +12589,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 }
 
                 // Dump solar strings
-                if (!strcmp(device_type_string[i].c_str(),"strg"))
+                if (!strcmp(device_type_string[i].c_str(),"pvstrg"))
                 {
                     json_out_1d(jstring, "device_pvstrg_efi",j, cinfo);
                     // json_out_character(jstring, '\n');
