@@ -937,6 +937,7 @@ int32_t json_addpiece(cosmosstruc *cinfo, uint32_t struc_idx, DeviceType ctype, 
     piece.com =  cinfo->node.phys.strucs[struc_idx].com;
     piece.mass =  cinfo->node.phys.strucs[struc_idx].mass;
     piece.volume =  cinfo->node.phys.strucs[struc_idx].volume;
+    piece.area =  cinfo->node.phys.strucs[struc_idx].area;
     piece.density =  cinfo->node.phys.strucs[struc_idx].mass / cinfo->node.phys.strucs[struc_idx].volume;
 
     piece.emi = emi;
@@ -1004,6 +1005,7 @@ int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double 
     piece.name =  struc.name;
     piece.mass =  struc.mass;
     piece.volume =  struc.volume;
+    piece.area =  struc.area;
     piece.density =  struc.mass / struc.volume;
 
     piece.emi = emi;
@@ -7564,6 +7566,7 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
         {
             cinfo->pieces[i].com = cinfo->node.phys.strucs[cinfo->pieces[i].struc_idx].com;
             cinfo->pieces[i].volume = cinfo->node.phys.strucs[cinfo->pieces[i].struc_idx].volume;
+            cinfo->pieces[i].area = cinfo->node.phys.strucs[cinfo->pieces[i].struc_idx].area;
             cinfo->pieces[i].mass = cinfo->node.phys.strucs[cinfo->pieces[i].struc_idx].mass;
             if (cinfo->pieces[i].volume > 0.)
             {
@@ -7578,6 +7581,7 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
         {
             cinfo->pieces[i].com = Vector();
             cinfo->pieces[i].volume = 0.;
+            cinfo->pieces[i].area = 0.;
             cinfo->pieces[i].mass = 0.;
             cinfo->pieces[i].density = 0.;
         }
@@ -9256,6 +9260,7 @@ int32_t json_mapstrucentry(uint32_t sidx, cosmosstruc *cinfo)
     iretn = json_addentry("struc_com", sidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.strucs[sidx].com, (uint16_t)JSON_TYPE_VECTOR, cinfo);
     iretn = json_addentry("struc_mass", sidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.strucs[sidx].mass, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
     iretn = json_addentry("struc_volume", sidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.strucs[sidx].volume, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+    iretn = json_addentry("struc_area", sidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.strucs[sidx].area, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
     iretn = json_addentry("struc_face_cnt", sidx, UINT16_MAX, (uint8_t *)&cinfo->node.phys.strucs[sidx].face_cnt, (uint16_t)JSON_TYPE_UINT32, cinfo);
     for (uint32_t j=0; j<cinfo->node.phys.strucs[sidx].face_cnt; ++j)
     {
@@ -12291,6 +12296,7 @@ const char *json_strucs(string &jstring, cosmosstruc *cinfo)
             json_out_1d(jstring, "struc_com",i, cinfo);
             json_out_1d(jstring, "struc_mass",i, cinfo);
             json_out_1d(jstring, "struc_volume",i, cinfo);
+            json_out_1d(jstring, "struc_area",i, cinfo);
             json_out_1d(jstring, "struc_face_cnt",i, cinfo);
             uint32_t cnt = (uint32_t)json_get_int((char *)"struc_face_cnt",i, cinfo);
             for (uint32_t j=0; j<cnt; j++)
@@ -12323,29 +12329,17 @@ const char *json_pieces(string &jstring, cosmosstruc *cinfo)
         for (uint16_t i=0; i<*piece_cnt; i++)
         {
             json_out_1d(jstring, "piece_name",i, cinfo);
-            // // json_out_character(jstring, '\n');
-            //            json_out_1d(jstring, "piece_type",i, cinfo);
-            // // json_out_character(jstring, '\n');
             json_out_1d(jstring, "piece_cidx",i, cinfo);
-            // // json_out_character(jstring, '\n');
             json_out_1d(jstring, "piece_mass",i, cinfo);
-            // // json_out_character(jstring, '\n');
             json_out_1d(jstring, "piece_density",i, cinfo);
-            // // json_out_character(jstring, '\n');
             json_out_1d(jstring, "piece_emi",i, cinfo);
-            // // json_out_character(jstring, '\n');
             json_out_1d(jstring, "piece_abs",i, cinfo);
-            // // json_out_character(jstring, '\n');
             json_out_1d(jstring, "piece_hcap",i, cinfo);
-            // // json_out_character(jstring, '\n');
             json_out_1d(jstring, "piece_hcon",i, cinfo);
-            // // json_out_character(jstring, '\n');
             json_out_1d(jstring, "piece_dim",i, cinfo);
-            // // json_out_character(jstring, '\n');
             json_out_1d(jstring, "piece_area",i, cinfo);
-            // json_out_character(jstring, '\n');
+            json_out_1d(jstring, "piece_volume",i, cinfo);
             json_out_1d(jstring, "piece_com",i, cinfo);
-            // json_out_character(jstring, '\n');
             json_out_1d(jstring, "piece_struc_idx",i, cinfo);
         }
     }
