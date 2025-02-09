@@ -1290,7 +1290,8 @@ int32_t Structure::add_panel(string name, vector<Vector> points, double thicknes
         strucstruc struc;
         struc.name = name;
         struc.com = currentphys->faces[iretn].com;
-        struc.volume = currentphys->faces[iretn].area * thickness;
+        struc.area = currentphys->faces[iretn].area;
+        struc.volume = struc.area * thickness;
         struc.mass = density * struc.volume;
         struc.face_cnt = 1;
         struc.face_idx.push_back(iretn);
