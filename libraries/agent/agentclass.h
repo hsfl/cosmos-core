@@ -219,7 +219,7 @@ namespace Cosmos
 #define AGENT_HEARTBEAT_PERIOD_MIN 0.01
 
             //! Default size of message ring buffer
-#define MESSAGE_RING_SIZE 1000
+#define MESSAGE_RING_SIZE 10000
 
             //! Type of Agent Message. Types > 127 are binary.
             enum class AgentMessage : uint8_t {
@@ -532,6 +532,8 @@ namespace Cosmos
             int32_t error_value;
             //! mutex to protect process_request
             mutex process_mutex;
+            //! mutex to protect ring
+            mutex ring_mutex;
 
             //! Function in which we generate our time, for the mjd request.
             double (*agent_time_producer)() = currentmjd;

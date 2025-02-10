@@ -2218,6 +2218,7 @@ class sim_param	{
             Vector com;
             float mass;
             float volume=0.;
+            float area = 0.;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -2230,7 +2231,8 @@ class sim_param	{
                     { "face_idx" , face_idx },
                     { "com"	, com },
                     { "mass"	, mass },
-                    { "volume"   , volume }
+                    { "volume"   , volume },
+                    { "area"   , area }
                 };
             }
 
@@ -2249,8 +2251,9 @@ class sim_param	{
                 if(!parsed["face_idx"][i].is_null())	{ face_idx[i] = parsed["face_idx"][i].long_value(); }
                     }
                     if(!parsed["com"].is_null()) { com.from_json(parsed["com"].dump()); }
-                    if(!parsed["mass"].is_null()) { volume = parsed["mass"].number_value(); }
+                    if(!parsed["mass"].is_null()) { mass = parsed["mass"].number_value(); }
                     if(!parsed["volume"].is_null()) { volume = parsed["volume"].number_value(); }
+                    if(!parsed["area"].is_null()) { area = parsed["area"].number_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -3684,16 +3687,16 @@ union as a ::devicestruc.
         };
 
         //! PV String (STRG) structure.
-        /*! Efficiency is goven as effbase + effslope * Tkelvin.
+        /*! Efficiency is goven as effbase + effslope * TCelsius.
 */
         struct pvstrgstruc : public devicestruc
         {
             //! BCREG index
             uint16_t bcidx = 0;
             //! Efficiency 0th order term
-            float effbase = 0.f;
+            float effbase = 0.3f;
             //! Efficiency 1st order term
-            float effslope = 0.f;
+            float effslope = -0.003f;
             //! Maximum power generation in Watts
             float maxpower = 0.f;
             //! Current power being generated in Watts.

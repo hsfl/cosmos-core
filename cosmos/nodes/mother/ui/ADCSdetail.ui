@@ -1,0 +1,638 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+    <class>DetailPanel</class>
+    <widget class="QWidget" name="DetailPanel">
+        <property name="windowTitle">
+            <string>ADCS</string>
+        </property>
+        <widget class="Model3DView" name="Model3DView0(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>5</x>
+                    <y>5</y>
+                    <width>300</width>
+                    <height>300</height>
+                </rect>
+            </property>
+            <property name="mode">
+                <enum>RotationView::lvlh</enum>
+            </property>
+        </widget>
+        <widget class="ModeControl" name="ModeControl0(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>5</x>
+                    <y>310</y>
+                    <width>143</width>
+                    <height>22</height>
+                </rect>
+            </property>
+            <property name="mode">
+                <enum>RotationView::lvlh</enum>
+            </property>
+        </widget>
+        <widget class="QLabel" name="QLabel0(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>54</x>
+                    <y>340</y>
+                    <width>64</width>
+                    <height>16</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Attitude</string>
+            </property>
+        </widget>
+        <widget class="QLabel" name="QLabel1(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>125</x>
+                    <y>340</y>
+                    <width>104</width>
+                    <height>16</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Rotation Rate</string>
+            </property>
+        </widget>
+        <widget class="QLabel" name="QLabel2(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>215</x>
+                    <y>340</y>
+                    <width>96</width>
+                    <height>16</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Acceleration</string>
+            </property>
+        </widget>
+        <widget class="RotationViewAttstruc" name="RotationViewAttstruc0(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>5</x>
+                    <y>360</y>
+                    <width>115</width>
+                    <height>90</height>
+                </rect>
+            </property>
+            <property name="valueJSON">
+                <string>node_loc_att</string>
+            </property>
+            <property name="firstDerivative">
+                <bool>false</bool>
+            </property>
+            <property name="secondDerivative">
+                <bool>false</bool>
+            </property>
+            <property name="mode">
+                <enum>RotationView::euler</enum>
+            </property>
+            <property name="refMode">
+                <enum>RotationView::lvlh</enum>
+            </property>
+            <property name="modeLocked">
+                <bool>false</bool>
+            </property>
+            <property name="angleControl">
+                <bool>false</bool>
+            </property>
+            <property name="broadcastMode">
+                <bool>true</bool>
+            </property>
+            <property name="showLabels">
+                <bool>true</bool>
+            </property>
+            <property name="eulerHLabel">
+                <string>Yaw</string>
+            </property>
+            <property name="eulerELabel">
+                <string>Pitch</string>
+            </property>
+            <property name="eulerBLabel">
+                <string>Roll</string>
+            </property>
+        </widget>
+        <widget class="RotationViewAttstruc" name="RotationViewAttstruc1(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>123</x>
+                    <y>360</y>
+                    <width>80</width>
+                    <height>90</height>
+                </rect>
+            </property>
+            <property name="valueJSON">
+                <string>node_loc_att</string>
+            </property>
+            <property name="firstDerivative">
+                <bool>true</bool>
+            </property>
+            <property name="secondDerivative">
+                <bool>false</bool>
+            </property>
+            <property name="mode">
+                <enum>RotationView::euler</enum>
+            </property>
+            <property name="refMode">
+                <enum>RotationView::lvlh</enum>
+            </property>
+            <property name="modeLocked">
+                <bool>false</bool>
+            </property>
+            <property name="angleControl">
+                <bool>false</bool>
+            </property>
+            <property name="broadcastMode">
+                <bool>false</bool>
+            </property>
+            <property name="showLabels">
+                <bool>false</bool>
+            </property>
+        </widget>
+        <widget class="RotationViewAttstruc" name="RotationViewAttstruc2(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>205</x>
+                    <y>360</y>
+                    <width>80</width>
+                    <height>90</height>
+                </rect>
+            </property>
+            <property name="valueJSON">
+                <string>node_loc_att</string>
+            </property>
+            <property name="firstDerivative">
+                <bool>false</bool>
+            </property>
+            <property name="secondDerivative">
+                <bool>true</bool>
+            </property>
+            <property name="mode">
+                <enum>RotationView::euler</enum>
+            </property>
+            <property name="refMode">
+                <enum>RotationView::lvlh</enum>
+            </property>
+            <property name="modeLocked">
+                <bool>false</bool>
+            </property>
+            <property name="angleControl">
+                <bool>false</bool>
+            </property>
+            <property name="broadcastMode">
+                <bool>false</bool>
+            </property>
+            <property name="showLabels">
+                <bool>false</bool>
+            </property>
+        </widget>
+        <widget class="QGroupBox" name="QGroupBox0(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>315</x>
+                    <y>5</y>
+                    <width>285</width>
+                    <height>115</height>
+                </rect>
+            </property>
+            <property name="title">
+                <string>IMU 1</string>
+            </property>
+            <widget class="QLabel" name="QLabel3(autoname)">
+                <property name="geometry">
+                    <rect>
+                        <x>54</x>
+                        <y>14</y>
+                        <width>64</width>
+                        <height>16</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Attitude</string>
+                </property>
+            </widget>
+            <widget class="QLabel" name="QLabel4(autoname)">
+                <property name="geometry">
+                    <rect>
+                        <x>125</x>
+                        <y>14</y>
+                        <width>104</width>
+                        <height>16</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Rotation Rate</string>
+                </property>
+            </widget>
+            <widget class="QLabel" name="QLabel5(autoname)">
+                <property name="geometry">
+                    <rect>
+                        <x>215</x>
+                        <y>14</y>
+                        <width>96</width>
+                        <height>16</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Acceleration</string>
+                </property>
+            </widget>
+            <widget class="RotationView" name="RotationView0(autoname)">
+                <property name="geometry">
+                    <rect>
+                        <x>0</x>
+                        <y>30</y>
+                        <width>115</width>
+                        <height>80</height>
+                    </rect>
+                </property>
+                <property name="valueJSON">
+                    <string>device_imu_att_000</string>
+                </property>
+                <property name="firstDerivative">
+                    <bool>false</bool>
+                </property>
+                <property name="secondDerivative">
+                    <bool>false</bool>
+                </property>
+                <property name="mode">
+                    <enum>RotationView::euler</enum>
+                </property>
+                <property name="modeLocked">
+                    <bool>false</bool>
+                </property>
+                <property name="angleControl">
+                    <bool>false</bool>
+                </property>
+                <property name="broadcastMode">
+                    <bool>true</bool>
+                </property>
+                <property name="showLabels">
+                    <bool>true</bool>
+                </property>
+                <property name="eulerHLabel">
+                    <string>Yaw</string>
+                </property>
+                <property name="eulerELabel">
+                    <string>Pitch</string>
+                </property>
+                <property name="eulerBLabel">
+                    <string>Roll</string>
+                </property>
+            </widget>
+            <widget class="RotationView" name="RotationView1(autoname)">
+                <property name="geometry">
+                    <rect>
+                        <x>118</x>
+                        <y>30</y>
+                        <width>80</width>
+                        <height>80</height>
+                    </rect>
+                </property>
+                <property name="valueJSON">
+                    <string>device_imu_att_000</string>
+                </property>
+                <property name="firstDerivative">
+                    <bool>true</bool>
+                </property>
+                <property name="secondDerivative">
+                    <bool>false</bool>
+                </property>
+                <property name="mode">
+                    <enum>RotationView::euler</enum>
+                </property>
+                <property name="modeLocked">
+                    <bool>false</bool>
+                </property>
+                <property name="angleControl">
+                    <bool>false</bool>
+                </property>
+                <property name="broadcastMode">
+                    <bool>false</bool>
+                </property>
+                <property name="showLabels">
+                    <bool>false</bool>
+                </property>
+            </widget>
+            <widget class="RotationView" name="RotationView2(autoname)">
+                <property name="geometry">
+                    <rect>
+                        <x>200</x>
+                        <y>30</y>
+                        <width>80</width>
+                        <height>80</height>
+                    </rect>
+                </property>
+                <property name="valueJSON">
+                    <string>device_imu_att_000</string>
+                </property>
+                <property name="firstDerivative">
+                    <bool>false</bool>
+                </property>
+                <property name="secondDerivative">
+                    <bool>true</bool>
+                </property>
+                <property name="mode">
+                    <enum>RotationView::euler</enum>
+                </property>
+                <property name="modeLocked">
+                    <bool>false</bool>
+                </property>
+                <property name="angleControl">
+                    <bool>false</bool>
+                </property>
+                <property name="broadcastMode">
+                    <bool>false</bool>
+                </property>
+                <property name="showLabels">
+                    <bool>false</bool>
+                </property>
+            </widget>
+        </widget>
+        <widget class="QGroupBox" name="QGroupBox1(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>610</x>
+                    <y>5</y>
+                    <width>105</width>
+                    <height>115</height>
+                </rect>
+            </property>
+            <property name="title">
+                <string>Mag 1</string>
+            </property>
+            <widget class="QLabel" name="QLabel6(autoname)">
+                <property name="geometry">
+                    <rect>
+                        <x>24</x>
+                        <y>14</y>
+                        <width>40</width>
+                        <height>16</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Tesla</string>
+                </property>
+            </widget>
+            <widget class="QLabel" name="QLabel7(autoname)">
+                <property name="geometry">
+                    <rect>
+                        <x>2</x>
+                        <y>30</y>
+                        <width>8</width>
+                        <height>16</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>X</string>
+                </property>
+            </widget>
+            <widget class="QLineEdit" name="COSMOSdevice_imu_mag_x_000">
+                <property name="geometry">
+                    <rect>
+                        <x>10</x>
+                        <y>30</y>
+                        <width>71</width>
+                        <height>20</height>
+                    </rect>
+                </property>
+            </widget>
+            <widget class="QLabel" name="QLabel8(autoname)">
+                <property name="geometry">
+                    <rect>
+                        <x>2</x>
+                        <y>51</y>
+                        <width>8</width>
+                        <height>16</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Y</string>
+                </property>
+            </widget>
+            <widget class="QLineEdit" name="COSMOSdevice_imu_mag_y_000">
+                <property name="geometry">
+                    <rect>
+                        <x>10</x>
+                        <y>51</y>
+                        <width>71</width>
+                        <height>20</height>
+                    </rect>
+                </property>
+            </widget>
+            <widget class="QLabel" name="QLabel9(autoname)">
+                <property name="geometry">
+                    <rect>
+                        <x>2</x>
+                        <y>72</y>
+                        <width>8</width>
+                        <height>16</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Z</string>
+                </property>
+            </widget>
+            <widget class="QLineEdit" name="COSMOSdevice_imu_mag_z_000">
+                <property name="geometry">
+                    <rect>
+                        <x>10</x>
+                        <y>72</y>
+                        <width>71</width>
+                        <height>20</height>
+                    </rect>
+                </property>
+            </widget>
+        </widget>
+        <widget class="QGroupBox" name="QGroupBox2(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>315</x>
+                    <y>120</y>
+                    <width>285</width>
+                    <height>115</height>
+                </rect>
+            </property>
+            <property name="title">
+                <string>STT 1</string>
+            </property>
+            <widget class="QLabel" name="QLabel10(autoname)">
+                <property name="geometry">
+                    <rect>
+                        <x>54</x>
+                        <y>14</y>
+                        <width>64</width>
+                        <height>16</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Attitude</string>
+                </property>
+            </widget>
+            <widget class="QLabel" name="QLabel11(autoname)">
+                <property name="geometry">
+                    <rect>
+                        <x>125</x>
+                        <y>14</y>
+                        <width>104</width>
+                        <height>16</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Rotation Rate</string>
+                </property>
+            </widget>
+            <widget class="QLabel" name="QLabel12(autoname)">
+                <property name="geometry">
+                    <rect>
+                        <x>215</x>
+                        <y>14</y>
+                        <width>96</width>
+                        <height>16</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Acceleration</string>
+                </property>
+            </widget>
+            <widget class="RotationView" name="RotationView3(autoname)">
+                <property name="geometry">
+                    <rect>
+                        <x>0</x>
+                        <y>30</y>
+                        <width>115</width>
+                        <height>80</height>
+                    </rect>
+                </property>
+                <property name="valueJSON">
+                    <string>device_stt_att_000</string>
+                </property>
+                <property name="firstDerivative">
+                    <bool>false</bool>
+                </property>
+                <property name="secondDerivative">
+                    <bool>false</bool>
+                </property>
+                <property name="mode">
+                    <enum>RotationView::euler</enum>
+                </property>
+                <property name="modeLocked">
+                    <bool>false</bool>
+                </property>
+                <property name="angleControl">
+                    <bool>false</bool>
+                </property>
+                <property name="broadcastMode">
+                    <bool>true</bool>
+                </property>
+                <property name="showLabels">
+                    <bool>true</bool>
+                </property>
+                <property name="eulerHLabel">
+                    <string>Yaw</string>
+                </property>
+                <property name="eulerELabel">
+                    <string>Pitch</string>
+                </property>
+                <property name="eulerBLabel">
+                    <string>Roll</string>
+                </property>
+            </widget>
+            <widget class="RotationView" name="RotationView4(autoname)">
+                <property name="geometry">
+                    <rect>
+                        <x>118</x>
+                        <y>30</y>
+                        <width>80</width>
+                        <height>80</height>
+                    </rect>
+                </property>
+                <property name="valueJSON">
+                    <string>device_stt_att_000</string>
+                </property>
+                <property name="firstDerivative">
+                    <bool>true</bool>
+                </property>
+                <property name="secondDerivative">
+                    <bool>false</bool>
+                </property>
+                <property name="mode">
+                    <enum>RotationView::euler</enum>
+                </property>
+                <property name="modeLocked">
+                    <bool>false</bool>
+                </property>
+                <property name="angleControl">
+                    <bool>false</bool>
+                </property>
+                <property name="broadcastMode">
+                    <bool>false</bool>
+                </property>
+                <property name="showLabels">
+                    <bool>false</bool>
+                </property>
+            </widget>
+            <widget class="RotationView" name="RotationView5(autoname)">
+                <property name="geometry">
+                    <rect>
+                        <x>200</x>
+                        <y>30</y>
+                        <width>80</width>
+                        <height>80</height>
+                    </rect>
+                </property>
+                <property name="valueJSON">
+                    <string>device_stt_att_000</string>
+                </property>
+                <property name="firstDerivative">
+                    <bool>false</bool>
+                </property>
+                <property name="secondDerivative">
+                    <bool>true</bool>
+                </property>
+                <property name="mode">
+                    <enum>RotationView::euler</enum>
+                </property>
+                <property name="modeLocked">
+                    <bool>false</bool>
+                </property>
+                <property name="angleControl">
+                    <bool>false</bool>
+                </property>
+                <property name="broadcastMode">
+                    <bool>false</bool>
+                </property>
+                <property name="showLabels">
+                    <bool>false</bool>
+                </property>
+            </widget>
+        </widget>
+        <widget class="Line" name="Line0(autoname)">
+            <property name="geometry">
+                <rect>
+                    <x>310</x>
+                    <y>2</y>
+                    <width>5</width>
+                    <height>450</height>
+                </rect>
+            </property>
+            <property name="orientation">
+                <enum>Qt::Vertical</enum>
+            </property>
+        </widget>
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>800</width>
+                <height>455</height>
+            </rect>
+        </property>
+    </widget>
+    <resources/>
+    <connections/>
+</ui>
