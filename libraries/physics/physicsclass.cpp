@@ -968,7 +968,7 @@ Vector ControlAccel(cartpos current, cartpos goal, double maxaccel, double secon
 
         newa = newa.maxmag(maxaccel).minmag(minaccel);
     }
-//    newa.clear();
+    //    newa.clear();
     return newa;
 }
 
@@ -1069,7 +1069,7 @@ int32_t Structure::Setup(Type type)
         iretn = add_u(2, 2, 3, XY);
         break;
     case HEX65W80H:
-        iretn = add_hex(.65, .80, NoPanel);
+        iretn = add_hex(.65, .80, XY);
         break;
     default:
         iretn =  GENERAL_ERROR_OUTOFRANGE;
@@ -1161,32 +1161,30 @@ int32_t Structure::add_hex(double width, double height, ExternalPanelType type)
     add_panel("top", top);
     add_panel("bottom", bottom);
 
-    switch (type)
+    for (uint16_t i=0; i<6; ++i)
     {
-    case NoType:
-        for (float angle=0.; angle<D2PI; angle+=D2PI/6.)
+        float angle = i * D2PI/6.;
+        add_panel("external"+to_unsigned(DEGOF(angle), 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 2, 0.);
+        switch (type)
         {
-            add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 1, .65);
+        case NoType:
+            break;
+        case X:
+            if (!(i%2))
+            {
+                add_panel("panel"+to_unsigned(DEGOF(angle), 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01);
+            }
+            break;
+        case Y:
+            if ((i%2))
+            {
+                add_panel("panel"+to_unsigned(DEGOF(angle), 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01);
+            }
+            break;
+        case XY:
+            add_panel("panel"+to_unsigned(DEGOF(angle), 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01);
+            break;
         }
-        break;
-    case X:
-        for (float angle=0.; angle<D2PI; angle+=D2PI/6.)
-        {
-            add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 1, .65);
-        }
-        break;
-    case Y:
-        for (float angle=0.; angle<D2PI; angle+=D2PI/6.)
-        {
-            add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 1, .65);
-        }
-        break;
-    case XY:
-        for (float angle=0.; angle<D2PI; angle+=D2PI/6.)
-        {
-            add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), height/2.), Vector(width/2*cos(angle-D2PI/12.), width/2*sin(angle-D2PI/12.), -height/2.), Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.), .01, 1, .65);
-        }
-        break;
     }
 
     return currentphys->struc_cnt;
@@ -1208,44 +1206,44 @@ int32_t Structure::add_oct(double width, double height, ExternalPanelType type)
     case NoType:
         for (float angle=0.; angle<D2PI; angle+=D2PI/8.)
         {
-            add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.));
+            add_panel("external"+to_unsigned(DEGOF(angle), 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.));
             add_panel("top", top);
             add_panel("bottom", bottom);
-//            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
-//            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
+            //            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
+            //            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
         }
 
         break;
     case X:
         for (float angle=0.; angle<D2PI; angle+=D2PI/8.)
         {
-            add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, 1, .65);
+            add_panel("external"+to_unsigned(DEGOF(angle), 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, 1, .65);
             add_panel("top", top);
             add_panel("bottom", bottom);
-//            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
-//            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
+            //            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
+            //            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
         }
 
         break;
     case Y:
         for (float angle=0.; angle<D2PI; angle+=D2PI/8.)
         {
-            add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, 1, .65);
+            add_panel("external"+to_unsigned(DEGOF(angle), 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, 1, .65);
             add_panel("top", top);
             add_panel("bottom", bottom);
-//            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
-//            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
+            //            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
+            //            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
         }
 
         break;
     case XY:
         for (float angle=0.; angle<D2PI; angle+=D2PI/8.)
         {
-            add_panel("side"+to_unsigned(angle, 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, 1, .65);
+            add_panel("external"+to_unsigned(DEGOF(angle), 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, 1, .65);
             add_panel("top", top);
             add_panel("bottom", bottom);
-//            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
-//            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
+            //            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
+            //            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
         }
 
         break;
@@ -1292,7 +1290,8 @@ int32_t Structure::add_panel(string name, vector<Vector> points, double thicknes
         strucstruc struc;
         struc.name = name;
         struc.com = currentphys->faces[iretn].com;
-        struc.volume = currentphys->faces[iretn].area * thickness;
+        struc.area = currentphys->faces[iretn].area;
+        struc.volume = struc.area * thickness;
         struc.mass = density * struc.volume;
         struc.face_cnt = 1;
         struc.face_idx.push_back(iretn);
@@ -1402,7 +1401,7 @@ int32_t Structure::add_face(vector<Vector> points, double thickness, uint8_t ext
 //! \param orientation Quaternion representing indirect rotation of panel into spacecraft frame.
 //! \param offset Location relative to coi.
 //! \return Face number, or negative error.
-    int32_t Structure::add_face(Vector point0, Vector point1, Vector point2, Vector point3, double thickness, uint8_t external, float pcell, Quaternion orientation, Vector offset)
+int32_t Structure::add_face(Vector point0, Vector point1, Vector point2, Vector point3, double thickness, uint8_t external, float pcell, Quaternion orientation, Vector offset)
 {
     vector<Vector> points = {point0 ,point1, point2, point3};
     return add_face(points, thickness, external, pcell, orientation, offset);
@@ -1502,11 +1501,6 @@ int32_t Structure::add_vertex(Vector point)
 
 int32_t State::Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, tlestruc tle, double utc, qatt icrf)
 {
-    dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
-    dtj = dt / 86400.;
-
-    currentinfo.node.name = name;
-    currentinfo.agent0.name = "sim";
     currentinfo.node.loc.utc = utc;
     tle2eci(currentinfo.node.loc.utc, tle, currentinfo.node.loc.pos.eci);
     currentinfo.node.loc.tle = tle;
@@ -1516,174 +1510,198 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     currentinfo.node.loc.att.icrf.pass++;
     att_icrf(currentinfo.node.loc);
 
-    uint32_t ctruc_idx = currentinfo.node.phys.strucs.size();
-    structure = new Structure(&currentinfo.node.phys);
-    structure->Setup(stype);
-    this->stype = stype;
-    for (uint32_t i=ctruc_idx; i<currentinfo.node.phys.strucs.size(); ++i)
-    {
-        piecestruc piece;
-        piece.name = currentinfo.node.phys.strucs[i].name;
-        piece.density = currentinfo.node.phys.strucs[i].mass / currentinfo.node.phys.strucs[i].volume;
-        //        piece.area = currentphys->faces[iretn].area;
-        piece.volume = currentinfo.node.phys.strucs[i].volume;
-        piece.mass = currentinfo.node.phys.strucs[i].mass;
-        piece.com = currentinfo.node.phys.strucs[i].com;
-        piece.struc_idx = i;
-        currentinfo.pieces.push_back(piece);
-        json_mappieceentry(currentinfo.pieces.size()-1, &currentinfo);
-        json_togglepieceentry(currentinfo.pieces.size()-1, &currentinfo, true);
-    }
-    currentinfo.piece_cnt = currentinfo.pieces.size();
+    return Init(name, idt, stype, ptype, atype, ttype, etype);
 
-    switch (ptype)
-    {
-    case Propagator::Type::PositionInertial:
-        inposition = new InertialPositionPropagator(&currentinfo, dt);
-        dt = inposition->dt;
-        dtj = inposition->dtj;
-        break;
-    case Propagator::Type::PositionIterative:
-        itposition = new IterativePositionPropagator(&currentinfo, dt);
-        dt = itposition->dt;
-        dtj = itposition->dtj;
-        break;
-    case Propagator::Type::PositionGaussJackson:
-        gjposition = new GaussJacksonPositionPropagator(&currentinfo, dt, 6);
-        dt = gjposition->dt;
-        dtj = gjposition->dtj;
-        gjposition->Init();
-        break;
-    case Propagator::Type::PositionGeo:
-        geoposition = new GeoPositionPropagator(&currentinfo, dt);
-        dt = geoposition->dt;
-        dtj = geoposition->dtj;
-        break;
-    case Propagator::Type::PositionTle:
-        tleposition = new TlePositionPropagator(&currentinfo, dt);
-        dt = tleposition->dt;
-        dtj = tleposition->dtj;
-        break;
-    case Propagator::Type::PositionLvlh:
-        lvlhposition = new LvlhPositionPropagator(&currentinfo, dt);
-        dt = lvlhposition->dt;
-        dtj = lvlhposition->dtj;
-        break;
-    default:
-        inposition = new InertialPositionPropagator(&currentinfo, dt);
-        dt = inposition->dt;
-        dtj = inposition->dtj;
-        break;
-    }
-    this->ptype = ptype;
+    // dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
+    // dtj = dt / 86400.;
 
-    switch (atype)
-    {
-    case Propagator::Type::AttitudeInertial:
-        inattitude = new InertialAttitudePropagator(&currentinfo, dt);
-        currentinfo.node.loc.att.icrf.pass++;
-        att_icrf(currentinfo.node.loc);
-        AttAccel(currentinfo.node.loc, currentinfo.node.phys);
-        break;
-    case Propagator::Type::AttitudeIterative:
-        itattitude = new IterativeAttitudePropagator(&currentinfo, dt);
-        currentinfo.node.loc.att.icrf.pass++;
-        att_icrf(currentinfo.node.loc);
-        AttAccel(currentinfo.node.loc, currentinfo.node.phys);
-        break;
-    case Propagator::Type::AttitudeLVLH:
-        lvattitude = new LvlhAttitudePropagator(&currentinfo, dt);
-        currentinfo.node.loc.att.lvlh.s = q_eye();
-        currentinfo.node.loc.att.lvlh.v = rv_zero();
-        currentinfo.node.loc.att.lvlh.a = rv_zero();
-        currentinfo.node.loc.att.lvlh.utc = utc;
-        currentinfo.node.loc.att.lvlh.pass++;
-        att_lvlh(currentinfo.node.loc);
-        break;
-    case Propagator::Type::AttitudeGeo:
-        geoattitude = new GeoAttitudePropagator(&currentinfo, dt);
-        currentinfo.node.loc.att.geoc.pass++;
-        att_geoc(currentinfo.node.loc);
-        break;
-    case Propagator::Type::AttitudeSolar:
-        solarattitude = new SolarAttitudePropagator(&currentinfo, dt);
-        currentinfo.node.loc.att.icrf.pass++;
-        att_icrf(currentinfo.node.loc);
-        AttAccel(currentinfo.node.loc, currentinfo.node.phys);
-        break;
-    case Propagator::Type::AttitudeTarget:
-    {
-        targetattitude = new TargetAttitudePropagator(&currentinfo, dt);
-        lvattitude = new LvlhAttitudePropagator(&currentinfo, dt);
-        currentinfo.node.loc.att.lvlh.s = q_eye();
-        currentinfo.node.loc.att.lvlh.v = rv_zero();
-        currentinfo.node.loc.att.lvlh.a = rv_zero();
-        currentinfo.node.loc.att.lvlh.utc = utc;
-        currentinfo.node.loc.att.lvlh.pass++;
-        att_lvlh(currentinfo.node.loc);
-        break;
-    }
-    case Propagator::Type::AttitudeRequest:
-    {
-        requestattitude = new RequestAttitudePropagator(&currentinfo, dt);
-        currentinfo.node.loc.att.icrf = currentinfo.node.loc_req.att.icrf;
-        currentinfo.node.loc.att.icrf.pass++;
-        att_icrf(currentinfo.node.loc);
-        break;
-    }
-    default:
-    {
-        inattitude = new InertialAttitudePropagator(&currentinfo, dt);
-        currentinfo.node.loc.att.icrf.pass++;
-        att_icrf(currentinfo.node.loc);
-        AttAccel(currentinfo.node.loc, currentinfo.node.phys);
-        break;
-    }
-    }
-    this->atype = atype;
+    // currentinfo.node.name = name;
+    // currentinfo.agent0.name = "sim";
 
-    switch (ttype)
-    {
-    case Propagator::Type::Thermal:
-        thermal = new ThermalPropagator(&currentinfo, dt, 300.);
-        break;
-    default:
-        thermal = new ThermalPropagator(&currentinfo, dt, 300.);
-        break;
-    }
-    this->ttype = ttype;
+    // uint32_t ctruc_idx = currentinfo.node.phys.strucs.size();
+    // structure = new Structure(&currentinfo.node.phys);
+    // structure->Setup(stype);
+    // this->stype = stype;
+    // for (uint32_t i=ctruc_idx; i<currentinfo.node.phys.strucs.size(); ++i)
+    // {
+    //     if (currentinfo.node.phys.strucs[i].name.find("panel") != string::npos)
+    //     {
+    //         int32_t  pidx = json_addpiece(&currentinfo, i, DeviceType::PVSTRG, i);
+    //         if (pidx < 0)
+    //         {
+    //             return pidx;
+    //         }
+    //         uint16_t cidx = currentinfo.pieces[pidx].cidx;
+    //         json_mapcompentry(cidx, &currentinfo);
+    //         json_togglecompentry(cidx, &currentinfo, true);
+    //         json_mapdeviceentry(currentinfo.device[cidx], &currentinfo);
+    //         json_toggledeviceentry(currentinfo.device[cidx]->didx, DeviceType::PVSTRG, &currentinfo, true);
+    //     }
+    //     else
+    //     {
+    //         json_addpiece(&currentinfo, i, DeviceType::NONE);
+    //     }
+    //     // piecestruc piece;
+    //     // piece.name = currentinfo.node.phys.strucs[i].name;
+    //     // piece.density = currentinfo.node.phys.strucs[i].mass / currentinfo.node.phys.strucs[i].volume;
+    //     // piece.volume = currentinfo.node.phys.strucs[i].volume;
+    //     // piece.mass = currentinfo.node.phys.strucs[i].mass;
+    //     // piece.com = currentinfo.node.phys.strucs[i].com;
+    //     // piece.struc_idx = i;
+    //     // currentinfo.pieces.push_back(piece);
+    //     json_mappieceentry(currentinfo.pieces.size()-1, &currentinfo);
+    //     json_togglepieceentry(currentinfo.pieces.size()-1, &currentinfo, true);
+    // }
+    // currentinfo.piece_cnt = currentinfo.pieces.size();
 
-    switch (etype)
-    {
-    case Propagator::Type::Electrical:
-        electrical = new ElectricalPropagator(&currentinfo, dt, .5);
-        break;
-    default:
-        electrical = new ElectricalPropagator(&currentinfo, dt, .5);
-        break;
-    }
-    this->etype = etype;
+    // switch (ptype)
+    // {
+    // case Propagator::Type::PositionInertial:
+    //     inposition = new InertialPositionPropagator(&currentinfo, dt);
+    //     dt = inposition->dt;
+    //     dtj = inposition->dtj;
+    //     break;
+    // case Propagator::Type::PositionIterative:
+    //     itposition = new IterativePositionPropagator(&currentinfo, dt);
+    //     dt = itposition->dt;
+    //     dtj = itposition->dtj;
+    //     break;
+    // case Propagator::Type::PositionGaussJackson:
+    //     gjposition = new GaussJacksonPositionPropagator(&currentinfo, dt, 6);
+    //     dt = gjposition->dt;
+    //     dtj = gjposition->dtj;
+    //     gjposition->Init();
+    //     break;
+    // case Propagator::Type::PositionGeo:
+    //     geoposition = new GeoPositionPropagator(&currentinfo, dt);
+    //     dt = geoposition->dt;
+    //     dtj = geoposition->dtj;
+    //     break;
+    // case Propagator::Type::PositionTle:
+    //     tleposition = new TlePositionPropagator(&currentinfo, dt);
+    //     dt = tleposition->dt;
+    //     dtj = tleposition->dtj;
+    //     break;
+    // case Propagator::Type::PositionLvlh:
+    //     lvlhposition = new LvlhPositionPropagator(&currentinfo, dt);
+    //     dt = lvlhposition->dt;
+    //     dtj = lvlhposition->dtj;
+    //     break;
+    // default:
+    //     inposition = new InertialPositionPropagator(&currentinfo, dt);
+    //     dt = inposition->dt;
+    //     dtj = inposition->dtj;
+    //     break;
+    // }
+    // this->ptype = ptype;
 
-    if (ptype == Propagator::PositionGeo)
-    {
-        currentinfo.node.loc.pos.geod.pass++;
-        pos_geod(currentinfo.node.loc);
-    }
-    else
-    {
-        currentinfo.node.loc.pos.eci.pass++;
-        pos_eci(currentinfo.node.loc);
-        PosAccel(currentinfo.node.loc, currentinfo.node.phys);
-    }
+    // switch (atype)
+    // {
+    // case Propagator::Type::AttitudeInertial:
+    //     inattitude = new InertialAttitudePropagator(&currentinfo, dt);
+    //     currentinfo.node.loc.att.icrf.pass++;
+    //     att_icrf(currentinfo.node.loc);
+    //     AttAccel(currentinfo.node.loc, currentinfo.node.phys);
+    //     break;
+    // case Propagator::Type::AttitudeIterative:
+    //     itattitude = new IterativeAttitudePropagator(&currentinfo, dt);
+    //     currentinfo.node.loc.att.icrf.pass++;
+    //     att_icrf(currentinfo.node.loc);
+    //     AttAccel(currentinfo.node.loc, currentinfo.node.phys);
+    //     break;
+    // case Propagator::Type::AttitudeLVLH:
+    //     lvattitude = new LvlhAttitudePropagator(&currentinfo, dt);
+    //     currentinfo.node.loc.att.lvlh.s = q_eye();
+    //     currentinfo.node.loc.att.lvlh.v = rv_zero();
+    //     currentinfo.node.loc.att.lvlh.a = rv_zero();
+    //     currentinfo.node.loc.att.lvlh.utc = utc;
+    //     currentinfo.node.loc.att.lvlh.pass++;
+    //     att_lvlh(currentinfo.node.loc);
+    //     break;
+    // case Propagator::Type::AttitudeGeo:
+    //     geoattitude = new GeoAttitudePropagator(&currentinfo, dt);
+    //     currentinfo.node.loc.att.geoc.pass++;
+    //     att_geoc(currentinfo.node.loc);
+    //     break;
+    // case Propagator::Type::AttitudeSolar:
+    //     solarattitude = new SolarAttitudePropagator(&currentinfo, dt);
+    //     currentinfo.node.loc.att.icrf.pass++;
+    //     att_icrf(currentinfo.node.loc);
+    //     AttAccel(currentinfo.node.loc, currentinfo.node.phys);
+    //     break;
+    // case Propagator::Type::AttitudeTarget:
+    // {
+    //     targetattitude = new TargetAttitudePropagator(&currentinfo, dt);
+    //     lvattitude = new LvlhAttitudePropagator(&currentinfo, dt);
+    //     currentinfo.node.loc.att.lvlh.s = q_eye();
+    //     currentinfo.node.loc.att.lvlh.v = rv_zero();
+    //     currentinfo.node.loc.att.lvlh.a = rv_zero();
+    //     currentinfo.node.loc.att.lvlh.utc = utc;
+    //     currentinfo.node.loc.att.lvlh.pass++;
+    //     att_lvlh(currentinfo.node.loc);
+    //     break;
+    // }
+    // case Propagator::Type::AttitudeRequest:
+    // {
+    //     requestattitude = new RequestAttitudePropagator(&currentinfo, dt);
+    //     currentinfo.node.loc.att.icrf = currentinfo.node.loc_req.att.icrf;
+    //     currentinfo.node.loc.att.icrf.pass++;
+    //     att_icrf(currentinfo.node.loc);
+    //     break;
+    // }
+    // default:
+    // {
+    //     inattitude = new InertialAttitudePropagator(&currentinfo, dt);
+    //     currentinfo.node.loc.att.icrf.pass++;
+    //     att_icrf(currentinfo.node.loc);
+    //     AttAccel(currentinfo.node.loc, currentinfo.node.phys);
+    //     break;
+    // }
+    // }
+    // this->atype = atype;
 
-    orbitalevent = new OrbitalEventGenerator(&currentinfo, dt);
-    orbitalevent->Init();
-    metric = new MetricGenerator(&currentinfo, dt);
+    // switch (ttype)
+    // {
+    // case Propagator::Type::Thermal:
+    //     thermal = new ThermalPropagator(&currentinfo, dt, 300.);
+    //     break;
+    // default:
+    //     thermal = new ThermalPropagator(&currentinfo, dt, 300.);
+    //     break;
+    // }
+    // this->ttype = ttype;
 
-    initialloc = currentinfo.node.loc;
-    initialphys = currentinfo.node.phys;
-    currentinfo.node.utc = currentinfo.node.loc.utc;
-    return 0;
+    // switch (etype)
+    // {
+    // case Propagator::Type::Electrical:
+    //     electrical = new ElectricalPropagator(&currentinfo, dt, .5);
+    //     break;
+    // default:
+    //     electrical = new ElectricalPropagator(&currentinfo, dt, .5);
+    //     break;
+    // }
+    // this->etype = etype;
+
+    // if (ptype == Propagator::PositionGeo)
+    // {
+    //     currentinfo.node.loc.pos.geod.pass++;
+    //     pos_geod(currentinfo.node.loc);
+    // }
+    // else
+    // {
+    //     currentinfo.node.loc.pos.eci.pass++;
+    //     pos_eci(currentinfo.node.loc);
+    //     PosAccel(currentinfo.node.loc, currentinfo.node.phys);
+    // }
+
+    // orbitalevent = new OrbitalEventGenerator(&currentinfo, dt);
+    // orbitalevent->Init();
+    // metric = new MetricGenerator(&currentinfo, dt);
+
+    // initialloc = currentinfo.node.loc;
+    // initialphys = currentinfo.node.phys;
+    // currentinfo.node.utc = currentinfo.node.loc.utc;
+    // return 0;
 }
 
 int32_t State::Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, qatt icrf)
@@ -1782,15 +1800,15 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     this->stype = stype;
     for (uint32_t i=ctruc_idx; i<currentinfo.node.phys.strucs.size(); ++i)
     {
+        if (currentinfo.node.phys.strucs[i].name.find("panel") != string::npos)
+        {
+            json_addpiece(&currentinfo, i, DeviceType::PVSTRG, i);
+        }
+        else
+        {
+            json_addpiece(&currentinfo, i, DeviceType::NONE);
+        }
         piecestruc piece;
-        piece.name = currentinfo.node.phys.strucs[i].name;
-        piece.density = currentinfo.node.phys.strucs[i].mass / currentinfo.node.phys.strucs[i].volume;
-        //        piece.area = currentphys->faces[iretn].area;
-        piece.volume = currentinfo.node.phys.strucs[i].volume;
-        piece.mass = currentinfo.node.phys.strucs[i].mass;
-        piece.com = currentinfo.node.phys.strucs[i].com;
-        piece.struc_idx = i;
-        currentinfo.pieces.push_back(piece);
     }
     json_map_node(&currentinfo);
 
@@ -2184,14 +2202,14 @@ int32_t State::Update()
     }
 
     // Metric propagator
-//    if (metric != nullptr)
-//    {
-//        iretn = metric->Propagate(currentinfo.node.utc);
-//        if (iretn < 0)
-//        {
-//            return iretn;
-//        }
-//    }
+    //    if (metric != nullptr)
+    //    {
+    //        iretn = metric->Propagate(currentinfo.node.utc);
+    //        if (iretn < 0)
+    //        {
+    //            return iretn;
+    //        }
+    //    }
     iretn = update_metrics(&currentinfo);
     if (iretn < 0)
     {
@@ -2364,9 +2382,9 @@ int32_t LvlhAttitudePropagator::Propagate(double nextutc)
 
     currentutc = nextutc;
     currentinfo->node.loc.att.lvlh.utc = nextutc;
-//    currentinfo->node.loc.att.lvlh.s = q_eye();
-//    currentinfo->node.loc.att.lvlh.v = rv_zero();
-//    currentinfo->node.loc.att.lvlh.a = rv_zero();
+    //    currentinfo->node.loc.att.lvlh.s = q_eye();
+    //    currentinfo->node.loc.att.lvlh.v = rv_zero();
+    //    currentinfo->node.loc.att.lvlh.a = rv_zero();
     currentinfo->node.loc.att.lvlh.s = currentinfo->node.loc_req.att.lvlh.s;
     currentinfo->node.loc.att.lvlh.v = currentinfo->node.loc_req.att.lvlh.v;
     currentinfo->node.loc.att.lvlh.a = currentinfo->node.loc_req.att.lvlh.a;
@@ -2618,30 +2636,49 @@ int32_t ElectricalPropagator::Propagate(double nextutc)
     while ((nextutc - currentutc) > dtj / 2.)
     {
         currentutc += dtj;
+
         currentinfo->node.phys.powgen = 0.;
-        for (trianglestruc& triangle : currentinfo->node.phys.triangles)
+        for (pvstrgstruc& pv : currentinfo->devspec.pvstrg)
         {
-            if (triangle.external)
+            pv.power = 0;
+            for (uint32_t fidx : currentinfo->node.phys.strucs[currentinfo->pieces[pv.pidx].struc_idx].face_idx)
             {
-                if (triangle.pcell > 0.)
+                for (uint32_t tidx : currentinfo->node.phys.faces[fidx].triangle_idx)
                 {
-                    if (triangle.ecellbase > 0.)
-                    {
-                        double efficiency = triangle.ecellbase + triangle.ecellslope * triangle.temp;
-                        triangle.power = efficiency * triangle.sirradiation;
-                        triangle.volt = triangle.vcell;
-                        triangle.amp = -triangle.power / triangle.volt;
-                        currentinfo->node.phys.powgen += triangle.power;
-                    }
+                    double efficiency = currentinfo->node.phys.triangles[tidx].ecellbase + currentinfo->node.phys.triangles[tidx].ecellslope * currentinfo->node.phys.triangles[tidx].temp;
+                    currentinfo->node.phys.triangles[tidx].power = efficiency * currentinfo->node.phys.triangles[tidx].sirradiation;
+                    currentinfo->node.phys.triangles[tidx].volt = currentinfo->node.phys.triangles[tidx].vcell;
+                    currentinfo->node.phys.triangles[tidx].amp = -currentinfo->node.phys.triangles[tidx].power / currentinfo->node.phys.triangles[tidx].volt;
+                    currentinfo->node.phys.powgen += currentinfo->node.phys.triangles[tidx].power;
+                    pv.power += currentinfo->node.phys.triangles[tidx].power;
                 }
             }
-            else
-            {
-                triangle.power = 0.;
-                triangle.volt = 0.;
-                triangle.amp = 0.;
-            }
         }
+
+        // for (trianglestruc& triangle : currentinfo->node.phys.triangles)
+        //     {
+        //         if (triangle.external)
+        //         {
+        //             if (triangle.pcell > 0.)
+        //             {
+        //                 if (triangle.ecellbase > 0.)
+        //                 {
+        //                     double efficiency = triangle.ecellbase + triangle.ecellslope * triangle.temp;
+        //                     triangle.power = efficiency * triangle.sirradiation;
+        //                     triangle.volt = triangle.vcell;
+        //                     triangle.amp = -triangle.power / triangle.volt;
+        //                     currentinfo->node.phys.powgen += triangle.power;
+        //                 }
+        //             }
+        //         }
+        //         else
+        //         {
+        //             triangle.power = 0.;
+        //             triangle.volt = 0.;
+        //             triangle.amp = 0.;
+        //         }
+        //     }
+
         currentinfo->node.phys.powuse = 0.;
         for (devicestruc* dev : currentinfo->device)
         {
@@ -3237,7 +3274,7 @@ int32_t OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool fo
 {
     // Find target sight acquisition/loss
     // Groundstation is in line-of-sight if elto (elevation from target to sat) is positive
-//    double elto_deg = DEGOF(gs.elto);
+    //    double elto_deg = DEGOF(gs.elto);
     if (gs_AoS.find(gs.name) == gs_AoS.end())
     {
         gs_AoS[gs.name] = {std::make_pair(0.,0.f),std::make_pair(0.,0.f),std::make_pair(0.,0.f),std::make_pair(0.,0.f)};
@@ -3780,25 +3817,25 @@ int32_t GaussJacksonPositionPropagator::Setup()
         }
     }
 
-//    for (uint16_t j=0; j<order+2; j++)
-//    {
-//        step[j].a.resize(order+1);
-//        step[j].b.resize(order+1);
-//        for (uint16_t m=0; m<order+1; m++)
-//        {
-//            step[j].a[order-m] = 0.;
-//            step[j].b[order-m] = 0.;
-//            for (uint32_t i=m; i<=order; i++)
-//            {
-//                step[j].a[order-m] += alpha[j][i] * binom[m][i];
-//                step[j].b[order-m] += beta[j][i] * binom[m][i];
-//            }
-//            step[j].a[order-m] *= pow(-1.,m);
-//            step[j].b[order-m] *= pow(-1.,m);
-//            if (order-m == j)
-//                step[j].b[order-m] += .5;
-//        }
-//    }
+    //    for (uint16_t j=0; j<order+2; j++)
+    //    {
+    //        step[j].a.resize(order+1);
+    //        step[j].b.resize(order+1);
+    //        for (uint16_t m=0; m<order+1; m++)
+    //        {
+    //            step[j].a[order-m] = 0.;
+    //            step[j].b[order-m] = 0.;
+    //            for (uint32_t i=m; i<=order; i++)
+    //            {
+    //                step[j].a[order-m] += alpha[j][i] * binom[m][i];
+    //                step[j].b[order-m] += beta[j][i] * binom[m][i];
+    //            }
+    //            step[j].a[order-m] *= pow(-1.,m);
+    //            step[j].b[order-m] *= pow(-1.,m);
+    //            if (order-m == j)
+    //                step[j].b[order-m] += .5;
+    //        }
+    //    }
     a.resize(order+2);
     b.resize(order+2);
     for (uint16_t j=0; j<order+2; j++)
@@ -4160,30 +4197,30 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
         currentinfo->node.loc.utc = currentinfo->node.loc.pos.utc;
     }
 
-//    Vector fp = currentinfo->node.phys.fpush;
+    //    Vector fp = currentinfo->node.phys.fpush;
     currentinfo->node.phys.fpush.clear();
 
-//    static double lastutc=0.0;
-//    if (lastutc != step[0].loc.pos.eci.utc)
-//    {
-//        lastutc = step[0].loc.pos.eci.utc;
-//    }
-//    else
-//    {
-//        printf("%u\tutc:\t%.13f\t", tcount++, step[0].loc.pos.eci.utc);
-//        for (uint16_t i=1; i<=order; ++i)
-//        {
-//            rvector dsa = step[i].loc.pos.eci.s - step[i-1].loc.pos.eci.s;
-//            rvector dva = step[i].loc.pos.eci.v - step[i-1].loc.pos.eci.v;
-//            rvector dsb = step[i-1].loc.pos.eci.v + .5 * step[i-1].loc.pos.eci.a;
-//            rvector dvb = step[i-1].loc.pos.eci.a;
-//            printf("\tds:\t%.2f", length_rv(dsa));
-//            printf("\tdv:\t%.3f", length_rv(dva));
-//            printf("\tfp:\t%.4f", fp.norm());
-//        }
-//        printf("\n");
-//        fflush(stdout);
-//    }
+    //    static double lastutc=0.0;
+    //    if (lastutc != step[0].loc.pos.eci.utc)
+    //    {
+    //        lastutc = step[0].loc.pos.eci.utc;
+    //    }
+    //    else
+    //    {
+    //        printf("%u\tutc:\t%.13f\t", tcount++, step[0].loc.pos.eci.utc);
+    //        for (uint16_t i=1; i<=order; ++i)
+    //        {
+    //            rvector dsa = step[i].loc.pos.eci.s - step[i-1].loc.pos.eci.s;
+    //            rvector dva = step[i].loc.pos.eci.v - step[i-1].loc.pos.eci.v;
+    //            rvector dsb = step[i-1].loc.pos.eci.v + .5 * step[i-1].loc.pos.eci.a;
+    //            rvector dvb = step[i-1].loc.pos.eci.a;
+    //            printf("\tds:\t%.2f", length_rv(dsa));
+    //            printf("\tdv:\t%.3f", length_rv(dva));
+    //            printf("\tfp:\t%.4f", fp.norm());
+    //        }
+    //        printf("\n");
+    //        fflush(stdout);
+    //    }
 
     return 0;
 }

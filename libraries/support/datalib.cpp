@@ -2414,6 +2414,9 @@ bool data_issymlink(string path)
         return false;
     }
 
+#ifdef COSMOS_WIN_OS
+    return false;
+#else
     if (!stat(path.c_str(), &st) && S_ISLNK(st.st_mode))
     {
         return true;
@@ -2422,7 +2425,7 @@ bool data_issymlink(string path)
     {
         return false;
     }
-
+#endif
 }
 
 //! Check if file exists at given path.
@@ -2513,6 +2516,7 @@ int32_t data_execute(vector<uint8_t> cmd, string& result, float timer, string sh
 
 int32_t data_execute(string cmd, string& result, float timer, string shell)
 {
+    int32_t iretn = 0;
 #if defined(COSMOS_WIN_OS)
     if (!data_isfile(cmd))
     {
@@ -2540,26 +2544,26 @@ int32_t data_execute(string cmd, string& result, float timer, string shell)
     // Create a pipe for the child process's STDOUT.
     if (!CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0))
     {
-        return -1;
+        return GENERAL_ERROR_UNDEFINED;
     }
 
     // Ensure the read handle to the pipe for STDOUT is not inherited.
     if (!SetHandleInformation(g_hChildStd_OUT_Rd, HANDLE_FLAG_INHERIT, 0))
     {
-        return -1;
+        return GENERAL_ERROR_UNDEFINED;
     }
 
     //child process's STDIN is the user input or data that you enter into the child process
     // Create a pipe for the child process's STDIN.
     if (!CreatePipe(&g_hChildStd_IN_Rd, &g_hChildStd_IN_Wr, &saAttr, 0))
     {
-        return -1;
+        return GENERAL_ERROR_UNDEFINED;
     }
 
     // Ensure the write handle to the pipe for STDIN is not inherited.
     if (!SetHandleInformation(g_hChildStd_IN_Wr, HANDLE_FLAG_INHERIT, 0))
     {
-        return -1;
+        return GENERAL_ERROR_UNDEFINED;
     }
 
     // Create child process
@@ -2654,7 +2658,6 @@ int32_t data_execute(string cmd, string& result, float timer, string shell)
 
 
 #else
-    int32_t iretn = 0;
     FILE * stream;
 //    result.clear();
 
