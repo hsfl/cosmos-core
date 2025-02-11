@@ -574,7 +574,7 @@ int32_t Simulator::ParseSatString(string args)
         }
         if (type.empty())
         {
-            type = "U12";
+            type = "U12XY";
         }
         if (fastcalc)
         {
