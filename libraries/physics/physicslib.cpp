@@ -1051,7 +1051,7 @@ for (il=0; il<5; il++)
                             j = cinfo->device[cinfo->pieces[i].cidx]->didx;
                             if (cinfo->devspec.pvstrg[j].effbase > 0.)
                             {
-                                efficiency = cinfo->devspec.pvstrg[j].effbase + cinfo->devspec.pvstrg[j].effslope * cinfo->pieces[i].temp;
+                                efficiency = cinfo->devspec.pvstrg[j].effbase + cinfo->devspec.pvstrg[j].effslope * (cinfo->pieces[i].temp-273);
                                 cinfo->devspec.pvstrg[j].power = cinfo->pieces[i].area*efficiency*cinfo->pieces[i].insol;
                                 cinfo->devspec.pvstrg[j].volt = cinfo->devspec.pvstrg[j].nvolt;
                                 cinfo->devspec.pvstrg[j].amp = -cinfo->devspec.pvstrg[j].power / cinfo->devspec.pvstrg[j].volt;
