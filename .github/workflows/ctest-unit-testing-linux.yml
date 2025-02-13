@@ -23,7 +23,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake build-essential git
+        xargs -a apt-package-dependencies.txt sudo apt-get install -y
 
     - name: Checkout code
       uses: actions/checkout@v4

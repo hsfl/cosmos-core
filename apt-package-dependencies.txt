@@ -1,0 +1,5 @@
+cmake
+build-essential
+git
+python3-dev
+pybind11-dev
