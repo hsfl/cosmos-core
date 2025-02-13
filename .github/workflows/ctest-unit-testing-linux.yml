@@ -20,13 +20,13 @@ jobs:
   build-and-test:
     runs-on: arc-runner-set
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
     - name: Install dependencies
       run: |
         sudo apt-get update
         xargs -a apt-package-dependencies.txt sudo apt-get install -y
-
-    - name: Checkout code
-      uses: actions/checkout@v4
 
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build/linux -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCROSS_TYPE=${{env.CROSS_TYPE}}
