@@ -119,11 +119,11 @@ struct socket_channel
     // Channel UDP socket handle
     int32_t cudp=-1;
     // Channel UDP INET4 address
-    struct sockaddr_in caddr = {0};
+    struct sockaddr_in caddr = {};
     // Channel UDP INET4 broadcast address
-    struct sockaddr_in baddr = {0};
+    struct sockaddr_in baddr = {};
     // Channel UDP INET6 address
-    struct sockaddr_in6 caddr6 = {0};
+    struct sockaddr_in6 caddr6 = {};
     // Length for chosen address
     int addrlen;
     // Channel port

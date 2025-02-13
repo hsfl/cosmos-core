@@ -1020,8 +1020,10 @@ class sim_param	{
             string name = "";
             string node = "";
             string state = "";
-            string vertexs = "";
+            string vertices = "";
+            string triangles = "";
             string faces = "";
+            string strucs = "";
             string pieces = "";
             string devgen = "";
             string devspec = "";
@@ -1036,8 +1038,10 @@ class sim_param	{
                     { "name" , name },
                     { "node" , node },
                     { "state" , state },
-                    { "vertexs" , vertexs },
+                    { "vertices" , vertices },
+                    { "triangles" , triangles },
                     { "faces" , faces },
+                    { "strucs" , strucs },
                     { "pieces" , pieces },
                     { "devgen" , devgen },
                     { "devspec" , devspec },
@@ -1056,8 +1060,10 @@ class sim_param	{
                     if(!parsed["name"].is_null())		name = parsed["name"].string_value();
                     if(!parsed["node"].is_null())		node = parsed["node"].string_value();
                     if(!parsed["state"].is_null())		state = parsed["state"].string_value();
-                    if(!parsed["vertexs"].is_null())	vertexs = parsed["vertexs"].string_value();
+                    if(!parsed["vertices"].is_null())	vertices = parsed["vertices"].string_value();
+                    if(!parsed["triangles"].is_null())		triangles = parsed["triangles"].string_value();
                     if(!parsed["faces"].is_null())		faces = parsed["faces"].string_value();
+                    if(!parsed["strucs"].is_null())		strucs = parsed["strucs"].string_value();
                     if(!parsed["pieces"].is_null())		pieces = parsed["pieces"].string_value();
                     if(!parsed["devgen"].is_null())		devgen = parsed["devgen"].string_value();
                     if(!parsed["devspec"].is_null())	devspec = parsed["devspec"].string_value();
@@ -1886,7 +1892,7 @@ class sim_param	{
         };
 
         //! Alias structure
-        /*! Contains the name of an alias and the ::jsonmap entry it vertexs to,
+        /*! Contains the name of an alias and the ::jsonmap entry it points to,
  * stored as a ::jsonhandle.
 */
         class aliasstruc
@@ -1913,7 +1919,7 @@ class sim_param	{
         };
 
         //! Equation structure
-        /*! Contains the name of an equation and the Equation string it vertexs to.
+        /*! Contains the name of an equation and the Equation string it points to.
 */
         class equationstruc
         {
@@ -1999,14 +2005,15 @@ class sim_param	{
             float bearing;
             float distance;
             Convert::locstruc loc;
-            Convert::locstruc cloc;
+//            Convert::locstruc cloc; //Center of target
             gvector size = {0., 0., 0.};
             float area;
             float resolution;
-            Physics::coverage vis;
-            Physics::coverage swir;
-            Physics::coverage mwir;
-            Physics::coverage lwir;
+            Physics::coverage cover[4];
+//            Physics::coverage vis;
+//            Physics::coverage swir;
+//            Physics::coverage mwir;
+//            Physics::coverage lwir;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -2028,7 +2035,7 @@ class sim_param	{
                     { "bearing"	, bearing },
                     { "distance"	, distance },
                     { "loc"	, loc },
-                    { "cloc"	, cloc },
+//                    { "cloc"	, cloc },
                     { "size", size},
                     { "area", area},
                     { "resolution", resolution},
@@ -2058,7 +2065,7 @@ class sim_param	{
                     if(!p["bearing"].is_null()) { bearing = p["bearing"].number_value(); }
                     if(!p["distance"].is_null()) { distance = p["distance"].number_value(); }
                     if(!p["loc"].is_null()) { loc.from_json(p["loc"].dump()); }
-                    if(!p["cloc"].is_null()) { cloc.from_json(p["cloc"].dump()); }
+//                    if(!p["cloc"].is_null()) { cloc.from_json(p["cloc"].dump()); }
                     if(!p["size"].is_null()) { size.from_json(p["size"].dump()); }
                     if(!p["area"].is_null()) { area = p["area"].number_value(); }
                     if(!p["resolution"].is_null()) { resolution = p["resolution"].number_value(); }
@@ -2136,17 +2143,17 @@ class sim_param	{
             size_t memoryusage()
             {
                 size_t total = sizeof(facestruc);
-                total += vertex_idx.capacity() * sizeof(uint16_t);
+                total += triangle_idx.capacity() * sizeof(uint32_t);
                 return total;
             }
 
             void shrinkusage()
             {
-                vector<uint16_t>(vertex_idx).swap(vertex_idx);
+                vector<uint32_t>(triangle_idx).swap(triangle_idx);
             }
 
-            uint16_t vertex_cnt = 0;
-            vector <uint16_t> vertex_idx;
+            uint32_t triangle_cnt = 0;
+            vector <uint32_t> triangle_idx;
             Vector com;
             Vector normal;
             double area=0.;
@@ -2157,8 +2164,8 @@ class sim_param	{
     */
             json11::Json to_json() const {
                 return json11::Json::object {
-                    { "vertex_cnt" , static_cast<double>(vertex_cnt)},
-                    { "vertex_idx" , vertex_idx },
+                    { "triangle_cnt" , static_cast<double>(triangle_cnt)},
+                    { "triangle_idx" , triangle_idx },
                     { "com"	, com },
                     { "normal" , normal },
                     { "area"   , area }
@@ -2174,12 +2181,78 @@ class sim_param	{
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty()) {
-                    if(!parsed["vertex_cnt"].is_null()) { vertex_cnt = parsed["vertex_cnt"].long_value(); }
-                    for(size_t i = 0; i < vertex_idx.size(); ++i)	{
-                        if(!parsed["vertex_idx"][i].is_null())	{ vertex_idx[i] = parsed["vertex_idx"][i].long_value(); }
+                    if(!parsed["triangle_cnt"].is_null()) { triangle_cnt = parsed["triangle_cnt"].long_value(); }
+                    for(size_t i = 0; i < triangle_idx.size(); ++i)	{
+                if(!parsed["triangle_idx"][i].is_null())	{ triangle_idx[i] = parsed["triangle_idx"][i].long_value(); }
                     }
                     if(!parsed["com"].is_null()) { com.from_json(parsed["com"].dump()); }
                     if(!parsed["normal"].is_null()) { normal.from_json(parsed["normal"].dump()); }
+                    if(!parsed["area"].is_null()) { area = parsed["area"].number_value(); }
+                } else {
+                    cerr<<"ERROR: <"<<error<<">"<<endl;
+                }
+                return;
+            }
+        };
+
+        //! Structure structure: information on each structure of a piece
+        class strucstruc
+        {
+        public:
+            size_t memoryusage()
+            {
+                size_t total = sizeof(strucstruc);
+                total += name.capacity();
+                total += face_idx.capacity() * sizeof(uint32_t);
+                return total;
+            }
+
+            void shrinkusage()
+            {
+                vector<uint32_t>(face_idx).swap(face_idx);
+            }
+
+            string name;
+            uint32_t face_cnt = 0;
+            vector <uint32_t> face_idx;
+            Vector com;
+            float mass;
+            float volume=0.;
+            float area = 0.;
+
+            /// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+        @return	A json11 JSON object containing every member variable within the class
+    */
+            json11::Json to_json() const {
+                return json11::Json::object {
+                    { "name"	, name },
+                    { "face_cnt" , face_cnt},
+                    { "face_idx" , face_idx },
+                    { "com"	, com },
+                    { "mass"	, mass },
+                    { "volume"   , volume },
+                    { "area"   , area }
+                };
+            }
+
+            /// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+        @param	s	JSON-formatted string to set class contents to
+        @return n/a
+    */
+            void from_json(const string& s) {
+                string error;
+                json11::Json parsed = json11::Json::parse(s,error);
+                if(error.empty()) {
+                    if(!parsed["name"].is_null()) { name = parsed["name"].string_value(); }
+                    if(!parsed["face_cnt"].is_null()) { face_cnt = parsed["face_cnt"].long_value(); }
+                    for(size_t i = 0; i < face_idx.size(); ++i)	{
+                if(!parsed["face_idx"][i].is_null())	{ face_idx[i] = parsed["face_idx"][i].long_value(); }
+                    }
+                    if(!parsed["com"].is_null()) { com.from_json(parsed["com"].dump()); }
+                    if(!parsed["mass"].is_null()) { mass = parsed["mass"].number_value(); }
+                    if(!parsed["volume"].is_null()) { volume = parsed["volume"].number_value(); }
                     if(!parsed["area"].is_null()) { area = parsed["area"].number_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
@@ -2202,38 +2275,34 @@ class sim_param	{
             void shrinkusage()
             {
                 string(name).swap(name);
-                vector<uint16_t>(face_idx).swap(face_idx);
             }
 
             //! Name of piece
-            //            char name[COSMOS_MAX_NAME+1] = "";
             string name;
             //! Enabled?
             bool enabled = true;
             //! Component index: -1 if not a Component
             uint16_t cidx = 0;
-            //! Density in kg/cu m
-            float density = 0.f;
+            //! Density in kg/cu m (aluminum)
+            float density = 2700.f;
             //! Mass in kg
             float mass = 0.f;
             //! Emissivity: 0-1
-            float emi = 0.f;
+            float emi = 0.85f;
             //! Absorptivity: 0-1
-            float abs = 0.f;
-            //! Heat capacity in joules per kelvin
-            float hcap = 0.f;
-            //! Heat conductivity in Watts per meter per kelvin
-            float hcon = 0.f;
+            float abs = 0.15f;
+            //! Heat capacity in joules per kelvin (aluminum)
+            float hcap = 900.f;
+            //! Heat conductivity in Watts per meter per kelvin (aluminum)
+            float hcon = 237.f;
             //! Dimension in meters: effect is dependent on Part type
             float dim = 0.f;
             //! Area in square meters
             float area = 0.f;
             //! Volume in cubic meters
             float volume = 0.f;
-            //! Number of faces
-            uint16_t face_cnt = 0;
-            //! Array of vertices/vertexs
-            vector <uint16_t> face_idx;
+            //! Structure index
+            uint32_t struc_idx = 0;
             //! Centroid of piece
             Vector com;
             //! Contribution of piece to linear forces
@@ -2273,8 +2342,9 @@ class sim_param	{
                     { "dim"	 , dim },
                     { "area"	, area },
                     { "volume"  , volume },
-                    { "face_cnt", face_cnt },
-                    { "face_idx", face_idx },
+//                    { "face_cnt", face_cnt },
+//                    { "face_idx", face_idx },
+                    { "struc_idx", struc_idx },
                     { "com"	 , com },
                     { "shove"   , shove },
                     { "twist"   , twist },
@@ -2309,13 +2379,14 @@ class sim_param	{
                     if(!p["dim"].is_null()) { dim = p["dim"].number_value(); }
                     if(!p["area"].is_null()) { area = p["area"].number_value(); }
                     if(!p["volume"].is_null()) { volume = p["volume"].number_value(); }
-                    if(!p["face_cnt"].is_null()) { face_cnt = p["face_cnt"].long_value(); }
-                    if(!p["face_idx"].is_null()) {
-                        auto p_face_idx = p["face_idx"].array_items();
-                        for(size_t i = 0; i != p_face_idx.size(); ++i) {
-                            if(!p_face_idx[i].is_null()) { face_idx[i] = p_face_idx[i].long_value(); }
-                        }
-                    }
+                    if(!p["struc_idx"].is_null()) { struc_idx = p["struc_idx"].number_value(); }
+//                    if(!p["face_cnt"].is_null()) { face_cnt = p["face_cnt"].long_value(); }
+//                    if(!p["face_idx"].is_null()) {
+//                        auto p_face_idx = p["face_idx"].array_items();
+//                        for(size_t i = 0; i != p_face_idx.size(); ++i) {
+//                            if(!p_face_idx[i].is_null()) { face_idx[i] = p_face_idx[i].long_value(); }
+//                        }
+//                    }
                     if(!p["com"].is_null()) { com.from_json(p["com"].dump()); }
                     if(!p["shove"].is_null()) { shove.from_json(p["shove"].dump()); }
                     if(!p["twist"].is_null()) { twist.from_json(p["twist"].dump()); }
@@ -3616,16 +3687,16 @@ union as a ::devicestruc.
         };
 
         //! PV String (STRG) structure.
-        /*! Efficiency is goven as effbase + effslope * Tkelvin.
+        /*! Efficiency is goven as effbase + effslope * TCelsius.
 */
         struct pvstrgstruc : public devicestruc
         {
             //! BCREG index
             uint16_t bcidx = 0;
             //! Efficiency 0th order term
-            float effbase = 0.f;
+            float effbase = 0.3f;
             //! Efficiency 1st order term
-            float effslope = 0.f;
+            float effslope = -0.003f;
             //! Maximum power generation in Watts
             float maxpower = 0.f;
             //! Current power being generated in Watts.
@@ -3827,7 +3898,11 @@ union as a ::devicestruc.
         @param	s	JSON-formatted string to set class contents to
         @return n/a
     */
-            void from_json(const string& s) {};
+            void from_json(const string& s) {
+                string error;
+                json11::Json::parse(s,error);
+                return;
+            }
         };
 
         //! Thruster (THST) dynamic structure
@@ -3932,7 +4007,11 @@ union as a ::devicestruc.
         @param	s	JSON-formatted string to set class contents to
         @return n/a
     */
-            void from_json(const string& s) {};
+            void from_json(const string& s) {
+                string error;
+                json11::Json::parse(s,error);
+                return;
+            }
         };
 
         //! Rotor Structure definition
@@ -4238,15 +4317,15 @@ union as a ::devicestruc.
             //! Target temperature
             float ttemp = 0.f;
             //! Field of view
-            float fov = 0.001;
+            float fov = 0.001f;
             //! Instantaneous field of view
-            float ifov = 0.00001;
+            float ifov = 0.00001f;
             //! Minimum spectral wavelength
-            float specmin = 300e-9;
+            float specmin = 300e-9f;
             //! Maximum spectral wavelength
-            float specmax = 1e-6;
+            float specmax = 1e-6f;
             //! Line of Sight
-            rvector los = {0., 0., 1.};
+            rvector los = {0., 0., -1.};
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -4313,7 +4392,11 @@ union as a ::devicestruc.
         @param	s	JSON-formatted string to set class contents to
         @return n/a
     */
-            void from_json(const string& s) {};
+            void from_json(const string& s) {
+                string error;
+                json11::Json::parse(s,error);
+                return;
+            }
         };
 
         //! BCREG (PV Regulator) Structure definition
@@ -4377,20 +4460,11 @@ union as a ::devicestruc.
             size_t memoryusage()
             {
                 size_t total = sizeof(trianglestruc);
-                for (size_t i=0; i<triangleindex.size(); ++i)
-                {
-                    total += triangleindex[i].size() * sizeof(uint16_t);
-                }
                 return total;
             }
 
             void shrinkusage()
             {
-                for (size_t i=0; i<triangleindex.size(); ++i)
-                {
-                    vector<uint16_t>(triangleindex[i]).swap(triangleindex[i]);
-                }
-                vector<vector<uint16_t>>(triangleindex).swap(triangleindex);
             }
 
             //! External facing sides
@@ -4405,7 +4479,7 @@ union as a ::devicestruc.
             Vector twist;
             //! Index to parent piece
             uint16_t pidx = 0;
-            uint16_t tidx[3] = {0};
+            uint32_t tidx[3] = {0};
             //! Energy content in Joules
             float heat = 0.f;
             //! Heat Capacity in Joules / (Kg Kelvin)
@@ -4427,7 +4501,7 @@ union as a ::devicestruc.
             //! Area
             float area = 0.f;
             //! Depth
-            float depth = 0.f;
+            float thickness = 0.f;
             //! perimeter
             float perimeter = 0.f;
             //! Irradiation from Sun in Watts/sq m
@@ -4448,14 +4522,13 @@ union as a ::devicestruc.
             float volt = 0.f;
             //! Current generated in amps
             float amp = 0.f;
-            vector<vector<uint16_t>> triangleindex;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
         @return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
-                vector<uint16_t> v_tidx = vector<uint16_t>(tidx, tidx+sizeof(tidx)/sizeof(tidx[0]));
+                vector<uint32_t> v_tidx = vector<uint32_t>(tidx, tidx+sizeof(tidx)/sizeof(tidx[0]));
                 return json11::Json::object {
                     { "external" , external },
                     { "com" , com },
@@ -4474,14 +4547,14 @@ union as a ::devicestruc.
                     { "density"  , density },
                     { "temp"  , temp },
                     { "area"  , area },
-                    { "depth" , depth },
+                    { "thickness" , thickness },
                     { "perimeter"   , perimeter },
                     { "sirradiation" , sirradiation },
                     { "eirradiation" , eirradiation },
                     { "pcell" , pcell },
                     { "ecellbase"   , ecellbase },
                     { "ecellslope"  , ecellslope },
-                    { "triangleindex" , triangleindex }
+//                    { "triangleindex" , triangleindex }
                 };
             }
 
@@ -4518,11 +4591,11 @@ union as a ::devicestruc.
                     if(!parsed["pcell"].is_null())	{ pcell = parsed["pcell"].number_value(); }
                     if(!parsed["ecellbase"].is_null())	{ ecellbase = parsed["ecellbase"].number_value(); }
                     if(!parsed["ecellslope"].is_null())	{ ecellslope = parsed["ecellslope"].number_value(); }
-                    for(size_t i = 0; i < triangleindex.size(); ++i) {
-                        for(size_t j = 0; j < triangleindex[i].size(); ++j)  {
-                            if(!parsed["triangleindex"][i][j].is_null()) { triangleindex[i][j] = parsed["triangleindex"][i][j].number_value(); }
-                        }
-                    }
+//                    for(size_t i = 0; i < triangleindex.size(); ++i) {
+//                        for(size_t j = 0; j < triangleindex[i].size(); ++j)  {
+//                            if(!parsed["triangleindex"][i][j].is_null()) { triangleindex[i][j] = parsed["triangleindex"][i][j].number_value(); }
+//                        }
+//                    }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -4541,13 +4614,28 @@ union as a ::devicestruc.
             size_t memoryusage()
             {
                 size_t total = 5 * sizeof(double) + 10 * sizeof(float) + 13 * sizeof(Vector);
+                for (size_t i=0; i<faces.size(); ++i)
+                {
+                    total += faces[i].memoryusage();
+                }
+                for (size_t i=0; i<triangles.size(); ++i)
+                {
+                    total += triangles[i].memoryusage();
+                }
                 total += vertices.size() * sizeof(Vector);
+//                total += normals.size() * sizeof(Vector);
                 return total;
             }
 
             void shrinkusage()
             {
                 vector<Vector>(vertices).swap(vertices);
+//                vector<Vector>(normals).swap(normals);
+                for (size_t i=0; i<faces.size(); ++i)
+                {
+                    faces[i].shrinkusage();
+                }
+                vector<facestruc>(faces).swap(faces);
                 for (size_t i=0; i<triangles.size(); ++i)
                 {
                     triangles[i].shrinkusage();
@@ -4593,8 +4681,25 @@ union as a ::devicestruc.
             Vector moi = Vector(1.,1.,1.);
             Vector com;
 
-            vector <Vector> vertices;
+            //! Vector of all structures in node.
+            vector <strucstruc> strucs;
+            uint32_t struc_cnt = 0;
+
+            //! Vector of all faces in node.
+            vector <facestruc> faces;
+            uint32_t face_cnt = 0;
+
+            //! Vector of all triangles in node.
             vector <trianglestruc> triangles;
+            uint32_t triangle_cnt = 0;
+
+            //! vector of all vertices in node.
+            vector <Vector> vertices;
+            uint32_t vertex_cnt;
+
+            //! Vector of all normals in node.
+//            vector <vertexstruc> normals;
+//            uint32_t normal_cnt = 0;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -4632,8 +4737,14 @@ union as a ::devicestruc.
                     { "thrust" , thrust },
                     { "moi" , moi },
                     { "com" , com },
+                    { "vertex_cnt" , vertex_cnt },
+//                    { "normal_cnt" , normal_cnt },
+                    { "triangle_cnt" , triangle_cnt },
+                    { "face_cnt" , face_cnt },
                     { "vertices" , vertices },
-                    { "triangles" , triangles }
+                    { "triangles" , triangles },
+                    { "faces" , faces },
+//                    { "normals" , normals }
                 };
             }
 
@@ -4676,12 +4787,22 @@ union as a ::devicestruc.
                     if(!parsed["thrust"].is_null())	{ thrust.from_json(parsed["thrust"].dump()); }
                     if(!parsed["moi"].is_null())	{ moi.from_json(parsed["moi"].dump()); }
                     if(!parsed["com"].is_null())	{ com.from_json(parsed["com"].dump()); }
+                    if(!parsed["vertex_cnt"].is_null())	{ vertex_cnt = parsed["vertex_cnt"].long_value(); }
+                    if(!parsed["triangle_cnt"].is_null())	{ triangle_cnt = parsed["triangle_cnt"].long_value(); }
+                    if(!parsed["face_cnt"].is_null())	{ face_cnt = parsed["face_cnt"].long_value(); }
+//                    if(!parsed["normal_cnt"].is_null())	{ normal_cnt = parsed["normal_cnt"].long_value(); }
                     for(size_t i = 0; i < vertices.size(); ++i)	{
                         if(!parsed["vertices"][i].is_null())	{ vertices[i].from_json(parsed["vertices"][i].dump()); }
                     }
                     for(size_t i = 0; i < triangles.size(); ++i)	{
                         if(!parsed["triangles"][i].is_null())	{ triangles[i].from_json(parsed["triangles"][i].dump()); }
                     }
+                    for(size_t i = 0; i < faces.size(); ++i)	{
+                        if(!parsed["faces"][i].is_null())	{ faces[i].from_json(parsed["faces"][i].dump()); }
+                    }
+//                    for(size_t i = 0; i < normals.size(); ++i)	{
+//                        if(!parsed["normals"][i].is_null())	{ normals[i].from_json(parsed["normals"][i].dump()); }
+//                    }
                 } else {
                     cerr<<"ERROR = "<<error<<endl;
                 }
@@ -4774,7 +4895,7 @@ union as a ::devicestruc.
             //! Location structure
             Convert::locstruc loc;
 			//! Estimated location structure
-            Convert::locstruc loc_est;
+            Convert::locstruc loc_req;
 			//! Standard Deviation for location estimates
             Convert::locstruc loc_std;
             physicsstruc phys;
@@ -4803,7 +4924,7 @@ union as a ::devicestruc.
                     { "utcstart" , utcstart },
                     { "deci" , static_cast<int>(deci) },
                     { "loc" , loc },
-					{ "loc_est", loc_est },
+                    { "loc_req", loc_req },
 					{ "loc_std", loc_std },
                     { "phys" , phys }
                 };
@@ -4841,7 +4962,7 @@ union as a ::devicestruc.
                     if(!parsed["utcstart"].is_null())	{ utcstart = parsed["utcstart"].number_value(); }
                     if(!parsed["deci"].is_null())	{ deci = parsed["deci"].long_value(); }
                     if(!parsed["loc"].is_null())	{ loc.from_json(parsed["loc"].dump()); }
-					if(!parsed["loc_est"].is_null()){ loc_est.from_json(parsed["loc_est"].dump()); }
+                    if(!parsed["loc_req"].is_null()){ loc_req.from_json(parsed["loc_req"].dump()); }
 					if(!parsed["loc_std"].is_null()){ loc_std.from_json(parsed["loc_std"].dump()); }
                     if(!parsed["phys"].is_null())	{ phys.from_json(parsed["phys"].dump()); }
                 } else {
@@ -5370,18 +5491,6 @@ union as a ::devicestruc.
                     total += alias[i].memoryusage();
                 }
                 total += node.memoryusage();
-                for (size_t i=0; i<vertexs.size(); ++i)
-                {
-                    total += sizeof(vertexstruc);
-                }
-                for (size_t i=0; i<normals.size(); ++i)
-                {
-                    total += sizeof(vertexstruc);
-                }
-                for (size_t i=0; i<faces.size(); ++i)
-                {
-                    total += faces[i].memoryusage();
-                }
                 for (size_t i=0; i<pieces.size(); ++i)
                 {
                     total += pieces[i].memoryusage();
@@ -5461,10 +5570,6 @@ union as a ::devicestruc.
                     alias[i].shrinkusage();
                 }
                 node.shrinkusage();
-                for (size_t i=0; i<faces.size(); ++i)
-                {
-                    faces[i].shrinkusage();
-                }
                 for (size_t i=0; i<pieces.size(); ++i)
                 {
                     pieces[i].shrinkusage();
@@ -5474,10 +5579,6 @@ union as a ::devicestruc.
                 {
                     port[i].shrinkusage();
                 }
-//                for (size_t i=0; i<agent.size(); ++i)
-//                {
-//                    agent[i].shrinkusage();
-//                }
                 agent0.shrinkusage();
                 for (size_t i=0; i<event.size(); ++i)
                 {
@@ -5535,16 +5636,16 @@ union as a ::devicestruc.
             nodestruc node;
 
             //! Vector of all vertexs in node.
-            vector <vertexstruc> vertexs;
-            uint16_t vertex_cnt = 0;
+//            vector <vertexstruc> vertexs;
+//            uint16_t vertex_cnt = 0;
 
-            //! Vector of all vertexs in node.
-            vector <vertexstruc> normals;
-            uint16_t normal_cnt = 0;
+            //! Vector of all normals in node.
+//            vector <vertexstruc> normals;
+//            uint16_t normal_cnt = 0;
 
             //! Vector of all faces in node.
-            vector <facestruc> faces;
-            uint16_t face_cnt = 0;
+//            vector <facestruc> faces;
+//            uint16_t face_cnt = 0;
 
             //! Vector of all pieces in node.
             vector<piecestruc> pieces;
@@ -5577,10 +5678,12 @@ union as a ::devicestruc.
             //! Single entry vector for event information.
             vector<eventstruc> event;
             uint16_t event_cnt = 0;
+            double event_tick= 0.;
 
             //! Vector of all targets known to node.
             vector<targetstruc> target;
             uint16_t target_cnt = 0;
+            uint16_t target_idx = -1;
 
             //! Single entry vector for user information.
             vector<userstruc> user;
@@ -6294,8 +6397,8 @@ union as a ::devicestruc.
                                     get_pointer<userstruc>(name)->from_json(p[name].dump());
                                 } else if (type == "Vector") {
                                     get_pointer<Vector>(name)->from_json(p[name].dump());
-                                } else if (type == "vertexstruc") {
-                                    get_pointer<vertexstruc>(name)->from_json(p[name].dump());
+//                                } else if (type == "vertexstruc") {
+//                                    get_pointer<vertexstruc>(name)->from_json(p[name].dump());
                                 } else if (type == "wavefront") {
                                     get_pointer<wavefront>(name)->from_json(p[name].dump());
                                 } else if (type == "sim_param") {
@@ -7027,9 +7130,6 @@ union as a ::devicestruc.
                     { "unit" , unit },
                     { "equation" , equation },
                     { "node" , node },
-                    { "vertexs" , vertexs },
-                    { "normals" , normals },
-                    { "faces" , faces },
                     { "pieces" , pieces },
                     { "obj" , obj },
 //                    { "device" , device },
@@ -7041,15 +7141,14 @@ union as a ::devicestruc.
                     { "user" , user },
                     { "tle" , tle },
                     { "sim_states" , sim_states },
-                    { "vertex_cnt" , vertex_cnt },
-                    { "normal_cnt" , normal_cnt },
-                    { "face_cnt" , face_cnt },
                     { "piece_cnt" , piece_cnt },
                     { "device_cnt" , device_cnt },
                     { "port_cnt" , port_cnt },
 //                    { "agent_cnt" , agent_cnt },
                     { "event_cnt" , event_cnt },
+                    { "event_tick" , event_tick },
                     { "target_cnt" , target_cnt },
+                    { "target_idx" , target_idx },
                     { "user_cnt" , user_cnt },
                     { "tle_cnt" , tle_cnt }
                 };
@@ -7068,15 +7167,14 @@ union as a ::devicestruc.
                     if (!p["jmapped"].is_null()) { jmapped = p["jmapped"].number_value(); }
                     if (!p["ujmapped"].is_null()) { ujmapped = p["ujmapped"].number_value(); }
 
-                    if(!p["vertex_cnt"].is_null())	{ vertex_cnt = p["vertex_cnt"].long_value(); }
-                    if(!p["normal_cnt"].is_null())	{ normal_cnt = p["normal_cnt"].long_value(); }
-                    if(!p["face_cnt"].is_null())	{ face_cnt = p["face_cnt"].long_value(); }
                     if(!p["piece_cnt"].is_null())	{ piece_cnt = p["piece_cnt"].long_value(); }
                     if(!p["device_cnt"].is_null())	{ device_cnt = p["device_cnt"].long_value(); }
                     if(!p["port_cnt"].is_null())	{ port_cnt = p["port_cnt"].long_value(); }
 //                    if(!p["agent_cnt"].is_null())	{ agent_cnt = p["agent_cnt"].long_value(); }
                     if(!p["event_cnt"].is_null())	{ event_cnt = p["event_cnt"].long_value(); }
+                    if(!p["event_tick"].is_null())	{ event_tick = p["event_tick"].number_value(); }
                     if(!p["target_cnt"].is_null())	{ target_cnt = p["target_cnt"].long_value(); }
+                    if(!p["target_idx"].is_null())	{ target_idx = p["target_idx"].long_value(); }
                     if(!p["user_cnt"].is_null())	{ user_cnt = p["user_cnt"].long_value(); }
                     if(!p["tle_cnt"].is_null())	{ tle_cnt = p["tle_cnt"].long_value(); }
 
@@ -7090,15 +7188,6 @@ union as a ::devicestruc.
                         if (!p["equation"][i].is_null()) { equation[i].from_json(p["equation"][i].dump()); }
                     }
                     if (!p["node"].is_null()) { node.from_json(p["node"].dump()); }
-                    for (size_t i = 0; i < vertexs.size(); ++i) {
-                        if (!p["vertexs"][i].is_null()) { vertexs[i].from_json(p["vertexs"][i].dump()); }
-                    }
-                    for (size_t i = 0; i < normals.size(); ++i) {
-                        if (!p["normals"][i].is_null()) { normals[i].from_json(p["normals"][i].dump()); }
-                    }
-                    for (size_t i = 0; i < faces.size(); ++i) {
-                        if (!p["faces"][i].is_null()) { faces[i].from_json(p["faces"][i].dump()); }
-                    }
                     if (!p["obj"].is_null()) { cosmosstruc::obj.from_json(p["obj"].dump()); }
                     for (size_t i = 0; i < device.size(); ++i) {
                         if (!p["device"][i].is_null()) { device[i]->from_json(p["device"][i].dump()); }

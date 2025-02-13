@@ -129,13 +129,17 @@ namespace Cosmos {
 
         struct coverage
         {
-            float percent;
-            float area;
-            float resolution;
-            float specmin;
-            float specmax;
-            float azimuth;
-            float elevation;
+            double percent = 0.;
+            double area = 0.;
+            double resolution = 0.;
+            double resstd = 0.;
+            double specmin;
+            double specmax;
+            double azimuth = 0.;
+            double azstd = 0.;
+            double elevation = 0.;
+            double elstd = 0.;
+            uint32_t count = 0;
         };
 
         //! Finite Triangle Element

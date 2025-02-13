@@ -34,7 +34,6 @@
 #include "support/configCosmos.h"
 #include "support/cosmos-errno.h"
 #include "thirdparty/zlib/zlib.h"
-#include "support/timelib.h"
 //#include "support/jsondef.h"
 
 // C libs
@@ -42,7 +41,7 @@
 //#include <fstream>
 
 #ifdef _MSC_BUILD
-#include "dirent/dirent.h"
+#include <dirent.h>
 #else
 #include <dirent.h>
 #endif
@@ -125,7 +124,7 @@ typedef struct
 } filestruc;
 
 void log_reopen();
-string log_write(string node, int type, double utc, const char* data, string directory="temp");
+string log_write(string node, int type, double utc, const char* data);
 string log_write(string node, string agent, double utc, string type, const char *data);
 string log_write(string node, string agent, double utc, string extra, string type, string record, string location="temp");
 int32_t log_move_agent_src(string node, string agent, string srclocation, string dstlocation, bool compress=true, float age=60.);
@@ -133,7 +132,7 @@ int32_t log_move_agent_temp(string node, string agent, float age=60.);
 int32_t log_move_file(string oldpath, string newpath, bool compress="true", double timeout=10.);
 int32_t log_move_directory(string srcdir, string dstdir, bool compress="true");
 string log_read(gzFile &file, int num);
-//int check_events(eventstruc* events, int max, cosmosstruc* data);
+//int check_all_events(eventstruc* events, int max, cosmosstruc* data);
 vector<string> data_list_nodes();
 int32_t data_list_nodes(vector<string>& nodes);
 vector<filestruc> data_list_files(string directory);

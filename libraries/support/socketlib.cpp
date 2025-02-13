@@ -132,9 +132,8 @@ int32_t socket_publish(socket_bus& bus, uint16_t port)
             bus[(bus.size() - 1)].baddr.sin_addr.S_un.S_addr = bcast;
         bus[(bus.size() - 1)].caddr.sin_port = htons(port);
         bus[(bus.size() - 1)].baddr.sin_port = htons(port);
-        bus[(bus.size() - 1)].type = type;
+        bus[(bus.size() - 1)].type = NetworkType::BROADCAST;
         bus[(bus.size() - 1)].cport = port;
-        (bus.size() - 1)++;
     }
 #elif defined(COSMOS_MAC_OS)
     struct ifaddrs *if_addrs = NULL;
@@ -187,7 +186,7 @@ int32_t socket_publish(socket_bus& bus, uint16_t port)
                 inet_ntop(if_addr->ifa_netmask->sa_family,&bus[(bus.size() - 1)].baddr.sin_addr,bus[(bus.size() - 1)].baddress,sizeof(bus[(bus.size() - 1)].baddress));
             bus[(bus.size() - 1)].caddr.sin_port = htons(port);
             bus[(bus.size() - 1)].baddr.sin_port = htons(port);
-            bus[(bus.size() - 1)].type = type;
+            bus[(bus.size() - 1)].type = NetworkType::BROADCAST;
             bus[(bus.size() - 1)].cport = port;
             (bus.size() - 1)++;
         }
@@ -439,16 +438,14 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
     switch (role)
     {
     case SOCKET_LISTEN:
-#ifdef COSMOS_MAC_OS
+#if defined(COSMOS_MAC_OS) or defined(COSMOS_LINUX_OS)
         if (setsockopt(channel.cudp,SOL_SOCKET,SO_REUSEPORT,(char*)&on,sizeof(on)) < 0)
-#else
-        if (setsockopt(channel.cudp,SOL_SOCKET,SO_REUSEPORT,(char*)&on,sizeof(on)) < 0)
-#endif
         {
             CLOSE_SOCKET(channel.cudp);
             channel.cudp = -errno;
             return (-errno);
         }
+#endif
         setsockopt(channel.cudp,SOL_SOCKET,SO_REUSEADDR,(char*)&on,sizeof(on));
 
         switch (ntype)
@@ -491,16 +488,14 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
         }        
         break;
     case SOCKET_JABBER:
-#ifdef COSMOS_MAC_OS
+#if defined(COSMOS_MAC_OS) or defined(COSMOS_LINUX_OS)
         if (setsockopt(channel.cudp,SOL_SOCKET,SO_REUSEPORT,(char*)&on,sizeof(on)) < 0)
-#else
-        if (setsockopt(channel.cudp,SOL_SOCKET,SO_REUSEPORT,(char*)&on,sizeof(on)) < 0)
-#endif
         {
             CLOSE_SOCKET(channel.cudp);
             channel.cudp = -errno;
             return (-errno);
         }
+#endif
         setsockopt(channel.cudp,SOL_SOCKET,SO_REUSEADDR,(char*)&on,sizeof(on));
 
         switch (ntype)
@@ -1063,8 +1058,13 @@ int32_t socket_poll(socket_bus &bus, vector<uint8_t> &buffer, size_t maxlen, int
 {
     for (socket_channel channel : bus)
     {
+#ifdef COSMOS_WIN_OS
+        u_long count=0;
+        if (ioctlsocket(channel.cudp, FIONREAD, &count) == 0 && count)
+#else
         int count=0;
         if (ioctl(channel.cudp, FIONREAD, count) == 0 && count)
+#endif
         {
             return socket_recvfrom(channel, buffer, maxlen, flags);
         }

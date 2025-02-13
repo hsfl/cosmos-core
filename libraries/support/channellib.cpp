@@ -245,7 +245,7 @@ namespace Cosmos {
             int32_t iretn = Find(name);
             if (iretn >= 0)
             {
-                return WakeupTimer(iretn);
+                return WakeupTimer(iretn, value);
             }
             return -999999.;
         }

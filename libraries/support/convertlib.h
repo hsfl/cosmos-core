@@ -106,6 +106,8 @@ namespace Cosmos {
         int32_t pos_selc2eci(locstruc *loc);
         int32_t pos_lvlh2origin(locstruc *loc);
         int32_t pos_origin2lvlh(locstruc *loc);
+        int32_t pos_geoc2lvlh(locstruc *geoc, locstruc *base);
+        int32_t pos_lvlh2geoc(locstruc *base, locstruc *geoc);
 
         int32_t loc_clear(locstruc &loc);
         int32_t pos_extra(double utc, locstruc &loc);
@@ -139,6 +141,8 @@ namespace Cosmos {
         int32_t pos_selc2eci(locstruc &loc);
         int32_t pos_lvlh2origin(locstruc &loc);
         int32_t pos_origin2lvlh(locstruc &loc);
+        int32_t pos_geoc2lvlh(locstruc &geoc, locstruc &base);
+        int32_t pos_lvlh2geoc(locstruc &base, locstruc &geoc);
 
         int32_t eci2kep(cartpos &eci, kepstruc &kep);
         int32_t kep2eci(kepstruc &kep,cartpos &eci);
@@ -146,8 +150,8 @@ namespace Cosmos {
         int32_t peri2cart(cartpos cart, Quaternion &qcart);
         int32_t ric2eci(cartpos orig, rvector ric, cartpos& result);
         int32_t ric2eci(cartpos orig, Vector ric, cartpos& result);
-        int32_t ric2lvlh(cartpos ric, cartpos& lvlh);
-        int32_t lvlh2ric(cartpos lvlh, cartpos& ric);
+        int32_t ric2lvlh(double radius, cartpos ric, cartpos& lvlh);
+        int32_t lvlh2ric(double radius, cartpos lvlh, cartpos& ric);
         cartpos eci2lvlh(cartpos origin, cartpos point);
 
         /**
@@ -253,6 +257,7 @@ namespace Cosmos {
         int32_t body2topo(Vector com, Vector body, Vector &topo);
         int32_t topo2azel(rvector tpos, float &az, float &el);
         int32_t topo2azel(Vector tpos, float &az, float &el);
+        int32_t sat2geoc(rvector sat, locstruc &loc, rvector &pos);
         int32_t geod2sep(gvector src, gvector dst, double &sep);
         double geod2sep(gvector src, gvector dst);
         int lines2eci(double mjd, vector<tlestruc> tle, cartpos &eci);
@@ -303,6 +308,7 @@ namespace Cosmos {
         double utc2theta(double mjd);
         double  tt2utc(double mjd);
         double  gps2utc(double gps);
+        double Rearth(double lat);
 
                 class Position {
 
@@ -323,7 +329,11 @@ namespace Cosmos {
                     Vector a;
                 };
         //! @}
-
-    }
-}
+	json11::Json make_swarm_information_object(const string& name, const string& desc, const vector<string>& node_names);
+	json11::Json make_sensor_information_object(const string& sensor_name, const double& fov, const double& ifov);
+	json11::Json make_constraints_information_object(const double& max_slew_rate = 0.0, const double& max_thrust_total = 0.0, const double& max_thrust_impulse = 0.0);
+	json11::Json make_tle_information_object(const string& tle_file = "/home/user/cosmos/source/core/data/demo/tle.dat");
+	json11::Json make_node_information_object(json11::Json swarm_info_obj);
+    } // end Convert namespace
+} // end Cosmos namespace
 #endif

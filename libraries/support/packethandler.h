@@ -93,6 +93,9 @@ namespace Cosmos {
 
             static int32_t QueueAdcsCommunicate(uint8_t unit, uint8_t command, uint16_t rcount, vector<uint8_t> data, Agent* agent, NODE_ID_TYPE dest=NODEIDDEST, const string& radioin="");
             static int32_t QueueAdcsState(uint8_t state, vector<uint8_t> data, Agent* agent, NODE_ID_TYPE dest=NODEIDDEST, const string& radioin="");
+            static int32_t QueueAdcsFree(Agent* agent, NODE_ID_TYPE dest=NODEIDDEST, const string& radioin="");
+            static int32_t QueueAdcsLvlh(Quaternion att, Agent* agent, NODE_ID_TYPE dest=NODEIDDEST, const string& radioin="");
+            static int32_t QueueAdcsInertial(Vector eci, Agent* agent, NODE_ID_TYPE dest=NODEIDDEST, const string& radioin="");
 
             static int32_t QueueEpsCommunicate(uint8_t unit, uint8_t command, uint16_t rcount, vector<uint8_t> data, Agent* agent, NODE_ID_TYPE dest=NODEIDDEST, const string& radioin="");
             static int32_t QueueEpsSwitchName(const string& name, uint8_t state, Agent* agent, NODE_ID_TYPE dest=NODEIDDEST, const string& radioin="");

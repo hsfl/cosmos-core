@@ -342,6 +342,7 @@ double DeviceCpuLinux::getLoad1minAverage()
             return -1;
         }
     }
+    fseek(f, 0, SEEK_SET);
     n = fscanf(f, "%f", &load);
 //    fclose(f);
 
@@ -824,7 +825,7 @@ unsigned long long DeviceCpuWindows::FileTimeToInt64(const FILETIME & ft)
     return (((unsigned long long)(ft.dwHighDateTime))<<32)|((unsigned long long)ft.dwLowDateTime);
 }
 
-pid_t DeviceCpuWindows::getPidOf(string processName)
+int32_t DeviceCpuWindows::getPidOf(string processName)
 {
     return 0;
 }

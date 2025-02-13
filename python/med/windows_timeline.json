@@ -1,0 +1,548 @@
+{
+  "Observation Windows for Mothership": [
+    {
+      "duration": 686,
+      "end_iso8601": "2024-09-04T16:04:48Z",
+      "end_mjd": 60557.670009,
+      "name": "Mothership Observation Window #0",
+      "start_iso8601": "2024-09-04T15:53:22Z",
+      "start_mjd": 60557.662069
+    },
+    {
+      "duration": 595,
+      "end_iso8601": "2024-09-04T21:11:22Z",
+      "end_mjd": 60557.882903,
+      "name": "Mothership Observation Window #1",
+      "start_iso8601": "2024-09-04T21:01:27Z",
+      "start_mjd": 60557.876016
+    },
+    {
+      "duration": 238,
+      "end_iso8601": "2024-09-04T22:37:28Z",
+      "end_mjd": 60557.942694,
+      "name": "Mothership Observation Window #2",
+      "start_iso8601": "2024-09-04T22:33:30Z",
+      "start_mjd": 60557.93994
+    },
+    {
+      "duration": 580,
+      "end_iso8601": "2024-09-04T22:47:47Z",
+      "end_mjd": 60557.949859,
+      "name": "Mothership Observation Window #3",
+      "start_iso8601": "2024-09-04T22:38:07Z",
+      "start_mjd": 60557.943146
+    },
+    {
+      "duration": 646,
+      "end_iso8601": "2024-09-05T00:18:06Z",
+      "end_mjd": 60558.012579,
+      "name": "Mothership Observation Window #4",
+      "start_iso8601": "2024-09-05T00:07:20Z",
+      "start_mjd": 60558.005102
+    },
+    {
+      "duration": 591,
+      "end_iso8601": "2024-09-05T01:53:52Z",
+      "end_mjd": 60558.079083,
+      "name": "Mothership Observation Window #5",
+      "start_iso8601": "2024-09-05T01:44:01Z",
+      "start_mjd": 60558.072243
+    },
+    {
+      "duration": 310,
+      "end_iso8601": "2024-09-05T10:30:32Z",
+      "end_mjd": 60558.43788,
+      "name": "Mothership Observation Window #6",
+      "start_iso8601": "2024-09-05T10:25:22Z",
+      "start_mjd": 60558.434292
+    },
+    {
+      "duration": 645,
+      "end_iso8601": "2024-09-05T12:09:34Z",
+      "end_mjd": 60558.506653,
+      "name": "Mothership Observation Window #7",
+      "start_iso8601": "2024-09-05T11:58:49Z",
+      "start_mjd": 60558.499188
+    },
+    {
+      "duration": 866,
+      "end_iso8601": "2024-09-05T13:44:35Z",
+      "end_mjd": 60558.572637,
+      "name": "Mothership Observation Window #8",
+      "start_iso8601": "2024-09-05T13:30:09Z",
+      "start_mjd": 60558.562614
+    },
+    {
+      "duration": 716,
+      "end_iso8601": "2024-09-05T15:16:03Z",
+      "end_mjd": 60558.636155,
+      "name": "Mothership Observation Window #9",
+      "start_iso8601": "2024-09-05T15:04:07Z",
+      "start_mjd": 60558.627868
+    },
+    {
+      "duration": 399,
+      "end_iso8601": "2024-09-05T16:50:26Z",
+      "end_mjd": 60558.701699,
+      "name": "Mothership Observation Window #10",
+      "start_iso8601": "2024-09-05T16:43:47Z",
+      "start_mjd": 60558.697081
+    },
+    {
+      "duration": 522,
+      "end_iso8601": "2024-09-05T20:21:36Z",
+      "end_mjd": 60558.848343,
+      "name": "Mothership Observation Window #11",
+      "start_iso8601": "2024-09-05T20:12:54Z",
+      "start_mjd": 60558.842301
+    },
+    {
+      "duration": 631,
+      "end_iso8601": "2024-09-05T21:59:17Z",
+      "end_mjd": 60558.916178,
+      "name": "Mothership Observation Window #12",
+      "start_iso8601": "2024-09-05T21:48:46Z",
+      "start_mjd": 60558.908875
+    },
+    {
+      "duration": 601,
+      "end_iso8601": "2024-09-05T23:28:40Z",
+      "end_mjd": 60558.97825,
+      "name": "Mothership Observation Window #13",
+      "start_iso8601": "2024-09-05T23:18:39Z",
+      "start_mjd": 60558.971294
+    },
+    {
+      "duration": 637,
+      "end_iso8601": "2024-09-06T01:05:19Z",
+      "end_mjd": 60559.045368,
+      "name": "Mothership Observation Window #14",
+      "start_iso8601": "2024-09-06T00:54:42Z",
+      "start_mjd": 60559.037996
+    },
+    {
+      "duration": 630,
+      "end_iso8601": "2024-09-06T11:20:27Z",
+      "end_mjd": 60559.472544,
+      "name": "Mothership Observation Window #15",
+      "start_iso8601": "2024-09-06T11:09:57Z",
+      "start_mjd": 60559.465253
+    },
+    {
+      "duration": 238,
+      "end_iso8601": "2024-09-06T12:47:31Z",
+      "end_mjd": 60559.533007,
+      "name": "Mothership Observation Window #16",
+      "start_iso8601": "2024-09-06T12:43:33Z",
+      "start_mjd": 60559.530253
+    },
+    {
+      "duration": 522,
+      "end_iso8601": "2024-09-06T12:56:19Z",
+      "end_mjd": 60559.539118,
+      "name": "Mothership Observation Window #17",
+      "start_iso8601": "2024-09-06T12:47:37Z",
+      "start_mjd": 60559.533077
+    },
+    {
+      "duration": 715,
+      "end_iso8601": "2024-09-06T14:27:06Z",
+      "end_mjd": 60559.602162,
+      "name": "Mothership Observation Window #18",
+      "start_iso8601": "2024-09-06T14:15:11Z",
+      "start_mjd": 60559.593887
+    },
+    {
+      "duration": 551,
+      "end_iso8601": "2024-09-06T16:02:25Z",
+      "end_mjd": 60559.668355,
+      "name": "Mothership Observation Window #19",
+      "start_iso8601": "2024-09-06T15:53:14Z",
+      "start_mjd": 60559.661977
+    },
+    {
+      "duration": 400,
+      "end_iso8601": "2024-09-06T19:31:19Z",
+      "end_mjd": 60559.813424,
+      "name": "Mothership Observation Window #20",
+      "start_iso8601": "2024-09-06T19:24:39Z",
+      "start_mjd": 60559.808794
+    },
+    {
+      "duration": 646,
+      "end_iso8601": "2024-09-06T21:10:25Z",
+      "end_mjd": 60559.882243,
+      "name": "Mothership Observation Window #21",
+      "start_iso8601": "2024-09-06T20:59:39Z",
+      "start_mjd": 60559.874767
+    },
+    {
+      "duration": 828,
+      "end_iso8601": "2024-09-06T22:43:55Z",
+      "end_mjd": 60559.947174,
+      "name": "Mothership Observation Window #22",
+      "start_iso8601": "2024-09-06T22:30:07Z",
+      "start_mjd": 60559.937591
+    },
+    {
+      "duration": 661,
+      "end_iso8601": "2024-09-07T00:16:37Z",
+      "end_mjd": 60560.011549,
+      "name": "Mothership Observation Window #23",
+      "start_iso8601": "2024-09-07T00:05:36Z",
+      "start_mjd": 60560.003899
+    },
+    {
+      "duration": 355,
+      "end_iso8601": "2024-09-07T01:50:14Z",
+      "end_mjd": 60560.076561,
+      "name": "Mothership Observation Window #24",
+      "start_iso8601": "2024-09-07T01:44:19Z",
+      "start_mjd": 60560.072452
+    },
+    {
+      "duration": 577,
+      "end_iso8601": "2024-09-07T10:31:03Z",
+      "end_mjd": 60560.438239,
+      "name": "Mothership Observation Window #25",
+      "start_iso8601": "2024-09-07T10:21:26Z",
+      "start_mjd": 60560.431561
+    },
+    {
+      "duration": 596,
+      "end_iso8601": "2024-09-07T12:07:44Z",
+      "end_mjd": 60560.50538,
+      "name": "Mothership Observation Window #26",
+      "start_iso8601": "2024-09-07T11:57:48Z",
+      "start_mjd": 60560.498482
+    },
+    {
+      "duration": 680,
+      "end_iso8601": "2024-09-07T13:37:54Z",
+      "end_mjd": 60560.567996,
+      "name": "Mothership Observation Window #27",
+      "start_iso8601": "2024-09-07T13:26:34Z",
+      "start_mjd": 60560.560126
+    },
+    {
+      "duration": 642,
+      "end_iso8601": "2024-09-07T15:13:59Z",
+      "end_mjd": 60560.63472,
+      "name": "Mothership Observation Window #28",
+      "start_iso8601": "2024-09-07T15:03:17Z",
+      "start_mjd": 60560.62729
+    },
+    {
+      "duration": 161,
+      "end_iso8601": "2024-09-07T18:39:56Z",
+      "end_mjd": 60560.777741,
+      "name": "Mothership Observation Window #29",
+      "start_iso8601": "2024-09-07T18:37:15Z",
+      "start_mjd": 60560.775878
+    },
+    {
+      "duration": 629,
+      "end_iso8601": "2024-09-07T20:21:12Z",
+      "end_mjd": 60560.848065,
+      "name": "Mothership Observation Window #30",
+      "start_iso8601": "2024-09-07T20:10:43Z",
+      "start_mjd": 60560.840785
+    },
+    {
+      "duration": 882,
+      "end_iso8601": "2024-09-07T21:56:33Z",
+      "end_mjd": 60560.914281,
+      "name": "Mothership Observation Window #31",
+      "start_iso8601": "2024-09-07T21:41:51Z",
+      "start_mjd": 60560.904072
+    },
+    {
+      "duration": 664,
+      "end_iso8601": "2024-09-07T23:27:41Z",
+      "end_mjd": 60560.977568,
+      "name": "Mothership Observation Window #32",
+      "start_iso8601": "2024-09-07T23:16:37Z",
+      "start_mjd": 60560.969883
+    },
+    {
+      "duration": 522,
+      "end_iso8601": "2024-09-08T01:02:41Z",
+      "end_mjd": 60561.04354,
+      "name": "Mothership Observation Window #33",
+      "start_iso8601": "2024-09-08T00:53:59Z",
+      "start_mjd": 60561.037498
+    },
+    {
+      "duration": 469,
+      "end_iso8601": "2024-09-08T09:41:12Z",
+      "end_mjd": 60561.403621,
+      "name": "Mothership Observation Window #34",
+      "start_iso8601": "2024-09-08T09:33:23Z",
+      "start_mjd": 60561.398193
+    },
+    {
+      "duration": 636,
+      "end_iso8601": "2024-09-08T11:18:56Z",
+      "end_mjd": 60561.471492,
+      "name": "Mothership Observation Window #35",
+      "start_iso8601": "2024-09-08T11:08:20Z",
+      "start_mjd": 60561.46413
+    },
+    {
+      "duration": 602,
+      "end_iso8601": "2024-09-08T12:48:25Z",
+      "end_mjd": 60561.533633,
+      "name": "Mothership Observation Window #36",
+      "start_iso8601": "2024-09-08T12:38:23Z",
+      "start_mjd": 60561.526665
+    },
+    {
+      "duration": 248,
+      "end_iso8601": "2024-09-08T12:52:59Z",
+      "end_mjd": 60561.536804,
+      "name": "Mothership Observation Window #37",
+      "start_iso8601": "2024-09-08T12:48:51Z",
+      "start_mjd": 60561.533934
+    },
+    {
+      "duration": 697,
+      "end_iso8601": "2024-09-08T14:25:19Z",
+      "end_mjd": 60561.600924,
+      "name": "Mothership Observation Window #38",
+      "start_iso8601": "2024-09-08T14:13:42Z",
+      "start_mjd": 60561.592857
+    },
+    {
+      "duration": 95,
+      "end_iso8601": "2024-09-08T15:57:35Z",
+      "end_mjd": 60561.664999,
+      "name": "Mothership Observation Window #39",
+      "start_iso8601": "2024-09-08T15:56:00Z",
+      "start_mjd": 60561.663899
+    },
+    {
+      "duration": 581,
+      "end_iso8601": "2024-09-08T19:31:38Z",
+      "end_mjd": 60561.813644,
+      "name": "Mothership Observation Window #40",
+      "start_iso8601": "2024-09-08T19:21:57Z",
+      "start_mjd": 60561.80692
+    },
+    {
+      "duration": 152,
+      "end_iso8601": "2024-09-08T20:57:04Z",
+      "end_mjd": 60561.872973,
+      "name": "Mothership Observation Window #41",
+      "start_iso8601": "2024-09-08T20:54:32Z",
+      "start_mjd": 60561.871214
+    },
+    {
+      "duration": 595,
+      "end_iso8601": "2024-09-08T21:08:20Z",
+      "end_mjd": 60561.880797,
+      "name": "Mothership Observation Window #42",
+      "start_iso8601": "2024-09-08T20:58:25Z",
+      "start_mjd": 60561.873911
+    },
+    {
+      "duration": 635,
+      "end_iso8601": "2024-09-08T22:38:25Z",
+      "end_mjd": 60561.943355,
+      "name": "Mothership Observation Window #43",
+      "start_iso8601": "2024-09-08T22:27:50Z",
+      "start_mjd": 60561.936006
+    },
+    {
+      "duration": 605,
+      "end_iso8601": "2024-09-09T00:14:24Z",
+      "end_mjd": 60562.01001,
+      "name": "Mothership Observation Window #44",
+      "start_iso8601": "2024-09-09T00:04:19Z",
+      "start_mjd": 60562.003008
+    },
+    {
+      "duration": 228,
+      "end_iso8601": "2024-09-09T08:50:15Z",
+      "end_mjd": 60562.368239,
+      "name": "Mothership Observation Window #45",
+      "start_iso8601": "2024-09-09T08:46:27Z",
+      "start_mjd": 60562.365601
+    },
+    {
+      "duration": 645,
+      "end_iso8601": "2024-09-09T10:29:55Z",
+      "end_mjd": 60562.437452,
+      "name": "Mothership Observation Window #46",
+      "start_iso8601": "2024-09-09T10:19:10Z",
+      "start_mjd": 60562.429987
+    },
+    {
+      "duration": 847,
+      "end_iso8601": "2024-09-09T12:05:09Z",
+      "end_mjd": 60562.503587,
+      "name": "Mothership Observation Window #47",
+      "start_iso8601": "2024-09-09T11:51:02Z",
+      "start_mjd": 60562.493783
+    },
+    {
+      "duration": 719,
+      "end_iso8601": "2024-09-09T13:36:26Z",
+      "end_mjd": 60562.566978,
+      "name": "Mothership Observation Window #48",
+      "start_iso8601": "2024-09-09T13:24:27Z",
+      "start_mjd": 60562.558656
+    },
+    {
+      "duration": 444,
+      "end_iso8601": "2024-09-09T15:11:05Z",
+      "end_mjd": 60562.632707,
+      "name": "Mothership Observation Window #49",
+      "start_iso8601": "2024-09-09T15:03:41Z",
+      "start_mjd": 60562.627568
+    },
+    {
+      "duration": 497,
+      "end_iso8601": "2024-09-09T18:41:40Z",
+      "end_mjd": 60562.778946,
+      "name": "Mothership Observation Window #50",
+      "start_iso8601": "2024-09-09T18:33:23Z",
+      "start_mjd": 60562.773193
+    },
+    {
+      "duration": 637,
+      "end_iso8601": "2024-09-09T20:19:39Z",
+      "end_mjd": 60562.84699,
+      "name": "Mothership Observation Window #51",
+      "start_iso8601": "2024-09-09T20:09:02Z",
+      "start_mjd": 60562.839617
+    },
+    {
+      "duration": 585,
+      "end_iso8601": "2024-09-09T21:48:49Z",
+      "end_mjd": 60562.908911,
+      "name": "Mothership Observation Window #52",
+      "start_iso8601": "2024-09-09T21:39:04Z",
+      "start_mjd": 60562.90214
+    },
+    {
+      "duration": 640,
+      "end_iso8601": "2024-09-09T23:25:39Z",
+      "end_mjd": 60562.976156,
+      "name": "Mothership Observation Window #53",
+      "start_iso8601": "2024-09-09T23:14:59Z",
+      "start_mjd": 60562.968749
+    },
+    {
+      "duration": 621,
+      "end_iso8601": "2024-09-10T09:40:39Z",
+      "end_mjd": 60563.40324,
+      "name": "Mothership Observation Window #54",
+      "start_iso8601": "2024-09-10T09:30:18Z",
+      "start_mjd": 60563.396052
+    },
+    {
+      "duration": 95,
+      "end_iso8601": "2024-09-10T11:06:37Z",
+      "end_mjd": 60563.462939,
+      "name": "Mothership Observation Window #55",
+      "start_iso8601": "2024-09-10T11:05:02Z",
+      "start_mjd": 60563.461839
+    },
+    {
+      "duration": 544,
+      "end_iso8601": "2024-09-10T11:16:43Z",
+      "end_mjd": 60563.469953,
+      "name": "Mothership Observation Window #56",
+      "start_iso8601": "2024-09-10T11:07:39Z",
+      "start_mjd": 60563.463656
+    },
+    {
+      "duration": 710,
+      "end_iso8601": "2024-09-10T12:47:20Z",
+      "end_mjd": 60563.532881,
+      "name": "Mothership Observation Window #57",
+      "start_iso8601": "2024-09-10T12:35:30Z",
+      "start_mjd": 60563.524663
+    },
+    {
+      "duration": 577,
+      "end_iso8601": "2024-09-10T14:22:50Z",
+      "end_mjd": 60563.5992,
+      "name": "Mothership Observation Window #58",
+      "start_iso8601": "2024-09-10T14:13:13Z",
+      "start_mjd": 60563.592522
+    },
+    {
+      "duration": 359,
+      "end_iso8601": "2024-09-10T17:51:08Z",
+      "end_mjd": 60563.743853,
+      "name": "Mothership Observation Window #59",
+      "start_iso8601": "2024-09-10T17:45:09Z",
+      "start_mjd": 60563.739698
+    },
+    {
+      "duration": 644,
+      "end_iso8601": "2024-09-10T19:30:37Z",
+      "end_mjd": 60563.812939,
+      "name": "Mothership Observation Window #60",
+      "start_iso8601": "2024-09-10T19:19:53Z",
+      "start_mjd": 60563.805485
+    },
+    {
+      "duration": 850,
+      "end_iso8601": "2024-09-10T21:04:40Z",
+      "end_mjd": 60563.878251,
+      "name": "Mothership Observation Window #61",
+      "start_iso8601": "2024-09-10T20:50:30Z",
+      "start_mjd": 60563.868413
+    },
+    {
+      "duration": 663,
+      "end_iso8601": "2024-09-10T22:36:52Z",
+      "end_mjd": 60563.942279,
+      "name": "Mothership Observation Window #62",
+      "start_iso8601": "2024-09-10T22:25:49Z",
+      "start_mjd": 60563.934606
+    },
+    {
+      "duration": 407,
+      "end_iso8601": "2024-09-11T00:10:54Z",
+      "end_mjd": 60564.00758,
+      "name": "Mothership Observation Window #63",
+      "start_iso8601": "2024-09-11T00:04:07Z",
+      "start_mjd": 60564.002869
+    },
+    {
+      "duration": 557,
+      "end_iso8601": "2024-09-11T08:51:05Z",
+      "end_mjd": 60564.368819,
+      "name": "Mothership Observation Window #64",
+      "start_iso8601": "2024-09-11T08:41:48Z",
+      "start_mjd": 60564.362372
+    },
+    {
+      "duration": 609,
+      "end_iso8601": "2024-09-11T10:27:59Z",
+      "end_mjd": 60564.43611,
+      "name": "Mothership Observation Window #65",
+      "start_iso8601": "2024-09-11T10:17:50Z",
+      "start_mjd": 60564.429062
+    },
+    {
+      "duration": 667,
+      "end_iso8601": "2024-09-11T11:58:00Z",
+      "end_mjd": 60564.498622,
+      "name": "Mothership Observation Window #66",
+      "start_iso8601": "2024-09-11T11:46:53Z",
+      "start_mjd": 60564.490902
+    },
+    {
+      "duration": 659,
+      "end_iso8601": "2024-09-11T13:34:15Z",
+      "end_mjd": 60564.565462,
+      "name": "Mothership Observation Window #67",
+      "start_iso8601": "2024-09-11T13:23:16Z",
+      "start_mjd": 60564.557835
+    }
+  ]
+}

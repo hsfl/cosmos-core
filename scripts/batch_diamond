@@ -1,0 +1,17 @@
+#!/bin/tcsh
+echo "diamond 500 " > batch_diamond.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":24000,"spacing":500,"satfile":"sats_vis_string_0500.dat","formation":"diamond"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_diamond.out
+echo "diamond 1000 " > batch_diamond.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":24000,"spacing":1000,"satfile":"sats_vis_string_1000.dat","formation":"diamond"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_diamond.out
+echo "diamond 1500 " >> batch_diamond.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":24000,"spacing":1500,"satfile":"sats_vis_string_1500.dat","formation":"diamond"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_diamond.out
+echo "diamond 2000 " >> batch_diamond.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":24000,"spacing":2000,"satfile":"sats._vis_string_2000dat","formation":"diamond"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_diamond.out
+echo "diamond 2500 " >> batch_diamond.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":24000,"spacing":2500,"satfile":"sats_vis_string_2500.dat","formation":"diamond"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_diamond.out
+echo "diamond 3000 " >> batch_diamond.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":24000,"spacing":3000,"satfile":"sats_vis_string_3000.dat","formation":"diamond"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_diamond.out
+echo "diamond 3500 " >> batch_diamond.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":24000,"spacing":3500,"satfile":"sats_vis_string_3500.dat","formation":"diamond"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_diamond.out
+echo "diamond 4000 " >> batch_diamond.out
+propagatorv3 '{"realmname":"sttr","simdt":1.0,"settle":1,"realtime":0,"runcount":24000,"spacing":4000,"satfile":"sats_vis_string_4000.dat","formation":"diamond"}' | awk '{print $4,$6,$54,$56,$58,$60}' - >> batch_diamond.out

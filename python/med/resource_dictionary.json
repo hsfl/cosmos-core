@@ -1,0 +1,6 @@
+{
+    "Battery (V)": {"max_value": 24, "min_value": 0, "initial_value": 12},
+    "CPU (GHz)": {"max_value": 100, "min_value": 0, "initial_value": 10},
+    "Storage (GB)": {"max_value": 100, "min_value": 0, "initial_value": 50},
+    "Temperature (C)": {"max_value": 200, "min_value": -200, "initial_value": 25}
+}

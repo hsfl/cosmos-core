@@ -323,7 +323,7 @@ namespace Cosmos {
         double map_dem_alt(int body, double lon, double lat, double res)
         {
             dem_pixel pixel;
-            pixel = map_dem_pixel(body,lon,lat,res);
+            pixel = Convert::map_dem_pixel(body,lon,lat,res);
             return (pixel.alt);
         }
 
@@ -508,7 +508,7 @@ namespace Cosmos {
                 return (-1);
 
             tiltrho = scalekm/bodies[body-1]->radius;
-            *pixel = map_dem_pixel(body,lon,lat,tiltrho);
+            *pixel = Convert::map_dem_pixel(body,lon,lat,tiltrho);
             bodies[body-1]->htov = (bodies[body-1]->hscale/bodies[body-1]->vscale);
             return 0;
         }

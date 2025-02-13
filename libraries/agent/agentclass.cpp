@@ -136,11 +136,19 @@ Agent::Agent(string realm_name,
 
     if ((iretn=json_setup_node(node_name, cinfo)) != 0) {
         error_value = iretn;
-        debug_log.Printf("Failed to set up Namespace\n");
+        debug_log.Printf("Failed to set up Node %s\n", node_name.c_str());
         shutdown();
         return;
     }
-    debug_log.Printf("Set Up Namespace\n");
+    debug_log.Printf("Set Up Node %s\n", node_name.c_str());
+
+    if ((iretn=json_setup_realm(realm_name, cinfo)) < 0) {
+        error_value = iretn;
+        debug_log.Printf("Failed to set up Realm %s\n", realm_name.c_str());
+        shutdown();
+        return;
+    }
+    debug_log.Printf("Set Up Realm %s\n", realm_name.c_str());
 
     cinfo->agent0.client = 1;
     cinfo->node.utc = 0.;
@@ -312,8 +320,10 @@ Agent::Agent(string realm_name,
     add_request("statejson",req_statejson,"","return description JSON for State vector");
     //        add_request("utcstartjson",req_utcstartjson,"","return description JSON for UTC Start time");
     add_request("piecesjson",req_piecesjson,"","return description JSON for Pieces");
-    add_request("vertexsjson",req_vertexsjson,"","return description JSON for Pieces");
+    add_request("verticesjson",req_verticesjson,"","return description JSON for Pieces");
     add_request("facesjson",req_facesjson,"","return description JSON for Pieces");
+    add_request("trianglesjson",req_trianglesjson,"","return description JSON for Pieces");
+    add_request("strucsjson",req_strucsjson,"","return description JSON for Pieces");
     add_request("devgenjson",req_devgenjson,"","return description JSON for General Devices");
     add_request("devspecjson",req_devspecjson,"","return description JSON for Specific Devices");
     add_request("portsjson",req_portsjson,"","return description JSON for Ports");
@@ -607,9 +617,13 @@ int32_t Agent::send_request_jsonnode(beatstruc hbeat, jsonnode &jnode, float wai
     if (iretn < 0) { return iretn; }
     iretn = send_request(hbeat, "piecesjson", jnode.pieces, waitsec);
     if (iretn < 0) { return iretn; }
+    iretn = send_request(hbeat, "strucsjson", jnode.strucs, waitsec);
+    if (iretn < 0) { return iretn; }
     iretn = send_request(hbeat, "facesjson", jnode.faces, waitsec);
     if (iretn < 0) { return iretn; }
-    iretn = send_request(hbeat, "vertexsjson", jnode.vertexs, waitsec);
+    iretn = send_request(hbeat, "trianglesjson", jnode.triangles, waitsec);
+    if (iretn < 0) { return iretn; }
+    iretn = send_request(hbeat, "verticesjson", jnode.vertices, waitsec);
     if (iretn < 0) { return iretn; }
     iretn = send_request(hbeat, "devgenjson", jnode.devgen, waitsec);
     if (iretn < 0) { return iretn; }
@@ -1021,8 +1035,12 @@ void Agent::message_loop() {
             }
             else
             {
-                message_queue.push_back(mess);
-                if (message_queue.size() > MESSAGE_RING_SIZE) { message_queue.pop_front(); }
+                if (message_queue.size() < MESSAGE_RING_SIZE)
+                {
+                    ring_mutex.lock();
+                    message_queue.push_back(mess);
+                    ring_mutex.unlock();
+                }
             }
         }
     }
@@ -1757,9 +1775,21 @@ int32_t Agent::req_statejson(string &, string &output, Agent* agent) {
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-//        int32_t Agent::req_piecesjson(char *, char* output, Agent* agent)
 int32_t Agent::req_piecesjson(string &, string &output, Agent* agent) {
     output = agent->cinfo->json.pieces.c_str();
+    if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
+    return 0;
+}
+
+//! Built-in Return Structure JSON request
+/*! Returns a JSON string representing the Face information.
+ * \param request Text of request.
+ * \param output Text of response to request.
+ * \param agent Pointer to Cosmos::Agent to use.
+ * \return 0, or negative error.
+ */
+int32_t Agent::req_strucsjson(string &, string &output, Agent* agent) {
+    output = agent->cinfo->json.strucs.c_str();
     if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
     return 0;
 }
@@ -1771,9 +1801,21 @@ int32_t Agent::req_piecesjson(string &, string &output, Agent* agent) {
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-//        int32_t Agent::req_facesjson(char *, char* output, Agent* agent)
 int32_t Agent::req_facesjson(string &, string &output, Agent* agent) {
     output = agent->cinfo->json.faces.c_str();
+    if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
+    return 0;
+}
+
+//! Built-in Return triangle JSON request
+/*! Returns a JSON string representing the triangle information.
+ * \param request Text of request.
+ * \param output Text of response to request.
+ * \param agent Pointer to Cosmos::Agent to use.
+ * \return 0, or negative error.
+ */
+int32_t Agent::req_trianglesjson(string &, string &output, Agent* agent) {
+    output = agent->cinfo->json.triangles.c_str();
     if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
     return 0;
 }
@@ -1785,9 +1827,9 @@ int32_t Agent::req_facesjson(string &, string &output, Agent* agent) {
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-//        int32_t Agent::req_vertexsjson(char *, char* output, Agent* agent)
-int32_t Agent::req_vertexsjson(string &, string &output, Agent* agent) {
-    output = agent->cinfo->json.vertexs.c_str();
+//        int32_t Agent::req_verticesjson(char *, char* output, Agent* agent)
+int32_t Agent::req_verticesjson(string &, string &output, Agent* agent) {
+    output = agent->cinfo->json.vertices.c_str();
     if (output.length() > agent->cinfo->agent0.beat.bsz) { output[agent->cinfo->agent0.beat.bsz-1] = 0; }
     return 0;
 }
@@ -3829,13 +3871,21 @@ int32_t Agent::readring(messstruc &message, AgentMessage type, float waitsec, Wh
 {
     if (waitsec < 0.f) { waitsec = 0.; }
     if (cinfo == nullptr) { return AGENT_ERROR_NULL; }
-    if (where == Where::HEAD) { message_queue.clear(); }
+    if (where == Where::HEAD)
+    {
+        ring_mutex.lock();
+        message_queue.clear();
+        ring_mutex.unlock();
+    }
     ElapsedTime ep;
     ep.start();
     do {
-        while (message_queue.size()) {
+        while (message_queue.size())
+        {
+            ring_mutex.lock();
             message = message_queue.front();
             message_queue.pop_front();
+            ring_mutex.unlock();
             if (type == Agent::AgentMessage::ALL || type == static_cast<Agent::AgentMessage>(message.meta.type)) {
                 if (proc.empty() || !proc.compare(message.meta.beat.proc)) {
                     if (node.empty() || !node.compare(message.meta.beat.node)) {
@@ -3880,7 +3930,9 @@ int32_t Agent::readring(messstruc &message, string realm, string node, AgentMess
     }
     if (where == Where::HEAD)
     {
+        ring_mutex.lock();
         message_queue.clear();
+        ring_mutex.unlock();
     }
     ElapsedTime ep;
     ep.start();
@@ -3888,8 +3940,10 @@ int32_t Agent::readring(messstruc &message, string realm, string node, AgentMess
     {
         while (message_queue.size())
         {
+            ring_mutex.lock();
             message = message_queue.front();
             message_queue.pop_front();
+            ring_mutex.unlock();
             if ((type == Agent::AgentMessage::ALL || type == static_cast<Agent::AgentMessage>(message.meta.type)) && (realm.empty() || realm == message.meta.beat.realm) && (node.empty() || node == message.meta.beat.node))
             {
                 return (static_cast<int32_t>(message.meta.type));
@@ -3926,13 +3980,20 @@ int32_t Agent::readring(messstruc &message, vector<string> realm, AgentMessage t
 {
     if (waitsec < 0.f) { waitsec = 0.; }
     if (cinfo == nullptr) { return AGENT_ERROR_NULL; }
-    if (where == Where::HEAD) { message_queue.clear(); }
+    if (where == Where::HEAD)
+    {
+        ring_mutex.lock();
+        message_queue.clear();
+        ring_mutex.unlock();
+    }
     ElapsedTime ep;
     ep.start();
     do {
         while (message_queue.size()) {
+            ring_mutex.lock();
             message = message_queue.front();
             message_queue.pop_front();
+            ring_mutex.unlock();
             if (type == Agent::AgentMessage::ALL || type == static_cast<Agent::AgentMessage>(message.meta.type)) {
                 if (realm.empty() || std::find(realm.begin(), realm.end(), message.meta.beat.node) != realm.end()) {
                     return (static_cast<int32_t>(message.meta.type));
@@ -3958,7 +4019,12 @@ int32_t Agent::parsering(AgentMessage type, float waitsec, Where where, string p
     int32_t iretn = 0;
     messstruc message;
 
-    if (where == Where::HEAD) { message_queue.clear(); }
+    if (where == Where::HEAD)
+    {
+        ring_mutex.lock();
+        message_queue.clear();
+        ring_mutex.unlock();
+    }
     post(Agent::AgentMessage::REQUEST, "heartbeat");
     ElapsedTime et;
     do {
