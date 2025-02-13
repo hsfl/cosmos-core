@@ -136,11 +136,19 @@ Agent::Agent(string realm_name,
 
     if ((iretn=json_setup_node(node_name, cinfo)) != 0) {
         error_value = iretn;
-        debug_log.Printf("Failed to set up Namespace\n");
+        debug_log.Printf("Failed to set up Node %s\n", node_name.c_str());
         shutdown();
         return;
     }
-    debug_log.Printf("Set Up Namespace\n");
+    debug_log.Printf("Set Up Node %s\n", node_name.c_str());
+
+    if ((iretn=json_setup_realm(realm_name, cinfo)) < 0) {
+        error_value = iretn;
+        debug_log.Printf("Failed to set up Realm %s\n", realm_name.c_str());
+        shutdown();
+        return;
+    }
+    debug_log.Printf("Set Up Realm %s\n", realm_name.c_str());
 
     cinfo->agent0.client = 1;
     cinfo->node.utc = 0.;
