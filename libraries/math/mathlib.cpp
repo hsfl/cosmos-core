@@ -2724,6 +2724,14 @@ double LsFit::getbasex()
     return basex;
 }
 
+/*! Check if the fit function is ready to return non-zero values.
+ * \return bool true if fit is ready, false otherwise.
+*/
+bool LsFit::is_ready()
+{
+    return var.size() > order;
+}
+
 
 
 //! @}

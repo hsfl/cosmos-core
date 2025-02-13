@@ -33,7 +33,6 @@ namespace Cosmos
             typedef vector<Physics::State*> StateList;
 
             int32_t Init(double idt=1., string realm="propagate", double iutc=0.);
-            int32_t Connect();
             StateList::iterator AddNode(string nodename, uint8_t propagation_priority);
             int32_t AddNode(string nodename, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos eci, Convert::qatt icrf=Convert::qatt(), uint8_t propagation_priority=0);
             int32_t AddNode(string nodename, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos origineci, Convert::cartpos lvlh, Convert::qatt icrf=Convert::qatt(), uint8_t propagation_priority=0);
@@ -53,8 +52,17 @@ namespace Cosmos
             int32_t ParseSatString(string args);
             int32_t ParseTargetFile(string filename="");
             int32_t ParseTargetString(string line);
+            int32_t ParseTargetJson(json11::Json jargs);
             int32_t GetError();
             int32_t Propagate(double nextutc=0.);
+            int32_t Propagate(vector<vector<cosmosstruc> > &results, uint32_t runcount);
+            int32_t Target();
+            int32_t Target(vector<vector<cosmosstruc> > &results);
+            int32_t Metric();
+            int32_t Metric(vector<vector<cosmosstruc> > &results);
+            int32_t Thrust();
+            int32_t Formation(string type, double spacing);
+            int32_t Update();
             //! Ends the simulation and runs any code that the propagators need to run at the end
             int32_t End();
             int32_t Reset();

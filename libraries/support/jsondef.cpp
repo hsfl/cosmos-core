@@ -90,15 +90,17 @@ namespace Cosmos
             add_name("node.lasteventutc", &node.lasteventutc, "double");
             add_name("node.type", &node.type, "uint16_t");
             add_name("node.state", &node.state, "uint16_t");
-            add_name("vertex_cnt", &vertex_cnt, "uint16_t");
-            add_name("normal_cnt", &normal_cnt, "uint16_t");
-            add_name("face_cnt", &face_cnt, "uint16_t");
+//            add_name("vertex_cnt", &vertex_cnt, "uint16_t");
+//            add_name("normal_cnt", &normal_cnt, "uint16_t");
+//            add_name("face_cnt", &face_cnt, "uint16_t");
             add_name("piece_cnt", &piece_cnt, "uint16_t");
             add_name("device_cnt", &device_cnt, "uint16_t");
             add_name("port_cnt", &port_cnt, "uint16_t");
 //            add_name("agent_cnt", &agent_cnt, "uint16_t");
             add_name("event_cnt", &event_cnt, "uint16_t");
+            add_name("event_tick", &event_tick, "double");
             add_name("target_cnt", &target_cnt, "uint16_t");
+            add_name("target_idx", &target_idx, "uint16_t");
             add_name("user_cnt", &user_cnt, "uint16_t");
             add_name("tle_cnt", &tle_cnt, "uint16_t");
             add_name("node.flags", &node.flags, "uint16_t");
@@ -648,538 +650,538 @@ namespace Cosmos
                     add_name(rebasename, &node.loc.att.extra.b2j.row[i].col[j], "double");
                 }
             }
-            add_name("node.loc_est", &node.loc_est, "locstruc");
-            add_name("node.loc_est.utc", &node.loc_est.utc, "double");
-            add_name("node.loc_est.pos", &node.loc_est.pos, "posstruc");
-            add_name("node.loc_est.pos.utc", &node.loc_est.pos.utc, "double");
-            add_name("node.loc_est.pos.icrf", &node.loc_est.pos.icrf, "cartpos");
-            add_name("node.loc_est.pos.icrf.utc", &node.loc_est.pos.icrf.utc, "double");
-            add_name("node.loc_est.pos.icrf.s", &node.loc_est.pos.icrf.s, "rvector");
-            add_name("node.loc_est.pos.icrf.s.col", &node.loc_est.pos.icrf.s.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.icrf.s.col)/sizeof(node.loc_est.pos.icrf.s.col[0]); ++i) {
-                string basename = "node.loc_est.pos.icrf.s.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.icrf.s.col[i], "double");
+            add_name("node.loc_req", &node.loc_req, "locstruc");
+            add_name("node.loc_req.utc", &node.loc_req.utc, "double");
+            add_name("node.loc_req.pos", &node.loc_req.pos, "posstruc");
+            add_name("node.loc_req.pos.utc", &node.loc_req.pos.utc, "double");
+            add_name("node.loc_req.pos.icrf", &node.loc_req.pos.icrf, "cartpos");
+            add_name("node.loc_req.pos.icrf.utc", &node.loc_req.pos.icrf.utc, "double");
+            add_name("node.loc_req.pos.icrf.s", &node.loc_req.pos.icrf.s, "rvector");
+            add_name("node.loc_req.pos.icrf.s.col", &node.loc_req.pos.icrf.s.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.icrf.s.col)/sizeof(node.loc_req.pos.icrf.s.col[0]); ++i) {
+                string basename = "node.loc_req.pos.icrf.s.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.icrf.s.col[i], "double");
             }
-            add_name("node.loc_est.pos.icrf.v", &node.loc_est.pos.icrf.v, "rvector");
-            add_name("node.loc_est.pos.icrf.v.col", &node.loc_est.pos.icrf.v.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.icrf.v.col)/sizeof(node.loc_est.pos.icrf.v.col[0]); ++i) {
-                string basename = "node.loc_est.pos.icrf.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.icrf.v.col[i], "double");
+            add_name("node.loc_req.pos.icrf.v", &node.loc_req.pos.icrf.v, "rvector");
+            add_name("node.loc_req.pos.icrf.v.col", &node.loc_req.pos.icrf.v.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.icrf.v.col)/sizeof(node.loc_req.pos.icrf.v.col[0]); ++i) {
+                string basename = "node.loc_req.pos.icrf.v.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.icrf.v.col[i], "double");
             }
-            add_name("node.loc_est.pos.icrf.a", &node.loc_est.pos.icrf.a, "rvector");
-            add_name("node.loc_est.pos.icrf.a.col", &node.loc_est.pos.icrf.a.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.icrf.a.col)/sizeof(node.loc_est.pos.icrf.a.col[0]); ++i) {
-                string basename = "node.loc_est.pos.icrf.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.icrf.a.col[i], "double");
+            add_name("node.loc_req.pos.icrf.a", &node.loc_req.pos.icrf.a, "rvector");
+            add_name("node.loc_req.pos.icrf.a.col", &node.loc_req.pos.icrf.a.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.icrf.a.col)/sizeof(node.loc_req.pos.icrf.a.col[0]); ++i) {
+                string basename = "node.loc_req.pos.icrf.a.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.icrf.a.col[i], "double");
             }
-            add_name("node.loc_est.pos.icrf.pass", &node.loc_est.pos.icrf.pass, "uint32_t");
-            add_name("node.loc_est.pos.eci", &node.loc_est.pos.eci, "cartpos");
-            add_name("node.loc_est.pos.eci.utc", &node.loc_est.pos.eci.utc, "double");
-            add_name("node.loc_est.pos.eci.s", &node.loc_est.pos.eci.s, "rvector");
-            add_name("node.loc_est.pos.eci.s.col", &node.loc_est.pos.eci.s.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.eci.s.col)/sizeof(node.loc_est.pos.eci.s.col[0]); ++i) {
-                string basename = "node.loc_est.pos.eci.s.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.eci.s.col[i], "double");
+            add_name("node.loc_req.pos.icrf.pass", &node.loc_req.pos.icrf.pass, "uint32_t");
+            add_name("node.loc_req.pos.eci", &node.loc_req.pos.eci, "cartpos");
+            add_name("node.loc_req.pos.eci.utc", &node.loc_req.pos.eci.utc, "double");
+            add_name("node.loc_req.pos.eci.s", &node.loc_req.pos.eci.s, "rvector");
+            add_name("node.loc_req.pos.eci.s.col", &node.loc_req.pos.eci.s.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.eci.s.col)/sizeof(node.loc_req.pos.eci.s.col[0]); ++i) {
+                string basename = "node.loc_req.pos.eci.s.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.eci.s.col[i], "double");
             }
-            add_name("node.loc_est.pos.eci.v", &node.loc_est.pos.eci.v, "rvector");
-            add_name("node.loc_est.pos.eci.v.col", &node.loc_est.pos.eci.v.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.eci.v.col)/sizeof(node.loc_est.pos.eci.v.col[0]); ++i) {
-                string basename = "node.loc_est.pos.eci.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.eci.v.col[i], "double");
+            add_name("node.loc_req.pos.eci.v", &node.loc_req.pos.eci.v, "rvector");
+            add_name("node.loc_req.pos.eci.v.col", &node.loc_req.pos.eci.v.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.eci.v.col)/sizeof(node.loc_req.pos.eci.v.col[0]); ++i) {
+                string basename = "node.loc_req.pos.eci.v.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.eci.v.col[i], "double");
             }
-            add_name("node.loc_est.pos.eci.a", &node.loc_est.pos.eci.a, "rvector");
-            add_name("node.loc_est.pos.eci.a.col", &node.loc_est.pos.eci.a.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.eci.a.col)/sizeof(node.loc_est.pos.eci.a.col[0]); ++i) {
-                string basename = "node.loc_est.pos.eci.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.eci.a.col[i], "double");
+            add_name("node.loc_req.pos.eci.a", &node.loc_req.pos.eci.a, "rvector");
+            add_name("node.loc_req.pos.eci.a.col", &node.loc_req.pos.eci.a.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.eci.a.col)/sizeof(node.loc_req.pos.eci.a.col[0]); ++i) {
+                string basename = "node.loc_req.pos.eci.a.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.eci.a.col[i], "double");
             }
-            add_name("node.loc_est.pos.eci.pass", &node.loc_est.pos.eci.pass, "uint32_t");
-            add_name("node.loc_est.pos.sci", &node.loc_est.pos.sci, "cartpos");
-            add_name("node.loc_est.pos.sci.utc", &node.loc_est.pos.sci.utc, "double");
-            add_name("node.loc_est.pos.sci.s", &node.loc_est.pos.sci.s, "rvector");
-            add_name("node.loc_est.pos.sci.s.col", &node.loc_est.pos.sci.s.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.sci.s.col)/sizeof(node.loc_est.pos.sci.s.col[0]); ++i) {
-                string basename = "node.loc_est.pos.sci.s.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.sci.s.col[i], "double");
+            add_name("node.loc_req.pos.eci.pass", &node.loc_req.pos.eci.pass, "uint32_t");
+            add_name("node.loc_req.pos.sci", &node.loc_req.pos.sci, "cartpos");
+            add_name("node.loc_req.pos.sci.utc", &node.loc_req.pos.sci.utc, "double");
+            add_name("node.loc_req.pos.sci.s", &node.loc_req.pos.sci.s, "rvector");
+            add_name("node.loc_req.pos.sci.s.col", &node.loc_req.pos.sci.s.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.sci.s.col)/sizeof(node.loc_req.pos.sci.s.col[0]); ++i) {
+                string basename = "node.loc_req.pos.sci.s.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.sci.s.col[i], "double");
             }
-            add_name("node.loc_est.pos.sci.v", &node.loc_est.pos.sci.v, "rvector");
-            add_name("node.loc_est.pos.sci.v.col", &node.loc_est.pos.sci.v.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.sci.v.col)/sizeof(node.loc_est.pos.sci.v.col[0]); ++i) {
-                string basename = "node.loc_est.pos.sci.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.sci.v.col[i], "double");
+            add_name("node.loc_req.pos.sci.v", &node.loc_req.pos.sci.v, "rvector");
+            add_name("node.loc_req.pos.sci.v.col", &node.loc_req.pos.sci.v.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.sci.v.col)/sizeof(node.loc_req.pos.sci.v.col[0]); ++i) {
+                string basename = "node.loc_req.pos.sci.v.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.sci.v.col[i], "double");
             }
-            add_name("node.loc_est.pos.sci.a", &node.loc_est.pos.sci.a, "rvector");
-            add_name("node.loc_est.pos.sci.a.col", &node.loc_est.pos.sci.a.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.sci.a.col)/sizeof(node.loc_est.pos.sci.a.col[0]); ++i) {
-                string basename = "node.loc_est.pos.sci.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.sci.a.col[i], "double");
+            add_name("node.loc_req.pos.sci.a", &node.loc_req.pos.sci.a, "rvector");
+            add_name("node.loc_req.pos.sci.a.col", &node.loc_req.pos.sci.a.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.sci.a.col)/sizeof(node.loc_req.pos.sci.a.col[0]); ++i) {
+                string basename = "node.loc_req.pos.sci.a.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.sci.a.col[i], "double");
             }
-            add_name("node.loc_est.pos.sci.pass", &node.loc_est.pos.sci.pass, "uint32_t");
-            add_name("node.loc_est.pos.geoc", &node.loc_est.pos.geoc, "cartpos");
-            add_name("node.loc_est.pos.geoc.utc", &node.loc_est.pos.geoc.utc, "double");
-            add_name("node.loc_est.pos.geoc.s", &node.loc_est.pos.geoc.s, "rvector");
-            add_name("node.loc_est.pos.geoc.s.col", &node.loc_est.pos.geoc.s.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.geoc.s.col)/sizeof(node.loc_est.pos.geoc.s.col[0]); ++i) {
-                string basename = "node.loc_est.pos.geoc.s.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.geoc.s.col[i], "double");
+            add_name("node.loc_req.pos.sci.pass", &node.loc_req.pos.sci.pass, "uint32_t");
+            add_name("node.loc_req.pos.geoc", &node.loc_req.pos.geoc, "cartpos");
+            add_name("node.loc_req.pos.geoc.utc", &node.loc_req.pos.geoc.utc, "double");
+            add_name("node.loc_req.pos.geoc.s", &node.loc_req.pos.geoc.s, "rvector");
+            add_name("node.loc_req.pos.geoc.s.col", &node.loc_req.pos.geoc.s.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.geoc.s.col)/sizeof(node.loc_req.pos.geoc.s.col[0]); ++i) {
+                string basename = "node.loc_req.pos.geoc.s.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.geoc.s.col[i], "double");
             }
-            add_name("node.loc_est.pos.geoc.v", &node.loc_est.pos.geoc.v, "rvector");
-            add_name("node.loc_est.pos.geoc.v.col", &node.loc_est.pos.geoc.v.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.geoc.v.col)/sizeof(node.loc_est.pos.geoc.v.col[0]); ++i) {
-                string basename = "node.loc_est.pos.geoc.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.geoc.v.col[i], "double");
+            add_name("node.loc_req.pos.geoc.v", &node.loc_req.pos.geoc.v, "rvector");
+            add_name("node.loc_req.pos.geoc.v.col", &node.loc_req.pos.geoc.v.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.geoc.v.col)/sizeof(node.loc_req.pos.geoc.v.col[0]); ++i) {
+                string basename = "node.loc_req.pos.geoc.v.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.geoc.v.col[i], "double");
             }
-            add_name("node.loc_est.pos.geoc.a", &node.loc_est.pos.geoc.a, "rvector");
-            add_name("node.loc_est.pos.geoc.a.col", &node.loc_est.pos.geoc.a.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.geoc.a.col)/sizeof(node.loc_est.pos.geoc.a.col[0]); ++i) {
-                string basename = "node.loc_est.pos.geoc.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.geoc.a.col[i], "double");
+            add_name("node.loc_req.pos.geoc.a", &node.loc_req.pos.geoc.a, "rvector");
+            add_name("node.loc_req.pos.geoc.a.col", &node.loc_req.pos.geoc.a.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.geoc.a.col)/sizeof(node.loc_req.pos.geoc.a.col[0]); ++i) {
+                string basename = "node.loc_req.pos.geoc.a.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.geoc.a.col[i], "double");
             }
-            add_name("node.loc_est.pos.geoc.pass", &node.loc_est.pos.geoc.pass, "uint32_t");
+            add_name("node.loc_req.pos.geoc.pass", &node.loc_req.pos.geoc.pass, "uint32_t");
 
-            add_name("node.loc_est.pos.selc", &node.loc_est.pos.selc, "cartpos");
-            add_name("node.loc_est.pos.selc.utc", &node.loc_est.pos.selc.utc, "double");
-            add_name("node.loc_est.pos.selc.s", &node.loc_est.pos.selc.s, "rvector");
-            add_name("node.loc_est.pos.selc.s.col", &node.loc_est.pos.selc.s.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.selc.s.col)/sizeof(node.loc_est.pos.selc.s.col[0]); ++i) {
-                string basename = "node.loc_est.pos.selc.s.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.selc.s.col[i], "double");
+            add_name("node.loc_req.pos.selc", &node.loc_req.pos.selc, "cartpos");
+            add_name("node.loc_req.pos.selc.utc", &node.loc_req.pos.selc.utc, "double");
+            add_name("node.loc_req.pos.selc.s", &node.loc_req.pos.selc.s, "rvector");
+            add_name("node.loc_req.pos.selc.s.col", &node.loc_req.pos.selc.s.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.selc.s.col)/sizeof(node.loc_req.pos.selc.s.col[0]); ++i) {
+                string basename = "node.loc_req.pos.selc.s.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.selc.s.col[i], "double");
             }
-            add_name("node.loc_est.pos.selc.v", &node.loc_est.pos.selc.v, "rvector");
-            add_name("node.loc_est.pos.selc.v.col", &node.loc_est.pos.selc.v.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.selc.v.col)/sizeof(node.loc_est.pos.selc.v.col[0]); ++i) {
-                string basename = "node.loc_est.pos.selc.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.selc.v.col[i], "double");
+            add_name("node.loc_req.pos.selc.v", &node.loc_req.pos.selc.v, "rvector");
+            add_name("node.loc_req.pos.selc.v.col", &node.loc_req.pos.selc.v.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.selc.v.col)/sizeof(node.loc_req.pos.selc.v.col[0]); ++i) {
+                string basename = "node.loc_req.pos.selc.v.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.selc.v.col[i], "double");
             }
-            add_name("node.loc_est.pos.selc.a", &node.loc_est.pos.selc.a, "rvector");
-            add_name("node.loc_est.pos.selc.a.col", &node.loc_est.pos.selc.a.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.selc.a.col)/sizeof(node.loc_est.pos.selc.a.col[0]); ++i) {
-                string basename = "node.loc_est.pos.selc.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.selc.a.col[i], "double");
+            add_name("node.loc_req.pos.selc.a", &node.loc_req.pos.selc.a, "rvector");
+            add_name("node.loc_req.pos.selc.a.col", &node.loc_req.pos.selc.a.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.selc.a.col)/sizeof(node.loc_req.pos.selc.a.col[0]); ++i) {
+                string basename = "node.loc_req.pos.selc.a.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.selc.a.col[i], "double");
             }
-            add_name("node.loc_est.pos.selc.pass", &node.loc_est.pos.selc.pass, "uint32_t");
+            add_name("node.loc_req.pos.selc.pass", &node.loc_req.pos.selc.pass, "uint32_t");
 
-            add_name("node.loc_est.pos.lvlh", &node.loc_est.pos.lvlh, "cartpos");
-            add_name("node.loc_est.pos.lvlh.utc", &node.loc_est.pos.lvlh.utc, "double");
-            add_name("node.loc_est.pos.lvlh.s", &node.loc_est.pos.lvlh.s, "rvector");
-            add_name("node.loc_est.pos.lvlh.s.col", &node.loc_est.pos.lvlh.s.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.lvlh.s.col)/sizeof(node.loc_est.pos.lvlh.s.col[0]); ++i) {
-                string basename = "node.loc_est.pos.lvlh.s.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.lvlh.s.col[i], "double");
+            add_name("node.loc_req.pos.lvlh", &node.loc_req.pos.lvlh, "cartpos");
+            add_name("node.loc_req.pos.lvlh.utc", &node.loc_req.pos.lvlh.utc, "double");
+            add_name("node.loc_req.pos.lvlh.s", &node.loc_req.pos.lvlh.s, "rvector");
+            add_name("node.loc_req.pos.lvlh.s.col", &node.loc_req.pos.lvlh.s.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.lvlh.s.col)/sizeof(node.loc_req.pos.lvlh.s.col[0]); ++i) {
+                string basename = "node.loc_req.pos.lvlh.s.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.lvlh.s.col[i], "double");
             }
-            add_name("node.loc_est.pos.lvlh.v", &node.loc_est.pos.lvlh.v, "rvector");
-            add_name("node.loc_est.pos.lvlh.v.col", &node.loc_est.pos.lvlh.v.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.lvlh.v.col)/sizeof(node.loc_est.pos.lvlh.v.col[0]); ++i) {
-                string basename = "node.loc_est.pos.lvlh.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.lvlh.v.col[i], "double");
+            add_name("node.loc_req.pos.lvlh.v", &node.loc_req.pos.lvlh.v, "rvector");
+            add_name("node.loc_req.pos.lvlh.v.col", &node.loc_req.pos.lvlh.v.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.lvlh.v.col)/sizeof(node.loc_req.pos.lvlh.v.col[0]); ++i) {
+                string basename = "node.loc_req.pos.lvlh.v.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.lvlh.v.col[i], "double");
             }
-            add_name("node.loc_est.pos.lvlh.a", &node.loc_est.pos.lvlh.a, "rvector");
-            add_name("node.loc_est.pos.lvlh.a.col", &node.loc_est.pos.lvlh.a.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.lvlh.a.col)/sizeof(node.loc_est.pos.lvlh.a.col[0]); ++i) {
-                string basename = "node.loc_est.pos.lvlh.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.lvlh.a.col[i], "double");
+            add_name("node.loc_req.pos.lvlh.a", &node.loc_req.pos.lvlh.a, "rvector");
+            add_name("node.loc_req.pos.lvlh.a.col", &node.loc_req.pos.lvlh.a.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.lvlh.a.col)/sizeof(node.loc_req.pos.lvlh.a.col[0]); ++i) {
+                string basename = "node.loc_req.pos.lvlh.a.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.lvlh.a.col[i], "double");
             }
-            add_name("node.loc_est.pos.lvlh.pass", &node.loc_est.pos.lvlh.pass, "uint32_t");
+            add_name("node.loc_req.pos.lvlh.pass", &node.loc_req.pos.lvlh.pass, "uint32_t");
 
-            add_name("node.loc_est.pos.geod", &node.loc_est.pos.geod, "geoidpos");
-            add_name("node.loc_est.pos.geod.utc", &node.loc_est.pos.geod.utc, "double");
-            add_name("node.loc_est.pos.geod.s", &node.loc_est.pos.geod.s, "gvector");
-            add_name("node.loc_est.pos.geod.s.lat", &node.loc_est.pos.geod.s.lat, "double");
-            add_name("node.loc_est.pos.geod.s.lon", &node.loc_est.pos.geod.s.lon, "double");
-            add_name("node.loc_est.pos.geod.s.h", &node.loc_est.pos.geod.s.h, "double");
-            add_name("node.loc_est.pos.geod.v", &node.loc_est.pos.geod.v, "gvector");
-            add_name("node.loc_est.pos.geod.v.lat", &node.loc_est.pos.geod.v.lat, "double");
-            add_name("node.loc_est.pos.geod.v.lon", &node.loc_est.pos.geod.v.lon, "double");
-            add_name("node.loc_est.pos.geod.v.h", &node.loc_est.pos.geod.v.h, "double");
-            add_name("node.loc_est.pos.geod.a", &node.loc_est.pos.geod.a, "gvector");
-            add_name("node.loc_est.pos.geod.a.lat", &node.loc_est.pos.geod.a.lat, "double");
-            add_name("node.loc_est.pos.geod.a.lon", &node.loc_est.pos.geod.a.lon, "double");
-            add_name("node.loc_est.pos.geod.a.h", &node.loc_est.pos.geod.a.h, "double");
-            add_name("node.loc_est.pos.geod.pass", &node.loc_est.pos.geod.pass, "uint32_t");
-            add_name("node.loc_est.pos.selg", &node.loc_est.pos.selg, "geoidpos");
-            add_name("node.loc_est.pos.selg.utc", &node.loc_est.pos.selg.utc, "double");
-            add_name("node.loc_est.pos.selg.s", &node.loc_est.pos.selg.s, "gvector");
-            add_name("node.loc_est.pos.selg.s.lat", &node.loc_est.pos.selg.s.lat, "double");
-            add_name("node.loc_est.pos.selg.s.lon", &node.loc_est.pos.selg.s.lon, "double");
-            add_name("node.loc_est.pos.selg.s.h", &node.loc_est.pos.selg.s.h, "double");
-            add_name("node.loc_est.pos.selg.v", &node.loc_est.pos.selg.v, "gvector");
-            add_name("node.loc_est.pos.selg.v.lat", &node.loc_est.pos.selg.v.lat, "double");
-            add_name("node.loc_est.pos.selg.v.lon", &node.loc_est.pos.selg.v.lon, "double");
-            add_name("node.loc_est.pos.selg.v.h", &node.loc_est.pos.selg.v.h, "double");
-            add_name("node.loc_est.pos.selg.a", &node.loc_est.pos.selg.a, "gvector");
-            add_name("node.loc_est.pos.selg.a.lat", &node.loc_est.pos.selg.a.lat, "double");
-            add_name("node.loc_est.pos.selg.a.lon", &node.loc_est.pos.selg.a.lon, "double");
-            add_name("node.loc_est.pos.selg.a.h", &node.loc_est.pos.selg.a.h, "double");
-            add_name("node.loc_est.pos.selg.pass", &node.loc_est.pos.selg.pass, "uint32_t");
-            add_name("node.loc_est.pos.geos", &node.loc_est.pos.geos, "spherpos");
-            add_name("node.loc_est.pos.geos.utc", &node.loc_est.pos.geos.utc, "double");
-            add_name("node.loc_est.pos.geos.s", &node.loc_est.pos.geos.s, "svector");
-            add_name("node.loc_est.pos.geos.s.phi", &node.loc_est.pos.geos.s.phi, "double");
-            add_name("node.loc_est.pos.geos.s.lambda", &node.loc_est.pos.geos.s.lambda, "double");
-            add_name("node.loc_est.pos.geos.s.r", &node.loc_est.pos.geos.s.r, "double");
-            add_name("node.loc_est.pos.geos.v", &node.loc_est.pos.geos.v, "svector");
-            add_name("node.loc_est.pos.geos.v.phi", &node.loc_est.pos.geos.v.phi, "double");
-            add_name("node.loc_est.pos.geos.v.lambda", &node.loc_est.pos.geos.v.lambda, "double");
-            add_name("node.loc_est.pos.geos.v.r", &node.loc_est.pos.geos.v.r, "double");
-            add_name("node.loc_est.pos.geos.a", &node.loc_est.pos.geos.a, "svector");
-            add_name("node.loc_est.pos.geos.a.phi", &node.loc_est.pos.geos.a.phi, "double");
-            add_name("node.loc_est.pos.geos.a.lambda", &node.loc_est.pos.geos.a.lambda, "double");
-            add_name("node.loc_est.pos.geos.a.r", &node.loc_est.pos.geos.a.r, "double");
-            add_name("node.loc_est.pos.geos.pass", &node.loc_est.pos.geos.pass, "uint32_t");
-            add_name("node.loc_est.pos.extra", &node.loc_est.pos.extra, "extrapos");
-            add_name("node.loc_est.pos.extra.utc", &node.loc_est.pos.extra.utc, "double");
-            add_name("node.loc_est.pos.extra.tt", &node.loc_est.pos.extra.tt, "double");
-            add_name("node.loc_est.pos.extra.ut", &node.loc_est.pos.extra.ut, "double");
-            add_name("node.loc_est.pos.extra.tdb", &node.loc_est.pos.extra.tdb, "double");
-            add_name("node.loc_est.pos.extra.j2e", &node.loc_est.pos.extra.j2e, "rmatrix");
-            add_name("node.loc_est.pos.extra.j2e.row", &node.loc_est.pos.extra.j2e.row, "rvector[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.extra.j2e.row)/sizeof(node.loc_est.pos.extra.j2e.row[0]); ++i) {
-                string basename = "node.loc_est.pos.extra.j2e.row[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.extra.j2e.row[i], "rvector");
-                add_name(basename+".col", &node.loc_est.pos.extra.j2e.row[i].col, "double[]");
-                for(size_t j = 0; j < sizeof(node.loc_est.pos.extra.j2e.row[i].col)/sizeof(node.loc_est.pos.extra.j2e.row[i].col[0]); ++j) {
+            add_name("node.loc_req.pos.geod", &node.loc_req.pos.geod, "geoidpos");
+            add_name("node.loc_req.pos.geod.utc", &node.loc_req.pos.geod.utc, "double");
+            add_name("node.loc_req.pos.geod.s", &node.loc_req.pos.geod.s, "gvector");
+            add_name("node.loc_req.pos.geod.s.lat", &node.loc_req.pos.geod.s.lat, "double");
+            add_name("node.loc_req.pos.geod.s.lon", &node.loc_req.pos.geod.s.lon, "double");
+            add_name("node.loc_req.pos.geod.s.h", &node.loc_req.pos.geod.s.h, "double");
+            add_name("node.loc_req.pos.geod.v", &node.loc_req.pos.geod.v, "gvector");
+            add_name("node.loc_req.pos.geod.v.lat", &node.loc_req.pos.geod.v.lat, "double");
+            add_name("node.loc_req.pos.geod.v.lon", &node.loc_req.pos.geod.v.lon, "double");
+            add_name("node.loc_req.pos.geod.v.h", &node.loc_req.pos.geod.v.h, "double");
+            add_name("node.loc_req.pos.geod.a", &node.loc_req.pos.geod.a, "gvector");
+            add_name("node.loc_req.pos.geod.a.lat", &node.loc_req.pos.geod.a.lat, "double");
+            add_name("node.loc_req.pos.geod.a.lon", &node.loc_req.pos.geod.a.lon, "double");
+            add_name("node.loc_req.pos.geod.a.h", &node.loc_req.pos.geod.a.h, "double");
+            add_name("node.loc_req.pos.geod.pass", &node.loc_req.pos.geod.pass, "uint32_t");
+            add_name("node.loc_req.pos.selg", &node.loc_req.pos.selg, "geoidpos");
+            add_name("node.loc_req.pos.selg.utc", &node.loc_req.pos.selg.utc, "double");
+            add_name("node.loc_req.pos.selg.s", &node.loc_req.pos.selg.s, "gvector");
+            add_name("node.loc_req.pos.selg.s.lat", &node.loc_req.pos.selg.s.lat, "double");
+            add_name("node.loc_req.pos.selg.s.lon", &node.loc_req.pos.selg.s.lon, "double");
+            add_name("node.loc_req.pos.selg.s.h", &node.loc_req.pos.selg.s.h, "double");
+            add_name("node.loc_req.pos.selg.v", &node.loc_req.pos.selg.v, "gvector");
+            add_name("node.loc_req.pos.selg.v.lat", &node.loc_req.pos.selg.v.lat, "double");
+            add_name("node.loc_req.pos.selg.v.lon", &node.loc_req.pos.selg.v.lon, "double");
+            add_name("node.loc_req.pos.selg.v.h", &node.loc_req.pos.selg.v.h, "double");
+            add_name("node.loc_req.pos.selg.a", &node.loc_req.pos.selg.a, "gvector");
+            add_name("node.loc_req.pos.selg.a.lat", &node.loc_req.pos.selg.a.lat, "double");
+            add_name("node.loc_req.pos.selg.a.lon", &node.loc_req.pos.selg.a.lon, "double");
+            add_name("node.loc_req.pos.selg.a.h", &node.loc_req.pos.selg.a.h, "double");
+            add_name("node.loc_req.pos.selg.pass", &node.loc_req.pos.selg.pass, "uint32_t");
+            add_name("node.loc_req.pos.geos", &node.loc_req.pos.geos, "spherpos");
+            add_name("node.loc_req.pos.geos.utc", &node.loc_req.pos.geos.utc, "double");
+            add_name("node.loc_req.pos.geos.s", &node.loc_req.pos.geos.s, "svector");
+            add_name("node.loc_req.pos.geos.s.phi", &node.loc_req.pos.geos.s.phi, "double");
+            add_name("node.loc_req.pos.geos.s.lambda", &node.loc_req.pos.geos.s.lambda, "double");
+            add_name("node.loc_req.pos.geos.s.r", &node.loc_req.pos.geos.s.r, "double");
+            add_name("node.loc_req.pos.geos.v", &node.loc_req.pos.geos.v, "svector");
+            add_name("node.loc_req.pos.geos.v.phi", &node.loc_req.pos.geos.v.phi, "double");
+            add_name("node.loc_req.pos.geos.v.lambda", &node.loc_req.pos.geos.v.lambda, "double");
+            add_name("node.loc_req.pos.geos.v.r", &node.loc_req.pos.geos.v.r, "double");
+            add_name("node.loc_req.pos.geos.a", &node.loc_req.pos.geos.a, "svector");
+            add_name("node.loc_req.pos.geos.a.phi", &node.loc_req.pos.geos.a.phi, "double");
+            add_name("node.loc_req.pos.geos.a.lambda", &node.loc_req.pos.geos.a.lambda, "double");
+            add_name("node.loc_req.pos.geos.a.r", &node.loc_req.pos.geos.a.r, "double");
+            add_name("node.loc_req.pos.geos.pass", &node.loc_req.pos.geos.pass, "uint32_t");
+            add_name("node.loc_req.pos.extra", &node.loc_req.pos.extra, "extrapos");
+            add_name("node.loc_req.pos.extra.utc", &node.loc_req.pos.extra.utc, "double");
+            add_name("node.loc_req.pos.extra.tt", &node.loc_req.pos.extra.tt, "double");
+            add_name("node.loc_req.pos.extra.ut", &node.loc_req.pos.extra.ut, "double");
+            add_name("node.loc_req.pos.extra.tdb", &node.loc_req.pos.extra.tdb, "double");
+            add_name("node.loc_req.pos.extra.j2e", &node.loc_req.pos.extra.j2e, "rmatrix");
+            add_name("node.loc_req.pos.extra.j2e.row", &node.loc_req.pos.extra.j2e.row, "rvector[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.extra.j2e.row)/sizeof(node.loc_req.pos.extra.j2e.row[0]); ++i) {
+                string basename = "node.loc_req.pos.extra.j2e.row[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.extra.j2e.row[i], "rvector");
+                add_name(basename+".col", &node.loc_req.pos.extra.j2e.row[i].col, "double[]");
+                for(size_t j = 0; j < sizeof(node.loc_req.pos.extra.j2e.row[i].col)/sizeof(node.loc_req.pos.extra.j2e.row[i].col[0]); ++j) {
                     string rebasename = basename + ".col[" + std::to_string(j) + "]";
-                    add_name(rebasename, &node.loc_est.pos.extra.j2e.row[i].col[j], "double");
+                    add_name(rebasename, &node.loc_req.pos.extra.j2e.row[i].col[j], "double");
                 }
             }
-            add_name("node.loc_est.pos.extra.dj2e", &node.loc_est.pos.extra.dj2e, "rmatrix");
-            add_name("node.loc_est.pos.extra.dj2e.row", &node.loc_est.pos.extra.dj2e.row, "rvector[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.extra.dj2e.row)/sizeof(node.loc_est.pos.extra.dj2e.row[0]); ++i) {
-                string basename = "node.loc_est.pos.extra.dj2e.row[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.extra.dj2e.row[i], "rvector");
-                add_name(basename+".col", &node.loc_est.pos.extra.dj2e.row[i].col, "double[]");
-                for(size_t j = 0; j < sizeof(node.loc_est.pos.extra.dj2e.row[i].col)/sizeof(node.loc_est.pos.extra.dj2e.row[i].col[0]); ++j) {
+            add_name("node.loc_req.pos.extra.dj2e", &node.loc_req.pos.extra.dj2e, "rmatrix");
+            add_name("node.loc_req.pos.extra.dj2e.row", &node.loc_req.pos.extra.dj2e.row, "rvector[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.extra.dj2e.row)/sizeof(node.loc_req.pos.extra.dj2e.row[0]); ++i) {
+                string basename = "node.loc_req.pos.extra.dj2e.row[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.extra.dj2e.row[i], "rvector");
+                add_name(basename+".col", &node.loc_req.pos.extra.dj2e.row[i].col, "double[]");
+                for(size_t j = 0; j < sizeof(node.loc_req.pos.extra.dj2e.row[i].col)/sizeof(node.loc_req.pos.extra.dj2e.row[i].col[0]); ++j) {
                     string rebasename = basename + ".col[" + std::to_string(j) + "]";
-                    add_name(rebasename, &node.loc_est.pos.extra.dj2e.row[i].col[j], "double");
+                    add_name(rebasename, &node.loc_req.pos.extra.dj2e.row[i].col[j], "double");
                 }
             }
-            add_name("node.loc_est.pos.extra.ddj2e", &node.loc_est.pos.extra.ddj2e, "rmatrix");
-            add_name("node.loc_est.pos.extra.ddj2e.row", &node.loc_est.pos.extra.ddj2e.row, "rvector[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.extra.ddj2e.row)/sizeof(node.loc_est.pos.extra.ddj2e.row[0]); ++i) {
-                string basename = "node.loc_est.pos.extra.ddj2e.row[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.extra.ddj2e.row[i], "rvector");
-                add_name(basename+".col", &node.loc_est.pos.extra.ddj2e.row[i].col, "double[]");
-                for(size_t j = 0; j < sizeof(node.loc_est.pos.extra.ddj2e.row[i].col)/sizeof(node.loc_est.pos.extra.ddj2e.row[i].col[0]); ++j) {
+            add_name("node.loc_req.pos.extra.ddj2e", &node.loc_req.pos.extra.ddj2e, "rmatrix");
+            add_name("node.loc_req.pos.extra.ddj2e.row", &node.loc_req.pos.extra.ddj2e.row, "rvector[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.extra.ddj2e.row)/sizeof(node.loc_req.pos.extra.ddj2e.row[0]); ++i) {
+                string basename = "node.loc_req.pos.extra.ddj2e.row[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.extra.ddj2e.row[i], "rvector");
+                add_name(basename+".col", &node.loc_req.pos.extra.ddj2e.row[i].col, "double[]");
+                for(size_t j = 0; j < sizeof(node.loc_req.pos.extra.ddj2e.row[i].col)/sizeof(node.loc_req.pos.extra.ddj2e.row[i].col[0]); ++j) {
                     string rebasename = basename + ".col[" + std::to_string(j) + "]";
-                    add_name(rebasename, &node.loc_est.pos.extra.ddj2e.row[i].col[j], "double");
+                    add_name(rebasename, &node.loc_req.pos.extra.ddj2e.row[i].col[j], "double");
                 }
             }
-            add_name("node.loc_est.pos.extra.e2j", &node.loc_est.pos.extra.e2j, "rmatrix");
-            add_name("node.loc_est.pos.extra.e2j.row", &node.loc_est.pos.extra.e2j.row, "rvector[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.extra.e2j.row)/sizeof(node.loc_est.pos.extra.e2j.row[0]); ++i) {
-                string basename = "node.loc_est.pos.extra.e2j.row[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.extra.e2j.row[i], "rvector");
-                add_name(basename+".col", &node.loc_est.pos.extra.e2j.row[i].col, "double[]");
-                for(size_t j = 0; j < sizeof(node.loc_est.pos.extra.e2j.row[i].col)/sizeof(node.loc_est.pos.extra.e2j.row[i].col[0]); ++j) {
+            add_name("node.loc_req.pos.extra.e2j", &node.loc_req.pos.extra.e2j, "rmatrix");
+            add_name("node.loc_req.pos.extra.e2j.row", &node.loc_req.pos.extra.e2j.row, "rvector[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.extra.e2j.row)/sizeof(node.loc_req.pos.extra.e2j.row[0]); ++i) {
+                string basename = "node.loc_req.pos.extra.e2j.row[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.extra.e2j.row[i], "rvector");
+                add_name(basename+".col", &node.loc_req.pos.extra.e2j.row[i].col, "double[]");
+                for(size_t j = 0; j < sizeof(node.loc_req.pos.extra.e2j.row[i].col)/sizeof(node.loc_req.pos.extra.e2j.row[i].col[0]); ++j) {
                     string rebasename = basename + ".col[" + std::to_string(j) + "]";
-                    add_name(rebasename, &node.loc_est.pos.extra.e2j.row[i].col[j], "double");
+                    add_name(rebasename, &node.loc_req.pos.extra.e2j.row[i].col[j], "double");
                 }
             }
-            add_name("node.loc_est.pos.extra.de2j", &node.loc_est.pos.extra.de2j, "rmatrix");
-            add_name("node.loc_est.pos.extra.de2j.row", &node.loc_est.pos.extra.de2j.row, "rvector[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.extra.de2j.row)/sizeof(node.loc_est.pos.extra.de2j.row[0]); ++i) {
-                string basename = "node.loc_est.pos.extra.de2j.row[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.extra.de2j.row[i], "rvector");
-                add_name(basename+".col", &node.loc_est.pos.extra.de2j.row[i].col, "double[]");
-                for(size_t j = 0; j < sizeof(node.loc_est.pos.extra.de2j.row[i].col)/sizeof(node.loc_est.pos.extra.de2j.row[i].col[0]); ++j) {
+            add_name("node.loc_req.pos.extra.de2j", &node.loc_req.pos.extra.de2j, "rmatrix");
+            add_name("node.loc_req.pos.extra.de2j.row", &node.loc_req.pos.extra.de2j.row, "rvector[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.extra.de2j.row)/sizeof(node.loc_req.pos.extra.de2j.row[0]); ++i) {
+                string basename = "node.loc_req.pos.extra.de2j.row[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.extra.de2j.row[i], "rvector");
+                add_name(basename+".col", &node.loc_req.pos.extra.de2j.row[i].col, "double[]");
+                for(size_t j = 0; j < sizeof(node.loc_req.pos.extra.de2j.row[i].col)/sizeof(node.loc_req.pos.extra.de2j.row[i].col[0]); ++j) {
                     string rebasename = basename + ".col[" + std::to_string(j) + "]";
-                    add_name(rebasename, &node.loc_est.pos.extra.de2j.row[i].col[j], "double");
+                    add_name(rebasename, &node.loc_req.pos.extra.de2j.row[i].col[j], "double");
                 }
             }
-            add_name("node.loc_est.pos.extra.dde2j", &node.loc_est.pos.extra.dde2j, "rmatrix");
-            add_name("node.loc_est.pos.extra.dde2j.row", &node.loc_est.pos.extra.dde2j.row, "rvector[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.extra.dde2j.row)/sizeof(node.loc_est.pos.extra.dde2j.row[0]); ++i) {
-                string basename = "node.loc_est.pos.extra.dde2j.row[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.extra.dde2j.row[i], "rvector");
-                add_name(basename+".col", &node.loc_est.pos.extra.dde2j.row[i].col, "double[]");
-                for(size_t j = 0; j < sizeof(node.loc_est.pos.extra.dde2j.row[i].col)/sizeof(node.loc_est.pos.extra.dde2j.row[i].col[0]); ++j) {
+            add_name("node.loc_req.pos.extra.dde2j", &node.loc_req.pos.extra.dde2j, "rmatrix");
+            add_name("node.loc_req.pos.extra.dde2j.row", &node.loc_req.pos.extra.dde2j.row, "rvector[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.extra.dde2j.row)/sizeof(node.loc_req.pos.extra.dde2j.row[0]); ++i) {
+                string basename = "node.loc_req.pos.extra.dde2j.row[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.extra.dde2j.row[i], "rvector");
+                add_name(basename+".col", &node.loc_req.pos.extra.dde2j.row[i].col, "double[]");
+                for(size_t j = 0; j < sizeof(node.loc_req.pos.extra.dde2j.row[i].col)/sizeof(node.loc_req.pos.extra.dde2j.row[i].col[0]); ++j) {
                     string rebasename = basename + ".col[" + std::to_string(j) + "]";
-                    add_name(rebasename, &node.loc_est.pos.extra.dde2j.row[i].col[j], "double");
+                    add_name(rebasename, &node.loc_req.pos.extra.dde2j.row[i].col[j], "double");
                 }
             }
-            add_name("node.loc_est.pos.extra.j2t", &node.loc_est.pos.extra.j2t, "rmatrix");
-            add_name("node.loc_est.pos.extra.j2t.row", &node.loc_est.pos.extra.j2t.row, "rvector[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.extra.j2t.row)/sizeof(node.loc_est.pos.extra.j2t.row[0]); ++i) {
-                string basename = "node.loc_est.pos.extra.j2t.row[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.extra.j2t.row[i], "rvector");
-                add_name(basename+".col", &node.loc_est.pos.extra.j2t.row[i].col, "double[]");
-                for(size_t j = 0; j < sizeof(node.loc_est.pos.extra.j2t.row[i].col)/sizeof(node.loc_est.pos.extra.j2t.row[i].col[0]); ++j) {
+            add_name("node.loc_req.pos.extra.j2t", &node.loc_req.pos.extra.j2t, "rmatrix");
+            add_name("node.loc_req.pos.extra.j2t.row", &node.loc_req.pos.extra.j2t.row, "rvector[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.extra.j2t.row)/sizeof(node.loc_req.pos.extra.j2t.row[0]); ++i) {
+                string basename = "node.loc_req.pos.extra.j2t.row[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.extra.j2t.row[i], "rvector");
+                add_name(basename+".col", &node.loc_req.pos.extra.j2t.row[i].col, "double[]");
+                for(size_t j = 0; j < sizeof(node.loc_req.pos.extra.j2t.row[i].col)/sizeof(node.loc_req.pos.extra.j2t.row[i].col[0]); ++j) {
                     string rebasename = basename + ".col[" + std::to_string(j) + "]";
-                    add_name(rebasename, &node.loc_est.pos.extra.j2t.row[i].col[j], "double");
+                    add_name(rebasename, &node.loc_req.pos.extra.j2t.row[i].col[j], "double");
                 }
             }
-            add_name("node.loc_est.pos.extra.j2s", &node.loc_est.pos.extra.j2s, "rmatrix");
-            add_name("node.loc_est.pos.extra.j2s.row", &node.loc_est.pos.extra.j2s.row, "rvector[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.extra.j2s.row)/sizeof(node.loc_est.pos.extra.j2s.row[0]); ++i) {
-                string basename = "node.loc_est.pos.extra.j2s.row[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.extra.j2s.row[i], "rvector");
-                add_name(basename+".col", &node.loc_est.pos.extra.j2s.row[i].col, "double[]");
-                for(size_t j = 0; j < sizeof(node.loc_est.pos.extra.j2s.row[i].col)/sizeof(node.loc_est.pos.extra.j2s.row[i].col[0]); ++j) {
+            add_name("node.loc_req.pos.extra.j2s", &node.loc_req.pos.extra.j2s, "rmatrix");
+            add_name("node.loc_req.pos.extra.j2s.row", &node.loc_req.pos.extra.j2s.row, "rvector[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.extra.j2s.row)/sizeof(node.loc_req.pos.extra.j2s.row[0]); ++i) {
+                string basename = "node.loc_req.pos.extra.j2s.row[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.extra.j2s.row[i], "rvector");
+                add_name(basename+".col", &node.loc_req.pos.extra.j2s.row[i].col, "double[]");
+                for(size_t j = 0; j < sizeof(node.loc_req.pos.extra.j2s.row[i].col)/sizeof(node.loc_req.pos.extra.j2s.row[i].col[0]); ++j) {
                     string rebasename = basename + ".col[" + std::to_string(j) + "]";
-                    add_name(rebasename, &node.loc_est.pos.extra.j2s.row[i].col[j], "double");
+                    add_name(rebasename, &node.loc_req.pos.extra.j2s.row[i].col[j], "double");
                 }
             }
-            add_name("node.loc_est.pos.extra.t2j", &node.loc_est.pos.extra.t2j, "rmatrix");
-            add_name("node.loc_est.pos.extra.t2j.row", &node.loc_est.pos.extra.t2j.row, "rvector[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.extra.t2j.row)/sizeof(node.loc_est.pos.extra.t2j.row[0]); ++i) {
-                string basename = "node.loc_est.pos.extra.t2j.row[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.extra.t2j.row[i], "rvector");
-                add_name(basename+".col", &node.loc_est.pos.extra.t2j.row[i].col, "double[]");
-                for(size_t j = 0; j < sizeof(node.loc_est.pos.extra.t2j.row[i].col)/sizeof(node.loc_est.pos.extra.t2j.row[i].col[0]); ++j) {
+            add_name("node.loc_req.pos.extra.t2j", &node.loc_req.pos.extra.t2j, "rmatrix");
+            add_name("node.loc_req.pos.extra.t2j.row", &node.loc_req.pos.extra.t2j.row, "rvector[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.extra.t2j.row)/sizeof(node.loc_req.pos.extra.t2j.row[0]); ++i) {
+                string basename = "node.loc_req.pos.extra.t2j.row[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.extra.t2j.row[i], "rvector");
+                add_name(basename+".col", &node.loc_req.pos.extra.t2j.row[i].col, "double[]");
+                for(size_t j = 0; j < sizeof(node.loc_req.pos.extra.t2j.row[i].col)/sizeof(node.loc_req.pos.extra.t2j.row[i].col[0]); ++j) {
                     string rebasename = basename + ".col[" + std::to_string(j) + "]";
-                    add_name(rebasename, &node.loc_est.pos.extra.t2j.row[i].col[j], "double");
+                    add_name(rebasename, &node.loc_req.pos.extra.t2j.row[i].col[j], "double");
                 }
             }
-            add_name("node.loc_est.pos.extra.s2j", &node.loc_est.pos.extra.s2j, "rmatrix");
-            add_name("node.loc_est.pos.extra.s2j.row", &node.loc_est.pos.extra.s2j.row, "rvector[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.extra.s2j.row)/sizeof(node.loc_est.pos.extra.s2j.row[0]); ++i) {
-                string basename = "node.loc_est.pos.extra.s2j.row[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.extra.s2j.row[i], "rvector");
-                add_name(basename+".col", &node.loc_est.pos.extra.s2j.row[i].col, "double[]");
-                for(size_t j = 0; j < sizeof(node.loc_est.pos.extra.s2j.row[i].col)/sizeof(node.loc_est.pos.extra.s2j.row[i].col[0]); ++j) {
+            add_name("node.loc_req.pos.extra.s2j", &node.loc_req.pos.extra.s2j, "rmatrix");
+            add_name("node.loc_req.pos.extra.s2j.row", &node.loc_req.pos.extra.s2j.row, "rvector[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.extra.s2j.row)/sizeof(node.loc_req.pos.extra.s2j.row[0]); ++i) {
+                string basename = "node.loc_req.pos.extra.s2j.row[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.extra.s2j.row[i], "rvector");
+                add_name(basename+".col", &node.loc_req.pos.extra.s2j.row[i].col, "double[]");
+                for(size_t j = 0; j < sizeof(node.loc_req.pos.extra.s2j.row[i].col)/sizeof(node.loc_req.pos.extra.s2j.row[i].col[0]); ++j) {
                     string rebasename = basename + ".col[" + std::to_string(j) + "]";
-                    add_name(rebasename, &node.loc_est.pos.extra.s2j.row[i].col[j], "double");
+                    add_name(rebasename, &node.loc_req.pos.extra.s2j.row[i].col[j], "double");
                 }
             }
-            add_name("node.loc_est.pos.extra.s2t", &node.loc_est.pos.extra.s2t, "rmatrix");
-            add_name("node.loc_est.pos.extra.s2t.row", &node.loc_est.pos.extra.s2t.row, "rvector[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.extra.s2t.row)/sizeof(node.loc_est.pos.extra.s2t.row[0]); ++i) {
-                string basename = "node.loc_est.pos.extra.s2t.row[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.extra.s2t.row[i], "rvector");
-                add_name(basename+".col", &node.loc_est.pos.extra.s2t.row[i].col, "double[]");
-                for(size_t j = 0; j < sizeof(node.loc_est.pos.extra.s2t.row[i].col)/sizeof(node.loc_est.pos.extra.s2t.row[i].col[0]); ++j) {
+            add_name("node.loc_req.pos.extra.s2t", &node.loc_req.pos.extra.s2t, "rmatrix");
+            add_name("node.loc_req.pos.extra.s2t.row", &node.loc_req.pos.extra.s2t.row, "rvector[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.extra.s2t.row)/sizeof(node.loc_req.pos.extra.s2t.row[0]); ++i) {
+                string basename = "node.loc_req.pos.extra.s2t.row[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.extra.s2t.row[i], "rvector");
+                add_name(basename+".col", &node.loc_req.pos.extra.s2t.row[i].col, "double[]");
+                for(size_t j = 0; j < sizeof(node.loc_req.pos.extra.s2t.row[i].col)/sizeof(node.loc_req.pos.extra.s2t.row[i].col[0]); ++j) {
                     string rebasename = basename + ".col[" + std::to_string(j) + "]";
-                    add_name(rebasename, &node.loc_est.pos.extra.s2t.row[i].col[j], "double");
+                    add_name(rebasename, &node.loc_req.pos.extra.s2t.row[i].col[j], "double");
                 }
             }
-            add_name("node.loc_est.pos.extra.ds2t", &node.loc_est.pos.extra.ds2t, "rmatrix");
-            add_name("node.loc_est.pos.extra.ds2t.row", &node.loc_est.pos.extra.ds2t.row, "rvector[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.extra.ds2t.row)/sizeof(node.loc_est.pos.extra.ds2t.row[0]); ++i) {
-                string basename = "node.loc_est.pos.extra.ds2t.row[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.extra.ds2t.row[i], "rvector");
-                add_name(basename+".col", &node.loc_est.pos.extra.ds2t.row[i].col, "double[]");
-                for(size_t j = 0; j < sizeof(node.loc_est.pos.extra.ds2t.row[i].col)/sizeof(node.loc_est.pos.extra.ds2t.row[i].col[0]); ++j) {
+            add_name("node.loc_req.pos.extra.ds2t", &node.loc_req.pos.extra.ds2t, "rmatrix");
+            add_name("node.loc_req.pos.extra.ds2t.row", &node.loc_req.pos.extra.ds2t.row, "rvector[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.extra.ds2t.row)/sizeof(node.loc_req.pos.extra.ds2t.row[0]); ++i) {
+                string basename = "node.loc_req.pos.extra.ds2t.row[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.extra.ds2t.row[i], "rvector");
+                add_name(basename+".col", &node.loc_req.pos.extra.ds2t.row[i].col, "double[]");
+                for(size_t j = 0; j < sizeof(node.loc_req.pos.extra.ds2t.row[i].col)/sizeof(node.loc_req.pos.extra.ds2t.row[i].col[0]); ++j) {
                     string rebasename = basename + ".col[" + std::to_string(j) + "]";
-                    add_name(rebasename, &node.loc_est.pos.extra.ds2t.row[i].col[j], "double");
+                    add_name(rebasename, &node.loc_req.pos.extra.ds2t.row[i].col[j], "double");
                 }
             }
-            add_name("node.loc_est.pos.extra.t2s", &node.loc_est.pos.extra.t2s, "rmatrix");
-            add_name("node.loc_est.pos.extra.t2s.row", &node.loc_est.pos.extra.t2s.row, "rvector[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.extra.t2s.row)/sizeof(node.loc_est.pos.extra.t2s.row[0]); ++i) {
-                string basename = "node.loc_est.pos.extra.t2s.row[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.extra.t2s.row[i], "rvector");
-                add_name(basename+".col", &node.loc_est.pos.extra.t2s.row[i].col, "double[]");
-                for(size_t j = 0; j < sizeof(node.loc_est.pos.extra.t2s.row[i].col)/sizeof(node.loc_est.pos.extra.t2s.row[i].col[0]); ++j) {
+            add_name("node.loc_req.pos.extra.t2s", &node.loc_req.pos.extra.t2s, "rmatrix");
+            add_name("node.loc_req.pos.extra.t2s.row", &node.loc_req.pos.extra.t2s.row, "rvector[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.extra.t2s.row)/sizeof(node.loc_req.pos.extra.t2s.row[0]); ++i) {
+                string basename = "node.loc_req.pos.extra.t2s.row[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.extra.t2s.row[i], "rvector");
+                add_name(basename+".col", &node.loc_req.pos.extra.t2s.row[i].col, "double[]");
+                for(size_t j = 0; j < sizeof(node.loc_req.pos.extra.t2s.row[i].col)/sizeof(node.loc_req.pos.extra.t2s.row[i].col[0]); ++j) {
                     string rebasename = basename + ".col[" + std::to_string(j) + "]";
-                    add_name(rebasename, &node.loc_est.pos.extra.t2s.row[i].col[j], "double");
+                    add_name(rebasename, &node.loc_req.pos.extra.t2s.row[i].col[j], "double");
                 }
             }
-            add_name("node.loc_est.pos.extra.dt2s", &node.loc_est.pos.extra.dt2s, "rmatrix");
-            add_name("node.loc_est.pos.extra.dt2s.row", &node.loc_est.pos.extra.dt2s.row, "rvector[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.extra.dt2s.row)/sizeof(node.loc_est.pos.extra.dt2s.row[0]); ++i) {
-                string basename = "node.loc_est.pos.extra.dt2s.row[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.extra.dt2s.row[i], "rvector");
-                add_name(basename+".col", &node.loc_est.pos.extra.dt2s.row[i].col, "double[]");
-                for(size_t j = 0; j < sizeof(node.loc_est.pos.extra.dt2s.row[i].col)/sizeof(node.loc_est.pos.extra.dt2s.row[i].col[0]); ++j) {
+            add_name("node.loc_req.pos.extra.dt2s", &node.loc_req.pos.extra.dt2s, "rmatrix");
+            add_name("node.loc_req.pos.extra.dt2s.row", &node.loc_req.pos.extra.dt2s.row, "rvector[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.extra.dt2s.row)/sizeof(node.loc_req.pos.extra.dt2s.row[0]); ++i) {
+                string basename = "node.loc_req.pos.extra.dt2s.row[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.extra.dt2s.row[i], "rvector");
+                add_name(basename+".col", &node.loc_req.pos.extra.dt2s.row[i].col, "double[]");
+                for(size_t j = 0; j < sizeof(node.loc_req.pos.extra.dt2s.row[i].col)/sizeof(node.loc_req.pos.extra.dt2s.row[i].col[0]); ++j) {
                     string rebasename = basename + ".col[" + std::to_string(j) + "]";
-                    add_name(rebasename, &node.loc_est.pos.extra.dt2s.row[i].col[j], "double");
+                    add_name(rebasename, &node.loc_req.pos.extra.dt2s.row[i].col[j], "double");
                 }
             }
-            add_name("node.loc_est.pos.extra.l2e", &node.loc_est.pos.extra.l2e, "quaternion");
-            add_name("node.loc_est.pos.extra.l2e.d", &node.loc_est.pos.extra.l2e.d, "cvector");
-            add_name("node.loc_est.pos.extra.l2e.d.x", &node.loc_est.pos.extra.l2e.d.x, "double");
-            add_name("node.loc_est.pos.extra.l2e.d.y", &node.loc_est.pos.extra.l2e.d.y, "double");
-            add_name("node.loc_est.pos.extra.l2e.d.z", &node.loc_est.pos.extra.l2e.d.z, "double");
-            add_name("node.loc_est.pos.extra.l2e.w", &node.loc_est.pos.extra.l2e.w, "double");
-            add_name("node.loc_est.pos.extra.e2l", &node.loc_est.pos.extra.e2l, "quaternion");
-            add_name("node.loc_est.pos.extra.e2l.d", &node.loc_est.pos.extra.e2l.d, "cvector");
-            add_name("node.loc_est.pos.extra.e2l.d.x", &node.loc_est.pos.extra.e2l.d.x, "double");
-            add_name("node.loc_est.pos.extra.e2l.d.y", &node.loc_est.pos.extra.e2l.d.y, "double");
-            add_name("node.loc_est.pos.extra.e2l.d.z", &node.loc_est.pos.extra.e2l.d.z, "double");
-            add_name("node.loc_est.pos.extra.e2l.w", &node.loc_est.pos.extra.e2l.w, "double");
-            add_name("node.loc_est.pos.extra.sun2earth", &node.loc_est.pos.extra.sun2earth, "cartpos");
-            add_name("node.loc_est.pos.extra.sun2earth.utc", &node.loc_est.pos.extra.sun2earth.utc, "double");
-            add_name("node.loc_est.pos.extra.sun2earth.s", &node.loc_est.pos.extra.sun2earth.s, "rvector");
-            add_name("node.loc_est.pos.extra.sun2earth.s.col", &node.loc_est.pos.extra.sun2earth.s.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.extra.sun2earth.s.col)/sizeof(node.loc_est.pos.extra.sun2earth.s.col[0]); ++i) {
-                string basename = "node.loc_est.pos.extra.sun2earth.s.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.extra.sun2earth.s.col[i], "double");
+            add_name("node.loc_req.pos.extra.l2e", &node.loc_req.pos.extra.l2e, "quaternion");
+            add_name("node.loc_req.pos.extra.l2e.d", &node.loc_req.pos.extra.l2e.d, "cvector");
+            add_name("node.loc_req.pos.extra.l2e.d.x", &node.loc_req.pos.extra.l2e.d.x, "double");
+            add_name("node.loc_req.pos.extra.l2e.d.y", &node.loc_req.pos.extra.l2e.d.y, "double");
+            add_name("node.loc_req.pos.extra.l2e.d.z", &node.loc_req.pos.extra.l2e.d.z, "double");
+            add_name("node.loc_req.pos.extra.l2e.w", &node.loc_req.pos.extra.l2e.w, "double");
+            add_name("node.loc_req.pos.extra.e2l", &node.loc_req.pos.extra.e2l, "quaternion");
+            add_name("node.loc_req.pos.extra.e2l.d", &node.loc_req.pos.extra.e2l.d, "cvector");
+            add_name("node.loc_req.pos.extra.e2l.d.x", &node.loc_req.pos.extra.e2l.d.x, "double");
+            add_name("node.loc_req.pos.extra.e2l.d.y", &node.loc_req.pos.extra.e2l.d.y, "double");
+            add_name("node.loc_req.pos.extra.e2l.d.z", &node.loc_req.pos.extra.e2l.d.z, "double");
+            add_name("node.loc_req.pos.extra.e2l.w", &node.loc_req.pos.extra.e2l.w, "double");
+            add_name("node.loc_req.pos.extra.sun2earth", &node.loc_req.pos.extra.sun2earth, "cartpos");
+            add_name("node.loc_req.pos.extra.sun2earth.utc", &node.loc_req.pos.extra.sun2earth.utc, "double");
+            add_name("node.loc_req.pos.extra.sun2earth.s", &node.loc_req.pos.extra.sun2earth.s, "rvector");
+            add_name("node.loc_req.pos.extra.sun2earth.s.col", &node.loc_req.pos.extra.sun2earth.s.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.extra.sun2earth.s.col)/sizeof(node.loc_req.pos.extra.sun2earth.s.col[0]); ++i) {
+                string basename = "node.loc_req.pos.extra.sun2earth.s.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.extra.sun2earth.s.col[i], "double");
             }
-            add_name("node.loc_est.pos.extra.sun2earth.v", &node.loc_est.pos.extra.sun2earth.v, "rvector");
-            add_name("node.loc_est.pos.extra.sun2earth.v.col", &node.loc_est.pos.extra.sun2earth.v.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.extra.sun2earth.v.col)/sizeof(node.loc_est.pos.extra.sun2earth.v.col[0]); ++i) {
-                string basename = "node.loc_est.pos.extra.sun2earth.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.extra.sun2earth.v.col[i], "double");
+            add_name("node.loc_req.pos.extra.sun2earth.v", &node.loc_req.pos.extra.sun2earth.v, "rvector");
+            add_name("node.loc_req.pos.extra.sun2earth.v.col", &node.loc_req.pos.extra.sun2earth.v.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.extra.sun2earth.v.col)/sizeof(node.loc_req.pos.extra.sun2earth.v.col[0]); ++i) {
+                string basename = "node.loc_req.pos.extra.sun2earth.v.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.extra.sun2earth.v.col[i], "double");
             }
-            add_name("node.loc_est.pos.extra.sun2earth.a", &node.loc_est.pos.extra.sun2earth.a, "rvector");
-            add_name("node.loc_est.pos.extra.sun2earth.a.col", &node.loc_est.pos.extra.sun2earth.a.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.extra.sun2earth.a.col)/sizeof(node.loc_est.pos.extra.sun2earth.a.col[0]); ++i) {
-                string basename = "node.loc_est.pos.extra.sun2earth.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.extra.sun2earth.a.col[i], "double");
+            add_name("node.loc_req.pos.extra.sun2earth.a", &node.loc_req.pos.extra.sun2earth.a, "rvector");
+            add_name("node.loc_req.pos.extra.sun2earth.a.col", &node.loc_req.pos.extra.sun2earth.a.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.extra.sun2earth.a.col)/sizeof(node.loc_req.pos.extra.sun2earth.a.col[0]); ++i) {
+                string basename = "node.loc_req.pos.extra.sun2earth.a.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.extra.sun2earth.a.col[i], "double");
             }
-            add_name("node.loc_est.pos.extra.sun2earth.pass", &node.loc_est.pos.extra.sun2earth.pass, "uint32_t");
-            add_name("node.loc_est.pos.extra.sun2moon", &node.loc_est.pos.extra.sun2moon, "cartpos");
-            add_name("node.loc_est.pos.extra.sun2moon.utc", &node.loc_est.pos.extra.sun2moon.utc, "double");
-            add_name("node.loc_est.pos.extra.sun2moon.s", &node.loc_est.pos.extra.sun2moon.s, "rvector");
-            add_name("node.loc_est.pos.extra.sun2moon.s.col", &node.loc_est.pos.extra.sun2moon.s.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.extra.sun2moon.s.col)/sizeof(node.loc_est.pos.extra.sun2moon.s.col[0]); ++i) {
-                string basename = "node.loc_est.pos.extra.sun2moon.s.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.extra.sun2moon.s.col[i], "double");
+            add_name("node.loc_req.pos.extra.sun2earth.pass", &node.loc_req.pos.extra.sun2earth.pass, "uint32_t");
+            add_name("node.loc_req.pos.extra.sun2moon", &node.loc_req.pos.extra.sun2moon, "cartpos");
+            add_name("node.loc_req.pos.extra.sun2moon.utc", &node.loc_req.pos.extra.sun2moon.utc, "double");
+            add_name("node.loc_req.pos.extra.sun2moon.s", &node.loc_req.pos.extra.sun2moon.s, "rvector");
+            add_name("node.loc_req.pos.extra.sun2moon.s.col", &node.loc_req.pos.extra.sun2moon.s.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.extra.sun2moon.s.col)/sizeof(node.loc_req.pos.extra.sun2moon.s.col[0]); ++i) {
+                string basename = "node.loc_req.pos.extra.sun2moon.s.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.extra.sun2moon.s.col[i], "double");
             }
-            add_name("node.loc_est.pos.extra.sun2moon.v", &node.loc_est.pos.extra.sun2moon.v, "rvector");
-            add_name("node.loc_est.pos.extra.sun2moon.v.col", &node.loc_est.pos.extra.sun2moon.v.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.extra.sun2moon.v.col)/sizeof(node.loc_est.pos.extra.sun2moon.v.col[0]); ++i) {
-                string basename = "node.loc_est.pos.extra.sun2moon.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.extra.sun2moon.v.col[i], "double");
+            add_name("node.loc_req.pos.extra.sun2moon.v", &node.loc_req.pos.extra.sun2moon.v, "rvector");
+            add_name("node.loc_req.pos.extra.sun2moon.v.col", &node.loc_req.pos.extra.sun2moon.v.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.extra.sun2moon.v.col)/sizeof(node.loc_req.pos.extra.sun2moon.v.col[0]); ++i) {
+                string basename = "node.loc_req.pos.extra.sun2moon.v.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.extra.sun2moon.v.col[i], "double");
             }
-            add_name("node.loc_est.pos.extra.sun2moon.a", &node.loc_est.pos.extra.sun2moon.a, "rvector");
-            add_name("node.loc_est.pos.extra.sun2moon.a.col", &node.loc_est.pos.extra.sun2moon.a.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.extra.sun2moon.a.col)/sizeof(node.loc_est.pos.extra.sun2moon.a.col[0]); ++i) {
-                string basename = "node.loc_est.pos.extra.sun2moon.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.extra.sun2moon.a.col[i], "double");
+            add_name("node.loc_req.pos.extra.sun2moon.a", &node.loc_req.pos.extra.sun2moon.a, "rvector");
+            add_name("node.loc_req.pos.extra.sun2moon.a.col", &node.loc_req.pos.extra.sun2moon.a.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.extra.sun2moon.a.col)/sizeof(node.loc_req.pos.extra.sun2moon.a.col[0]); ++i) {
+                string basename = "node.loc_req.pos.extra.sun2moon.a.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.extra.sun2moon.a.col[i], "double");
             }
-            add_name("node.loc_est.pos.extra.sun2moon.pass", &node.loc_est.pos.extra.sun2moon.pass, "uint32_t");
-            add_name("node.loc_est.pos.extra.closest", &node.loc_est.pos.extra.closest, "uint16_t");
-            add_name("node.loc_est.pos.earthsep", &node.loc_est.pos.earthsep, "float");
-            add_name("node.loc_est.pos.moonsep", &node.loc_est.pos.moonsep, "float");
-            add_name("node.loc_est.pos.sunsize", &node.loc_est.pos.sunsize, "float");
-            add_name("node.loc_est.pos.sunradiance", &node.loc_est.pos.sunradiance, "float");
-            add_name("node.loc_est.pos.bearth", &node.loc_est.pos.bearth, "rvector");
-            add_name("node.loc_est.pos.bearth.col", &node.loc_est.pos.bearth.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.pos.bearth.col)/sizeof(node.loc_est.pos.bearth.col[0]); ++i) {
-                string basename = "node.loc_est.pos.bearth.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.pos.bearth.col[i], "double");
+            add_name("node.loc_req.pos.extra.sun2moon.pass", &node.loc_req.pos.extra.sun2moon.pass, "uint32_t");
+            add_name("node.loc_req.pos.extra.closest", &node.loc_req.pos.extra.closest, "uint16_t");
+            add_name("node.loc_req.pos.earthsep", &node.loc_req.pos.earthsep, "float");
+            add_name("node.loc_req.pos.moonsep", &node.loc_req.pos.moonsep, "float");
+            add_name("node.loc_req.pos.sunsize", &node.loc_req.pos.sunsize, "float");
+            add_name("node.loc_req.pos.sunradiance", &node.loc_req.pos.sunradiance, "float");
+            add_name("node.loc_req.pos.bearth", &node.loc_req.pos.bearth, "rvector");
+            add_name("node.loc_req.pos.bearth.col", &node.loc_req.pos.bearth.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.pos.bearth.col)/sizeof(node.loc_req.pos.bearth.col[0]); ++i) {
+                string basename = "node.loc_req.pos.bearth.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.pos.bearth.col[i], "double");
             }
-            add_name("node.loc_est.pos.orbit", &node.loc_est.pos.orbit, "double");
-            add_name("node.loc_est.att", &node.loc_est.att, "attstruc");
-            add_name("node.loc_est.att.utc", &node.loc_est.att.utc, "double");
-            add_name("node.loc_est.att.topo", &node.loc_est.att.topo, "qatt");
-            add_name("node.loc_est.att.topo.utc", &node.loc_est.att.topo.utc, "double");
-            add_name("node.loc_est.att.topo.s", &node.loc_est.att.topo.s, "quaternion");
-            add_name("node.loc_est.att.topo.s.d", &node.loc_est.att.topo.s.d, "cvector");
-            add_name("node.loc_est.att.topo.s.d.x", &node.loc_est.att.topo.s.d.x, "double");
-            add_name("node.loc_est.att.topo.s.d.y", &node.loc_est.att.topo.s.d.y, "double");
-            add_name("node.loc_est.att.topo.s.d.z", &node.loc_est.att.topo.s.d.z, "double");
-            add_name("node.loc_est.att.topo.s.w", &node.loc_est.att.topo.s.w, "double");
-            add_name("node.loc_est.att.topo.v", &node.loc_est.att.topo.v, "rvector");
-            add_name("node.loc_est.att.topo.v.col", &node.loc_est.att.topo.v.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.att.topo.v.col)/sizeof(node.loc_est.att.topo.v.col[0]); ++i) {
-                string basename = "node.loc_est.att.topo.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.att.topo.v.col[i], "double");
+            add_name("node.loc_req.pos.orbit", &node.loc_req.pos.orbit, "double");
+            add_name("node.loc_req.att", &node.loc_req.att, "attstruc");
+            add_name("node.loc_req.att.utc", &node.loc_req.att.utc, "double");
+            add_name("node.loc_req.att.topo", &node.loc_req.att.topo, "qatt");
+            add_name("node.loc_req.att.topo.utc", &node.loc_req.att.topo.utc, "double");
+            add_name("node.loc_req.att.topo.s", &node.loc_req.att.topo.s, "quaternion");
+            add_name("node.loc_req.att.topo.s.d", &node.loc_req.att.topo.s.d, "cvector");
+            add_name("node.loc_req.att.topo.s.d.x", &node.loc_req.att.topo.s.d.x, "double");
+            add_name("node.loc_req.att.topo.s.d.y", &node.loc_req.att.topo.s.d.y, "double");
+            add_name("node.loc_req.att.topo.s.d.z", &node.loc_req.att.topo.s.d.z, "double");
+            add_name("node.loc_req.att.topo.s.w", &node.loc_req.att.topo.s.w, "double");
+            add_name("node.loc_req.att.topo.v", &node.loc_req.att.topo.v, "rvector");
+            add_name("node.loc_req.att.topo.v.col", &node.loc_req.att.topo.v.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.att.topo.v.col)/sizeof(node.loc_req.att.topo.v.col[0]); ++i) {
+                string basename = "node.loc_req.att.topo.v.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.att.topo.v.col[i], "double");
             }
-            add_name("node.loc_est.att.topo.a", &node.loc_est.att.topo.a, "rvector");
-            add_name("node.loc_est.att.topo.a.col", &node.loc_est.att.topo.a.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.att.topo.a.col)/sizeof(node.loc_est.att.topo.a.col[0]); ++i) {
-                string basename = "node.loc_est.att.topo.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.att.topo.a.col[i], "double");
+            add_name("node.loc_req.att.topo.a", &node.loc_req.att.topo.a, "rvector");
+            add_name("node.loc_req.att.topo.a.col", &node.loc_req.att.topo.a.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.att.topo.a.col)/sizeof(node.loc_req.att.topo.a.col[0]); ++i) {
+                string basename = "node.loc_req.att.topo.a.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.att.topo.a.col[i], "double");
             }
-            add_name("node.loc_est.att.topo.pass", &node.loc_est.att.topo.pass, "uint32_t");
-            add_name("node.loc_est.att.lvlh", &node.loc_est.att.lvlh, "qatt");
-            add_name("node.loc_est.att.lvlh.utc", &node.loc_est.att.lvlh.utc, "double");
-            add_name("node.loc_est.att.lvlh.s", &node.loc_est.att.lvlh.s, "quaternion");
-            add_name("node.loc_est.att.lvlh.s.d", &node.loc_est.att.lvlh.s.d, "cvector");
-            add_name("node.loc_est.att.lvlh.s.d.x", &node.loc_est.att.lvlh.s.d.x, "double");
-            add_name("node.loc_est.att.lvlh.s.d.y", &node.loc_est.att.lvlh.s.d.y, "double");
-            add_name("node.loc_est.att.lvlh.s.d.z", &node.loc_est.att.lvlh.s.d.z, "double");
-            add_name("node.loc_est.att.lvlh.s.w", &node.loc_est.att.lvlh.s.w, "double");
-            add_name("node.loc_est.att.lvlh.v", &node.loc_est.att.lvlh.v, "rvector");
-            add_name("node.loc_est.att.lvlh.v.col", &node.loc_est.att.lvlh.v.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.att.lvlh.v.col)/sizeof(node.loc_est.att.lvlh.v.col[0]); ++i) {
-                string basename = "node.loc_est.att.lvlh.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.att.lvlh.v.col[i], "double");
+            add_name("node.loc_req.att.topo.pass", &node.loc_req.att.topo.pass, "uint32_t");
+            add_name("node.loc_req.att.lvlh", &node.loc_req.att.lvlh, "qatt");
+            add_name("node.loc_req.att.lvlh.utc", &node.loc_req.att.lvlh.utc, "double");
+            add_name("node.loc_req.att.lvlh.s", &node.loc_req.att.lvlh.s, "quaternion");
+            add_name("node.loc_req.att.lvlh.s.d", &node.loc_req.att.lvlh.s.d, "cvector");
+            add_name("node.loc_req.att.lvlh.s.d.x", &node.loc_req.att.lvlh.s.d.x, "double");
+            add_name("node.loc_req.att.lvlh.s.d.y", &node.loc_req.att.lvlh.s.d.y, "double");
+            add_name("node.loc_req.att.lvlh.s.d.z", &node.loc_req.att.lvlh.s.d.z, "double");
+            add_name("node.loc_req.att.lvlh.s.w", &node.loc_req.att.lvlh.s.w, "double");
+            add_name("node.loc_req.att.lvlh.v", &node.loc_req.att.lvlh.v, "rvector");
+            add_name("node.loc_req.att.lvlh.v.col", &node.loc_req.att.lvlh.v.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.att.lvlh.v.col)/sizeof(node.loc_req.att.lvlh.v.col[0]); ++i) {
+                string basename = "node.loc_req.att.lvlh.v.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.att.lvlh.v.col[i], "double");
             }
-            add_name("node.loc_est.att.lvlh.a", &node.loc_est.att.lvlh.a, "rvector");
-            add_name("node.loc_est.att.lvlh.a.col", &node.loc_est.att.lvlh.a.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.att.lvlh.a.col)/sizeof(node.loc_est.att.lvlh.a.col[0]); ++i) {
-                string basename = "node.loc_est.att.lvlh.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.att.lvlh.a.col[i], "double");
+            add_name("node.loc_req.att.lvlh.a", &node.loc_req.att.lvlh.a, "rvector");
+            add_name("node.loc_req.att.lvlh.a.col", &node.loc_req.att.lvlh.a.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.att.lvlh.a.col)/sizeof(node.loc_req.att.lvlh.a.col[0]); ++i) {
+                string basename = "node.loc_req.att.lvlh.a.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.att.lvlh.a.col[i], "double");
             }
-            add_name("node.loc_est.att.lvlh.pass", &node.loc_est.att.lvlh.pass, "uint32_t");
-            add_name("node.loc_est.att.geoc", &node.loc_est.att.geoc, "qatt");
-            add_name("node.loc_est.att.geoc.utc", &node.loc_est.att.geoc.utc, "double");
-            add_name("node.loc_est.att.geoc.s", &node.loc_est.att.geoc.s, "quaternion");
-            add_name("node.loc_est.att.geoc.s.d", &node.loc_est.att.geoc.s.d, "cvector");
-            add_name("node.loc_est.att.geoc.s.d.x", &node.loc_est.att.geoc.s.d.x, "double");
-            add_name("node.loc_est.att.geoc.s.d.y", &node.loc_est.att.geoc.s.d.y, "double");
-            add_name("node.loc_est.att.geoc.s.d.z", &node.loc_est.att.geoc.s.d.z, "double");
-            add_name("node.loc_est.att.geoc.s.w", &node.loc_est.att.geoc.s.w, "double");
-            add_name("node.loc_est.att.geoc.v", &node.loc_est.att.geoc.v, "rvector");
-            add_name("node.loc_est.att.geoc.v.col", &node.loc_est.att.geoc.v.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.att.geoc.v.col)/sizeof(node.loc_est.att.geoc.v.col[0]); ++i) {
-                string basename = "node.loc_est.att.geoc.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.att.geoc.v.col[i], "double");
+            add_name("node.loc_req.att.lvlh.pass", &node.loc_req.att.lvlh.pass, "uint32_t");
+            add_name("node.loc_req.att.geoc", &node.loc_req.att.geoc, "qatt");
+            add_name("node.loc_req.att.geoc.utc", &node.loc_req.att.geoc.utc, "double");
+            add_name("node.loc_req.att.geoc.s", &node.loc_req.att.geoc.s, "quaternion");
+            add_name("node.loc_req.att.geoc.s.d", &node.loc_req.att.geoc.s.d, "cvector");
+            add_name("node.loc_req.att.geoc.s.d.x", &node.loc_req.att.geoc.s.d.x, "double");
+            add_name("node.loc_req.att.geoc.s.d.y", &node.loc_req.att.geoc.s.d.y, "double");
+            add_name("node.loc_req.att.geoc.s.d.z", &node.loc_req.att.geoc.s.d.z, "double");
+            add_name("node.loc_req.att.geoc.s.w", &node.loc_req.att.geoc.s.w, "double");
+            add_name("node.loc_req.att.geoc.v", &node.loc_req.att.geoc.v, "rvector");
+            add_name("node.loc_req.att.geoc.v.col", &node.loc_req.att.geoc.v.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.att.geoc.v.col)/sizeof(node.loc_req.att.geoc.v.col[0]); ++i) {
+                string basename = "node.loc_req.att.geoc.v.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.att.geoc.v.col[i], "double");
             }
-            add_name("node.loc_est.att.geoc.a", &node.loc_est.att.geoc.a, "rvector");
-            add_name("node.loc_est.att.geoc.a.col", &node.loc_est.att.geoc.a.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.att.geoc.a.col)/sizeof(node.loc_est.att.geoc.a.col[0]); ++i) {
-                string basename = "node.loc_est.att.geoc.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.att.geoc.a.col[i], "double");
+            add_name("node.loc_req.att.geoc.a", &node.loc_req.att.geoc.a, "rvector");
+            add_name("node.loc_req.att.geoc.a.col", &node.loc_req.att.geoc.a.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.att.geoc.a.col)/sizeof(node.loc_req.att.geoc.a.col[0]); ++i) {
+                string basename = "node.loc_req.att.geoc.a.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.att.geoc.a.col[i], "double");
             }
-            add_name("node.loc_est.att.geoc.pass", &node.loc_est.att.geoc.pass, "uint32_t");
-            add_name("node.loc_est.att.selc", &node.loc_est.att.selc, "qatt");
-            add_name("node.loc_est.att.selc.utc", &node.loc_est.att.selc.utc, "double");
-            add_name("node.loc_est.att.selc.s", &node.loc_est.att.selc.s, "quaternion");
-            add_name("node.loc_est.att.selc.s.d", &node.loc_est.att.selc.s.d, "cvector");
-            add_name("node.loc_est.att.selc.s.d.x", &node.loc_est.att.selc.s.d.x, "double");
-            add_name("node.loc_est.att.selc.s.d.y", &node.loc_est.att.selc.s.d.y, "double");
-            add_name("node.loc_est.att.selc.s.d.z", &node.loc_est.att.selc.s.d.z, "double");
-            add_name("node.loc_est.att.selc.s.w", &node.loc_est.att.selc.s.w, "double");
-            add_name("node.loc_est.att.selc.v", &node.loc_est.att.selc.v, "rvector");
-            add_name("node.loc_est.att.selc.v.col", &node.loc_est.att.selc.v.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.att.selc.v.col)/sizeof(node.loc_est.att.selc.v.col[0]); ++i) {
-                string basename = "node.loc_est.att.selc.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.att.selc.v.col[i], "double");
+            add_name("node.loc_req.att.geoc.pass", &node.loc_req.att.geoc.pass, "uint32_t");
+            add_name("node.loc_req.att.selc", &node.loc_req.att.selc, "qatt");
+            add_name("node.loc_req.att.selc.utc", &node.loc_req.att.selc.utc, "double");
+            add_name("node.loc_req.att.selc.s", &node.loc_req.att.selc.s, "quaternion");
+            add_name("node.loc_req.att.selc.s.d", &node.loc_req.att.selc.s.d, "cvector");
+            add_name("node.loc_req.att.selc.s.d.x", &node.loc_req.att.selc.s.d.x, "double");
+            add_name("node.loc_req.att.selc.s.d.y", &node.loc_req.att.selc.s.d.y, "double");
+            add_name("node.loc_req.att.selc.s.d.z", &node.loc_req.att.selc.s.d.z, "double");
+            add_name("node.loc_req.att.selc.s.w", &node.loc_req.att.selc.s.w, "double");
+            add_name("node.loc_req.att.selc.v", &node.loc_req.att.selc.v, "rvector");
+            add_name("node.loc_req.att.selc.v.col", &node.loc_req.att.selc.v.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.att.selc.v.col)/sizeof(node.loc_req.att.selc.v.col[0]); ++i) {
+                string basename = "node.loc_req.att.selc.v.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.att.selc.v.col[i], "double");
             }
-            add_name("node.loc_est.att.selc.a", &node.loc_est.att.selc.a, "rvector");
-            add_name("node.loc_est.att.selc.a.col", &node.loc_est.att.selc.a.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.att.selc.a.col)/sizeof(node.loc_est.att.selc.a.col[0]); ++i) {
-                string basename = "node.loc_est.att.selc.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.att.selc.a.col[i], "double");
+            add_name("node.loc_req.att.selc.a", &node.loc_req.att.selc.a, "rvector");
+            add_name("node.loc_req.att.selc.a.col", &node.loc_req.att.selc.a.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.att.selc.a.col)/sizeof(node.loc_req.att.selc.a.col[0]); ++i) {
+                string basename = "node.loc_req.att.selc.a.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.att.selc.a.col[i], "double");
             }
-            add_name("node.loc_est.att.selc.pass", &node.loc_est.att.selc.pass, "uint32_t");
-            add_name("node.loc_est.att.icrf", &node.loc_est.att.icrf, "qatt");
-            add_name("node.loc_est.att.icrf.utc", &node.loc_est.att.icrf.utc, "double");
-            add_name("node.loc_est.att.icrf.s", &node.loc_est.att.icrf.s, "quaternion");
-            add_name("node.loc_est.att.icrf.s.d", &node.loc_est.att.icrf.s.d, "cvector");
-            add_name("node.loc_est.att.icrf.s.d.x", &node.loc_est.att.icrf.s.d.x, "double");
-            add_name("node.loc_est.att.icrf.s.d.y", &node.loc_est.att.icrf.s.d.y, "double");
-            add_name("node.loc_est.att.icrf.s.d.z", &node.loc_est.att.icrf.s.d.z, "double");
-            add_name("node.loc_est.att.icrf.s.w", &node.loc_est.att.icrf.s.w, "double");
-            add_name("node.loc_est.att.icrf.v", &node.loc_est.att.icrf.v, "rvector");
-            add_name("node.loc_est.att.icrf.v.col", &node.loc_est.att.icrf.v.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.att.icrf.v.col)/sizeof(node.loc_est.att.icrf.v.col[0]); ++i) {
-                string basename = "node.loc_est.att.icrf.v.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.att.icrf.v.col[i], "double");
+            add_name("node.loc_req.att.selc.pass", &node.loc_req.att.selc.pass, "uint32_t");
+            add_name("node.loc_req.att.icrf", &node.loc_req.att.icrf, "qatt");
+            add_name("node.loc_req.att.icrf.utc", &node.loc_req.att.icrf.utc, "double");
+            add_name("node.loc_req.att.icrf.s", &node.loc_req.att.icrf.s, "quaternion");
+            add_name("node.loc_req.att.icrf.s.d", &node.loc_req.att.icrf.s.d, "cvector");
+            add_name("node.loc_req.att.icrf.s.d.x", &node.loc_req.att.icrf.s.d.x, "double");
+            add_name("node.loc_req.att.icrf.s.d.y", &node.loc_req.att.icrf.s.d.y, "double");
+            add_name("node.loc_req.att.icrf.s.d.z", &node.loc_req.att.icrf.s.d.z, "double");
+            add_name("node.loc_req.att.icrf.s.w", &node.loc_req.att.icrf.s.w, "double");
+            add_name("node.loc_req.att.icrf.v", &node.loc_req.att.icrf.v, "rvector");
+            add_name("node.loc_req.att.icrf.v.col", &node.loc_req.att.icrf.v.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.att.icrf.v.col)/sizeof(node.loc_req.att.icrf.v.col[0]); ++i) {
+                string basename = "node.loc_req.att.icrf.v.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.att.icrf.v.col[i], "double");
             }
-            add_name("node.loc_est.att.icrf.a", &node.loc_est.att.icrf.a, "rvector");
-            add_name("node.loc_est.att.icrf.a.col", &node.loc_est.att.icrf.a.col, "double[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.att.icrf.a.col)/sizeof(node.loc_est.att.icrf.a.col[0]); ++i) {
-                string basename = "node.loc_est.att.icrf.a.col[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.att.icrf.a.col[i], "double");
+            add_name("node.loc_req.att.icrf.a", &node.loc_req.att.icrf.a, "rvector");
+            add_name("node.loc_req.att.icrf.a.col", &node.loc_req.att.icrf.a.col, "double[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.att.icrf.a.col)/sizeof(node.loc_req.att.icrf.a.col[0]); ++i) {
+                string basename = "node.loc_req.att.icrf.a.col[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.att.icrf.a.col[i], "double");
             }
-            add_name("node.loc_est.att.icrf.pass", &node.loc_est.att.icrf.pass, "uint32_t");
-            add_name("node.loc_est.att.extra", &node.loc_est.att.extra, "extraatt");
-            add_name("node.loc_est.att.extra.utc", &node.loc_est.att.extra.utc, "double");
-            add_name("node.loc_est.att.extra.j2b", &node.loc_est.att.extra.j2b, "rmatrix");
-            add_name("node.loc_est.att.extra.j2b.row", &node.loc_est.att.extra.j2b.row, "rvector[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.att.extra.j2b.row)/sizeof(node.loc_est.att.extra.j2b.row[0]); ++i) {
-                string basename = "node.loc_est.att.extra.j2b.row[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.att.extra.j2b.row[i], "rvector");
-                add_name(basename+".col", &node.loc_est.att.extra.j2b.row[i].col, "double[]");
-                for(size_t j = 0; j < sizeof(node.loc_est.att.extra.j2b.row[i].col)/sizeof(node.loc_est.att.extra.j2b.row[i].col[0]); ++j) {
+            add_name("node.loc_req.att.icrf.pass", &node.loc_req.att.icrf.pass, "uint32_t");
+            add_name("node.loc_req.att.extra", &node.loc_req.att.extra, "extraatt");
+            add_name("node.loc_req.att.extra.utc", &node.loc_req.att.extra.utc, "double");
+            add_name("node.loc_req.att.extra.j2b", &node.loc_req.att.extra.j2b, "rmatrix");
+            add_name("node.loc_req.att.extra.j2b.row", &node.loc_req.att.extra.j2b.row, "rvector[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.att.extra.j2b.row)/sizeof(node.loc_req.att.extra.j2b.row[0]); ++i) {
+                string basename = "node.loc_req.att.extra.j2b.row[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.att.extra.j2b.row[i], "rvector");
+                add_name(basename+".col", &node.loc_req.att.extra.j2b.row[i].col, "double[]");
+                for(size_t j = 0; j < sizeof(node.loc_req.att.extra.j2b.row[i].col)/sizeof(node.loc_req.att.extra.j2b.row[i].col[0]); ++j) {
                     string rebasename = basename + ".col[" + std::to_string(j) + "]";
-                    add_name(rebasename, &node.loc_est.att.extra.j2b.row[i].col[j], "double");
+                    add_name(rebasename, &node.loc_req.att.extra.j2b.row[i].col[j], "double");
                 }
             }
-            add_name("node.loc_est.att.extra.b2j", &node.loc_est.att.extra.b2j, "rmatrix");
-            add_name("node.loc_est.att.extra.b2j.row", &node.loc_est.att.extra.b2j.row, "rvector[]");
-            for(size_t i = 0; i < sizeof(node.loc_est.att.extra.b2j.row)/sizeof(node.loc_est.att.extra.b2j.row[0]); ++i) {
-                string basename = "node.loc_est.att.extra.b2j.row[" + std::to_string(i) + "]";
-                add_name(basename, &node.loc_est.att.extra.b2j.row[i], "rvector");
-                add_name(basename+".col", &node.loc_est.att.extra.b2j.row[i].col, "double[]");
-                for(size_t j = 0; j < sizeof(node.loc_est.att.extra.b2j.row[i].col)/sizeof(node.loc_est.att.extra.b2j.row[i].col[0]); ++j) {
+            add_name("node.loc_req.att.extra.b2j", &node.loc_req.att.extra.b2j, "rmatrix");
+            add_name("node.loc_req.att.extra.b2j.row", &node.loc_req.att.extra.b2j.row, "rvector[]");
+            for(size_t i = 0; i < sizeof(node.loc_req.att.extra.b2j.row)/sizeof(node.loc_req.att.extra.b2j.row[0]); ++i) {
+                string basename = "node.loc_req.att.extra.b2j.row[" + std::to_string(i) + "]";
+                add_name(basename, &node.loc_req.att.extra.b2j.row[i], "rvector");
+                add_name(basename+".col", &node.loc_req.att.extra.b2j.row[i].col, "double[]");
+                for(size_t j = 0; j < sizeof(node.loc_req.att.extra.b2j.row[i].col)/sizeof(node.loc_req.att.extra.b2j.row[i].col[0]); ++j) {
                     string rebasename = basename + ".col[" + std::to_string(j) + "]";
-                    add_name(rebasename, &node.loc_est.att.extra.b2j.row[i].col[j], "double");
+                    add_name(rebasename, &node.loc_req.att.extra.b2j.row[i].col[j], "double");
                 }
             }
             add_name("node.loc_std", &node.loc_std, "locstruc");
@@ -1797,6 +1799,31 @@ namespace Cosmos
             add_name("node.phys.com.y", &node.phys.com.y, "double");
             add_name("node.phys.com.z", &node.phys.com.z, "double");
             add_name("node.phys.com.w", &node.phys.com.w, "double");
+
+            // vector<facestruc> faces
+            add_name("faces", &node.phys.faces, "vector<facestruc>");
+            for(size_t i = 0; i < node.phys.faces.size(); ++i) {
+                string basename = "node.phys.faces[" + std::to_string(i) + "]";
+                add_name(basename, &node.phys.faces[i], "node.phys.facestruc");
+                add_name(basename+".triangle_cnt", &node.phys.faces[i].triangle_cnt, "uint16_t");
+                add_name(basename+".triangle_idx", &node.phys.faces[i].triangle_idx, "vector<uint16_t>");
+                for(size_t j = 0; j < node.phys.faces[i].triangle_idx.size(); ++j) {
+                    string rebasename = basename + ".triangle_idx[" + std::to_string(j) + "]";
+                    add_name(rebasename, &node.phys.faces[i].triangle_idx[j], "uint16_t");
+                }
+                add_name(basename+".com", &node.phys.faces[i].com, "Vector");
+                add_name(basename+".com.x", &node.phys.faces[i].com.x, "double");
+                add_name(basename+".com.y", &node.phys.faces[i].com.y, "double");
+                add_name(basename+".com.z", &node.phys.faces[i].com.z, "double");
+                add_name(basename+".com.w", &node.phys.faces[i].com.w, "double");
+                add_name(basename+".normal", &node.phys.faces[i].normal, "Vector");
+                add_name(basename+".normal.x", &node.phys.faces[i].normal.x, "double");
+                add_name(basename+".normal.y", &node.phys.faces[i].normal.y, "double");
+                add_name(basename+".normal.z", &node.phys.faces[i].normal.z, "double");
+                add_name(basename+".normal.w", &node.phys.faces[i].normal.w, "double");
+                add_name(basename+".area", &node.phys.faces[i].area, "double");
+            }
+
             add_name("node.phys.vertices", &node.phys.vertices, "vector<Vector>");
             for(size_t i = 0; i < node.phys.vertices.size(); ++i) {
                 string basename = "node.phys.vertices[" + std::to_string(i) + "]";
@@ -1850,62 +1877,15 @@ namespace Cosmos
                 add_name(basename+".pcell", &node.phys.triangles[i].pcell, "float");
                 add_name(basename+".ecellbase", &node.phys.triangles[i].ecellbase, "float");
                 add_name(basename+".ecellslope", &node.phys.triangles[i].ecellslope, "float");
-                add_name(basename+".triangleindex", &node.phys.triangles[i].triangleindex, "vector<vector<uint16_t>>");
-                for(size_t j = 0; j < node.phys.triangles[i].triangleindex.size(); ++j) {
-                    string rebasename = basename + ".triangleindex[" + std::to_string(j) + "]";
-                    add_name(rebasename, &node.phys.triangles[i].triangleindex[j], "vector<uint16_t>");
-                    for(size_t k = 0; k < node.phys.triangles[i].triangleindex[j].size(); ++k) {
-                        string rebasename2 = rebasename + "[" + std::to_string(k) + "]";
-                        add_name(rebasename2, &node.phys.triangles[i].triangleindex[j][k], "uint16_t");
-                    }
-                }
-            }
-
-
-            // vector<vertexstruc> vertexs
-            add_name("vertexs", &vertexs, "vector<vertexstruc>");
-            for(size_t i = 0; i < vertexs.size(); ++i) {
-                string basename = "vertexs[" + std::to_string(i) + "]";
-                add_name(basename, &vertexs[i], "vertexstruc");
-                add_name(basename+".x", &vertexs[i].x, "double");
-                add_name(basename+".y", &vertexs[i].y, "double");
-                add_name(basename+".z", &vertexs[i].z, "double");
-                add_name(basename+".w", &vertexs[i].w, "double");
-            }
-
-            // vector<vertexstruc> normals
-            add_name("normals", &normals, "vector<vertexstruc>");
-            for(size_t i = 0; i < normals.size(); ++i) {
-                string basename = "normals[" + std::to_string(i) + "]";
-                add_name(basename, &normals[i], "vertexstruc");
-                add_name(basename+".x", &normals[i].x, "double");
-                add_name(basename+".y", &normals[i].y, "double");
-                add_name(basename+".z", &normals[i].z, "double");
-                add_name(basename+".w", &normals[i].w, "double");
-            }
-
-            // vector<facestruc> faces
-            add_name("faces", &faces, "vector<facestruc>");
-            for(size_t i = 0; i < faces.size(); ++i) {
-                string basename = "faces[" + std::to_string(i) + "]";
-                add_name(basename, &faces[i], "facestruc");
-                add_name(basename+".vertex_cnt", &faces[i].vertex_cnt, "uint16_t");
-                add_name(basename+".vertex_idx", &faces[i].vertex_idx, "vector<uint16_t>");
-                for(size_t j = 0; j < faces[i].vertex_idx.size(); ++j) {
-                    string rebasename = basename + ".vertex_idx[" + std::to_string(j) + "]";
-                    add_name(rebasename, &faces[i].vertex_idx[j], "uint16_t");
-                }
-                add_name(basename+".com", &faces[i].com, "Vector");
-                add_name(basename+".com.x", &faces[i].com.x, "double");
-                add_name(basename+".com.y", &faces[i].com.y, "double");
-                add_name(basename+".com.z", &faces[i].com.z, "double");
-                add_name(basename+".com.w", &faces[i].com.w, "double");
-                add_name(basename+".normal", &faces[i].normal, "Vector");
-                add_name(basename+".normal.x", &faces[i].normal.x, "double");
-                add_name(basename+".normal.y", &faces[i].normal.y, "double");
-                add_name(basename+".normal.z", &faces[i].normal.z, "double");
-                add_name(basename+".normal.w", &faces[i].normal.w, "double");
-                add_name(basename+".area", &faces[i].area, "double");
+//                add_name(basename+".triangleindex", &node.phys.triangles[i].triangleindex, "vector<vector<uint16_t>>");
+//                for(size_t j = 0; j < node.phys.triangles[i].triangleindex.size(); ++j) {
+//                    string rebasename = basename + ".triangleindex[" + std::to_string(j) + "]";
+//                    add_name(rebasename, &node.phys.triangles[i].triangleindex[j], "vector<uint16_t>");
+//                    for(size_t k = 0; k < node.phys.triangles[i].triangleindex[j].size(); ++k) {
+//                        string rebasename2 = rebasename + "[" + std::to_string(k) + "]";
+//                        add_name(rebasename2, &node.phys.triangles[i].triangleindex[j][k], "uint16_t");
+//                    }
+//                }
             }
 
             // vector<piecestruc> pieces
@@ -1925,12 +1905,13 @@ namespace Cosmos
                 add_name(basename+".dim", &pieces[i].dim, "float");
                 add_name(basename+".area", &pieces[i].area, "float");
                 add_name(basename+".volume", &pieces[i].volume, "float");
-                add_name(basename+".face_cnt", &pieces[i].face_cnt, "uint16_t");
-                add_name(basename+".face_idx", &pieces[i].face_idx, "vector<uint16_t>");
-                for(size_t j = 0; j < pieces[i].face_idx.size(); ++j) {
-                    string rebasename = basename + ".face_idx[" + std::to_string(j) + "]";
-                    add_name(rebasename, &pieces[i].face_idx[j], "uint16_t");
-                }
+                add_name(basename+".face_cnt", &pieces[i].struc_idx, "uint32_t");
+//                add_name(basename+".face_cnt", &pieces[i].face_cnt, "uint16_t");
+//                add_name(basename+".face_idx", &pieces[i].face_idx, "vector<uint16_t>");
+//                for(size_t j = 0; j < pieces[i].face_idx.size(); ++j) {
+//                    string rebasename = basename + ".face_idx[" + std::to_string(j) + "]";
+//                    add_name(rebasename, &pieces[i].face_idx[j], "uint16_t");
+//                }
                 add_name(basename+".com", &pieces[i].com, "Vector");
                 add_name(basename+".com.x", &pieces[i].com.x, "double");
                 add_name(basename+".com.y", &pieces[i].com.y, "double");
@@ -3503,7 +3484,8 @@ namespace Cosmos
             add_name("json.name", &json.name, "string");
             add_name("json.node", &json.node, "string");
             add_name("json.state", &json.state, "string");
-            add_name("json.vertexs", &json.vertexs, "string");
+            add_name("json.vertices", &json.vertices, "string");
+            add_name("json.triangles", &json.triangles, "string");
             add_name("json.faces", &json.faces, "string");
             add_name("json.pieces", &json.pieces, "string");
             add_name("json.devgen", &json.devgen, "string");

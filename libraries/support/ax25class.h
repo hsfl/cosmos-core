@@ -47,7 +47,7 @@ namespace Cosmos {
         {
 
         public:
-            struct __attribute__ ((packed)) packet_header
+            struct packet_header
             {
                 uint8_t destination_callsign[6];
                 uint8_t destination_stationID;

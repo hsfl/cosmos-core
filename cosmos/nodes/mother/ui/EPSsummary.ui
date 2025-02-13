@@ -1,0 +1,801 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>QWidget</class>
+ <widget class="QWidget" name="SummaryPanel">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>267</width>
+    <height>333</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>EPS</string>
+  </property>
+  <widget class="QLabel" name="QLabel0(autoname)">
+   <property name="geometry">
+    <rect>
+     <x>4</x>
+     <y>2</y>
+     <width>74</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Power (Watts)</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="COSMOSnode_powgen">
+   <property name="geometry">
+    <rect>
+     <x>75</x>
+     <y>2</y>
+     <width>51</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="COSMOSDatumWdgt" name="data" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>10</width>
+      <height>10</height>
+     </rect>
+    </property>
+    <property name="valueName" stdset="0">
+     <string>node_powgen</string>
+    </property>
+    <property name="minName" stdset="0">
+     <string/>
+    </property>
+    <property name="maxName" stdset="0">
+     <string/>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QLabel" name="QLabel1(autoname)">
+   <property name="geometry">
+    <rect>
+     <x>4</x>
+     <y>23</y>
+     <width>74</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Load (Watts)</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="COSMOSinfo_powuse">
+   <property name="geometry">
+    <rect>
+     <x>75</x>
+     <y>22</y>
+     <width>51</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="COSMOSDatumWdgt" name="data" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>10</width>
+      <height>10</height>
+     </rect>
+    </property>
+    <property name="valueName" stdset="0">
+     <string>info_powuse</string>
+    </property>
+    <property name="minName" stdset="0">
+     <string/>
+    </property>
+    <property name="maxName" stdset="0">
+     <string/>
+    </property>
+   </widget>
+  </widget>
+  <widget class="IndicatorLight" name="IndicatorLight0(autoname)" native="true">
+   <property name="geometry">
+    <rect>
+     <x>146</x>
+     <y>7</y>
+     <width>16</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="valueJSON" stdset="0">
+    <string>info_powchg</string>
+   </property>
+   <widget class="COSMOSDatumWdgt" name="data" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>10</width>
+      <height>10</height>
+     </rect>
+    </property>
+    <property name="valueName" stdset="0">
+     <string>info_powchg</string>
+    </property>
+    <property name="minName" stdset="0">
+     <string/>
+    </property>
+    <property name="maxName" stdset="0">
+     <string/>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QLabel" name="QLabel2(autoname)">
+   <property name="geometry">
+    <rect>
+     <x>133</x>
+     <y>23</y>
+     <width>51</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Charging</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="QLabel3(autoname)">
+   <property name="geometry">
+    <rect>
+     <x>4</x>
+     <y>50</y>
+     <width>24</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Top</string>
+   </property>
+  </widget>
+  <widget class="LevelBar" name="solarpanel-zenith-1" native="true">
+   <property name="geometry">
+    <rect>
+     <x>4</x>
+     <y>66</y>
+     <width>22</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="valueJSON" stdset="0">
+    <string>device_strg_pow_008</string>
+   </property>
+   <property name="maxJSON" stdset="0">
+    <string>device_strg_max_008</string>
+   </property>
+   <property name="title" stdset="0">
+    <string>solarpanel-zenith-1</string>
+   </property>
+   <property name="barColor" stdset="0">
+    <color>
+     <red>255</red>
+     <green>255</green>
+     <blue>0</blue>
+    </color>
+   </property>
+   <property name="horizontal" stdset="0">
+    <bool>false</bool>
+   </property>
+   <widget class="COSMOSDatumWdgt" name="data" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>10</width>
+      <height>10</height>
+     </rect>
+    </property>
+    <property name="valueName" stdset="0">
+     <string>device_strg_pow_008</string>
+    </property>
+    <property name="minName" stdset="0">
+     <string/>
+    </property>
+    <property name="maxName" stdset="0">
+     <string>device_strg_max_008</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="LevelBar" name="solarpanel-zenith" native="true">
+   <property name="geometry">
+    <rect>
+     <x>28</x>
+     <y>66</y>
+     <width>22</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="valueJSON" stdset="0">
+    <string>device_strg_pow_009</string>
+   </property>
+   <property name="maxJSON" stdset="0">
+    <string>device_strg_max_009</string>
+   </property>
+   <property name="title" stdset="0">
+    <string>solarpanel-zenith</string>
+   </property>
+   <property name="barColor" stdset="0">
+    <color>
+     <red>255</red>
+     <green>255</green>
+     <blue>0</blue>
+    </color>
+   </property>
+   <property name="horizontal" stdset="0">
+    <bool>false</bool>
+   </property>
+   <widget class="COSMOSDatumWdgt" name="data" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>10</width>
+      <height>10</height>
+     </rect>
+    </property>
+    <property name="valueName" stdset="0">
+     <string>device_strg_pow_009</string>
+    </property>
+    <property name="minName" stdset="0">
+     <string/>
+    </property>
+    <property name="maxName" stdset="0">
+     <string>device_strg_max_009</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QLabel" name="QLabel4(autoname)">
+   <property name="geometry">
+    <rect>
+     <x>4</x>
+     <y>90</y>
+     <width>40</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Front</string>
+   </property>
+  </widget>
+  <widget class="LevelBar" name="solarpanel-side-2" native="true">
+   <property name="geometry">
+    <rect>
+     <x>4</x>
+     <y>106</y>
+     <width>22</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="valueJSON" stdset="0">
+    <string>device_strg_pow_001</string>
+   </property>
+   <property name="maxJSON" stdset="0">
+    <string>device_strg_max_001</string>
+   </property>
+   <property name="title" stdset="0">
+    <string>solarpanel-side-2</string>
+   </property>
+   <property name="barColor" stdset="0">
+    <color>
+     <red>255</red>
+     <green>255</green>
+     <blue>0</blue>
+    </color>
+   </property>
+   <property name="horizontal" stdset="0">
+    <bool>false</bool>
+   </property>
+   <widget class="COSMOSDatumWdgt" name="data" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>10</width>
+      <height>10</height>
+     </rect>
+    </property>
+    <property name="valueName" stdset="0">
+     <string>device_strg_pow_001</string>
+    </property>
+    <property name="minName" stdset="0">
+     <string/>
+    </property>
+    <property name="maxName" stdset="0">
+     <string>device_strg_max_001</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="LevelBar" name="solarpanel-side-3" native="true">
+   <property name="geometry">
+    <rect>
+     <x>28</x>
+     <y>106</y>
+     <width>22</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="valueJSON" stdset="0">
+    <string>device_strg_pow_002</string>
+   </property>
+   <property name="maxJSON" stdset="0">
+    <string>device_strg_max_002</string>
+   </property>
+   <property name="title" stdset="0">
+    <string>solarpanel-side-3</string>
+   </property>
+   <property name="barColor" stdset="0">
+    <color>
+     <red>255</red>
+     <green>255</green>
+     <blue>0</blue>
+    </color>
+   </property>
+   <property name="horizontal" stdset="0">
+    <bool>false</bool>
+   </property>
+   <widget class="COSMOSDatumWdgt" name="data" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>10</width>
+      <height>10</height>
+     </rect>
+    </property>
+    <property name="valueName" stdset="0">
+     <string>device_strg_pow_002</string>
+    </property>
+    <property name="minName" stdset="0">
+     <string/>
+    </property>
+    <property name="maxName" stdset="0">
+     <string>device_strg_max_002</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="LevelBar" name="solarpanel-side-4" native="true">
+   <property name="geometry">
+    <rect>
+     <x>52</x>
+     <y>106</y>
+     <width>22</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="valueJSON" stdset="0">
+    <string>device_strg_pow_003</string>
+   </property>
+   <property name="maxJSON" stdset="0">
+    <string>device_strg_max_003</string>
+   </property>
+   <property name="title" stdset="0">
+    <string>solarpanel-side-4</string>
+   </property>
+   <property name="barColor" stdset="0">
+    <color>
+     <red>255</red>
+     <green>255</green>
+     <blue>0</blue>
+    </color>
+   </property>
+   <property name="horizontal" stdset="0">
+    <bool>false</bool>
+   </property>
+   <widget class="COSMOSDatumWdgt" name="data" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>10</width>
+      <height>10</height>
+     </rect>
+    </property>
+    <property name="valueName" stdset="0">
+     <string>device_strg_pow_003</string>
+    </property>
+    <property name="minName" stdset="0">
+     <string/>
+    </property>
+    <property name="maxName" stdset="0">
+     <string>device_strg_max_003</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QLabel" name="QLabel5(autoname)">
+   <property name="geometry">
+    <rect>
+     <x>4</x>
+     <y>130</y>
+     <width>32</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Left</string>
+   </property>
+  </widget>
+  <widget class="LevelBar" name="solarpanel-side-7" native="true">
+   <property name="geometry">
+    <rect>
+     <x>4</x>
+     <y>146</y>
+     <width>22</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="valueJSON" stdset="0">
+    <string>device_strg_pow_006</string>
+   </property>
+   <property name="maxJSON" stdset="0">
+    <string>device_strg_max_006</string>
+   </property>
+   <property name="title" stdset="0">
+    <string>solarpanel-side-7</string>
+   </property>
+   <property name="barColor" stdset="0">
+    <color>
+     <red>255</red>
+     <green>255</green>
+     <blue>0</blue>
+    </color>
+   </property>
+   <property name="horizontal" stdset="0">
+    <bool>false</bool>
+   </property>
+   <widget class="COSMOSDatumWdgt" name="data" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>10</width>
+      <height>10</height>
+     </rect>
+    </property>
+    <property name="valueName" stdset="0">
+     <string>device_strg_pow_006</string>
+    </property>
+    <property name="minName" stdset="0">
+     <string/>
+    </property>
+    <property name="maxName" stdset="0">
+     <string>device_strg_max_006</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="LevelBar" name="solarpanel-side" native="true">
+   <property name="geometry">
+    <rect>
+     <x>28</x>
+     <y>146</y>
+     <width>22</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="valueJSON" stdset="0">
+    <string>device_strg_pow_007</string>
+   </property>
+   <property name="maxJSON" stdset="0">
+    <string>device_strg_max_007</string>
+   </property>
+   <property name="title" stdset="0">
+    <string>solarpanel-side</string>
+   </property>
+   <property name="barColor" stdset="0">
+    <color>
+     <red>255</red>
+     <green>255</green>
+     <blue>0</blue>
+    </color>
+   </property>
+   <property name="horizontal" stdset="0">
+    <bool>false</bool>
+   </property>
+   <widget class="COSMOSDatumWdgt" name="data" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>10</width>
+      <height>10</height>
+     </rect>
+    </property>
+    <property name="valueName" stdset="0">
+     <string>device_strg_pow_007</string>
+    </property>
+    <property name="minName" stdset="0">
+     <string/>
+    </property>
+    <property name="maxName" stdset="0">
+     <string>device_strg_max_007</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QLabel" name="QLabel6(autoname)">
+   <property name="geometry">
+    <rect>
+     <x>4</x>
+     <y>170</y>
+     <width>40</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Right</string>
+   </property>
+  </widget>
+  <widget class="LevelBar" name="solarpanel-side-1" native="true">
+   <property name="geometry">
+    <rect>
+     <x>4</x>
+     <y>186</y>
+     <width>22</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="valueJSON" stdset="0">
+    <string>device_strg_pow_000</string>
+   </property>
+   <property name="maxJSON" stdset="0">
+    <string>device_strg_max_000</string>
+   </property>
+   <property name="title" stdset="0">
+    <string>solarpanel-side-1</string>
+   </property>
+   <property name="barColor" stdset="0">
+    <color>
+     <red>255</red>
+     <green>255</green>
+     <blue>0</blue>
+    </color>
+   </property>
+   <property name="horizontal" stdset="0">
+    <bool>false</bool>
+   </property>
+   <widget class="COSMOSDatumWdgt" name="data" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>10</width>
+      <height>10</height>
+     </rect>
+    </property>
+    <property name="valueName" stdset="0">
+     <string>device_strg_pow_000</string>
+    </property>
+    <property name="minName" stdset="0">
+     <string/>
+    </property>
+    <property name="maxName" stdset="0">
+     <string>device_strg_max_000</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="LevelBar" name="solarpanel-side-5" native="true">
+   <property name="geometry">
+    <rect>
+     <x>28</x>
+     <y>186</y>
+     <width>22</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="valueJSON" stdset="0">
+    <string>device_strg_pow_004</string>
+   </property>
+   <property name="maxJSON" stdset="0">
+    <string>device_strg_max_004</string>
+   </property>
+   <property name="title" stdset="0">
+    <string>solarpanel-side-5</string>
+   </property>
+   <property name="barColor" stdset="0">
+    <color>
+     <red>255</red>
+     <green>255</green>
+     <blue>0</blue>
+    </color>
+   </property>
+   <property name="horizontal" stdset="0">
+    <bool>false</bool>
+   </property>
+   <widget class="COSMOSDatumWdgt" name="data" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>10</width>
+      <height>10</height>
+     </rect>
+    </property>
+    <property name="valueName" stdset="0">
+     <string>device_strg_pow_004</string>
+    </property>
+    <property name="minName" stdset="0">
+     <string/>
+    </property>
+    <property name="maxName" stdset="0">
+     <string>device_strg_max_004</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QLabel" name="QLabel7(autoname)">
+   <property name="geometry">
+    <rect>
+     <x>4</x>
+     <y>210</y>
+     <width>32</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Back</string>
+   </property>
+  </widget>
+  <widget class="LevelBar" name="solarpanel-side-6" native="true">
+   <property name="geometry">
+    <rect>
+     <x>4</x>
+     <y>226</y>
+     <width>22</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="valueJSON" stdset="0">
+    <string>device_strg_pow_005</string>
+   </property>
+   <property name="maxJSON" stdset="0">
+    <string>device_strg_max_005</string>
+   </property>
+   <property name="title" stdset="0">
+    <string>solarpanel-side-6</string>
+   </property>
+   <property name="barColor" stdset="0">
+    <color>
+     <red>255</red>
+     <green>255</green>
+     <blue>0</blue>
+    </color>
+   </property>
+   <property name="horizontal" stdset="0">
+    <bool>false</bool>
+   </property>
+   <widget class="COSMOSDatumWdgt" name="data" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>10</width>
+      <height>10</height>
+     </rect>
+    </property>
+    <property name="valueName" stdset="0">
+     <string>device_strg_pow_005</string>
+    </property>
+    <property name="minName" stdset="0">
+     <string/>
+    </property>
+    <property name="maxName" stdset="0">
+     <string>device_strg_max_005</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QLabel" name="QLabel8(autoname)">
+   <property name="geometry">
+    <rect>
+     <x>4</x>
+     <y>253</y>
+     <width>72</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Battery 1</string>
+   </property>
+  </widget>
+  <widget class="LevelBar" name="Battery1" native="true">
+   <property name="geometry">
+    <rect>
+     <x>4</x>
+     <y>273</y>
+     <width>80</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <property name="valueJSON" stdset="0">
+    <string>device_batt_lev_000</string>
+   </property>
+   <property name="maxJSON" stdset="0">
+    <string>device_batt_cap_000</string>
+   </property>
+   <property name="title" stdset="0">
+    <string/>
+   </property>
+   <property name="barColor" stdset="0">
+    <color>
+     <red>0</red>
+     <green>255</green>
+     <blue>0</blue>
+    </color>
+   </property>
+   <property name="horizontal" stdset="0">
+    <bool>true</bool>
+   </property>
+   <widget class="COSMOSDatumWdgt" name="data" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>10</width>
+      <height>10</height>
+     </rect>
+    </property>
+    <property name="valueName" stdset="0">
+     <string>device_batt_lev_000</string>
+    </property>
+    <property name="minName" stdset="0">
+     <string/>
+    </property>
+    <property name="maxName" stdset="0">
+     <string>device_batt_max_000</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QLineEdit" name="COSMOSdevice_batt_lev_000">
+   <property name="geometry">
+    <rect>
+     <x>4</x>
+     <y>308</y>
+     <width>80</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="COSMOSDatumWdgt" name="data" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>10</width>
+      <height>10</height>
+     </rect>
+    </property>
+    <property name="valueName" stdset="0">
+     <string>device_batt_lev_000</string>
+    </property>
+    <property name="minName" stdset="0">
+     <string/>
+    </property>
+    <property name="maxName" stdset="0">
+     <string/>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>IndicatorLight</class>
+   <extends>QWidget</extends>
+   <header>indicatorlight.h</header>
+  </customwidget>
+  <customwidget>
+   <class>LevelBar</class>
+   <extends>QWidget</extends>
+   <header>levelbar.h</header>
+  </customwidget>
+  <customwidget>
+   <class>COSMOSDatumWdgt</class>
+   <extends>QWidget</extends>
+   <header>cosmosdata.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

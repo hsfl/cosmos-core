@@ -177,7 +177,7 @@ int32_t pos_extra(double utc, locstruc &loc)
     pos_eci2geoc(tloc);
     loc.pos.extra.moongeo = tloc.pos.geod.s;
 
-//    pos_lvlh(utc, loc);
+    //    pos_lvlh(utc, loc);
     return 0;
 }
 
@@ -189,12 +189,12 @@ int32_t pos_lvlh(locstruc *loc)
 int32_t pos_lvlh(locstruc &loc)
 {
     // Check time
-//    if (!isfinite(utc) || utc == 0.)
-//    {
-//        return CONVERT_ERROR_UTC;
-//    }
+    //    if (!isfinite(utc) || utc == 0.)
+    //    {
+    //        return CONVERT_ERROR_UTC;
+    //    }
 
-//    pos_extra(utc, loc);
+    //    pos_extra(utc, loc);
 
     // LVLH related
     loc.pos.extra.p2l = {{0., 0., 0.},{0., 0., 0.},{0., 0., 0.}};
@@ -215,19 +215,19 @@ int32_t pos_lvlh(locstruc &loc)
     case COSMOS_EARTH:
     default:
         // Check time
-//        if (!isfinite(loc.pos.eci.utc) || loc.pos.eci.utc == 0.)
-//        {
-//            return CONVERT_ERROR_UTC;
-//        }
+        //        if (!isfinite(loc.pos.eci.utc) || loc.pos.eci.utc == 0.)
+        //        {
+        //            return CONVERT_ERROR_UTC;
+        //        }
 
         ppos = &loc.pos.eci;
         break;
     case COSMOS_MOON:
         // Check time
-//        if (!isfinite(loc.pos.sci.utc) || loc.pos.sci.utc == 0.)
-//        {
-//            return CONVERT_ERROR_UTC;
-//        }
+        //        if (!isfinite(loc.pos.sci.utc) || loc.pos.sci.utc == 0.)
+        //        {
+        //            return CONVERT_ERROR_UTC;
+        //        }
 
         ppos = &loc.pos.sci;
         break;
@@ -262,6 +262,7 @@ int32_t pos_lvlh(locstruc &loc)
     loc.pos.extra.dp2l= rm_transpose(loc.pos.extra.dl2p);
     loc.pos.extra.ddp2l = rm_transpose(loc.pos.extra.ddl2p);
 
+    // ECI based LVLH
     // LVLH Z is opposite of direction to satellite
     planec_z = rv_smult(-1., ppos->s);
     normalize_rv(planec_z);
@@ -283,6 +284,30 @@ int32_t pos_lvlh(locstruc &loc)
     loc.pos.extra.e2l = q_fmult(qe_z, qe_y);
     normalize_q(&loc.pos.extra.e2l);
     loc.pos.extra.l2e = q_conjugate(loc.pos.extra.e2l);
+
+    // GEOC based LVLH
+    // LVLH Z is opposite of direction to satellite
+    ppos = &loc.pos.geoc;
+    planec_z = rv_smult(-1., ppos->s);
+    normalize_rv(planec_z);
+
+    // LVLH Y is Cross Product of LVLH Z and velocity vector
+    planec_y = rv_cross(planec_z, ppos->v);
+    normalize_rv(planec_y);
+
+    // Determine intrinsic rotation of ITRF Z  into LVLH Z
+    qe_z = q_conjugate(q_drotate_between_rv(planec_z, lvlh_z));
+
+    // Use to intrinsically rotate ITRF Y into intermediate Y
+    planec_y = irotate(qe_z, planec_y);
+
+    // Determine intrinsic rotation of this intermediate Y into LVLH Y
+    qe_y = q_conjugate(q_drotate_between_rv(planec_y, lvlh_y));
+
+    // Combine to determine intrinsic rotation of ITRF into LVLH
+    loc.pos.extra.g2l = q_fmult(qe_z, qe_y);
+    normalize_q(&loc.pos.extra.g2l);
+    loc.pos.extra.l2g = q_conjugate(loc.pos.extra.g2l);
 
     return 0;
 }
@@ -317,11 +342,11 @@ int32_t pos_icrf(locstruc &loc)
     }
 
     // Determine closest planetary body
-//    loc.pos.extra.closest = COSMOS_EARTH;
-//    if (length_rv(rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2moon.s)) < length_rv(rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2earth.s)))
-//    {
-//        loc.pos.extra.closest = COSMOS_MOON;
-//    }
+    //    loc.pos.extra.closest = COSMOS_EARTH;
+    //    if (length_rv(rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2moon.s)) < length_rv(rv_sub(loc.pos.icrf.s, loc.pos.extra.sun2earth.s)))
+    //    {
+    //        loc.pos.extra.closest = COSMOS_MOON;
+    //    }
 
     // Set SUN specific stuff
     distance = length_rv(loc.pos.icrf.s);
@@ -2161,7 +2186,7 @@ int32_t att_planec2lvlh(locstruc &loc)
     // Update pass
     loc.att.lvlh.pass = patt->pass;
 
-//    pos_lvlh(patt->utc, loc);
+    //    pos_lvlh(patt->utc, loc);
 
     // Correct velocity for LVLH angular velocity wrt ITRS, expressed in ITRS
     rvector alpha = rv_smult(1. / (radius * radius), rv_cross(ppos->s, ppos->v));
@@ -2221,7 +2246,7 @@ int32_t att_lvlh2planec(locstruc &loc)
     // Update pass
     patt->pass = loc.att.lvlh.pass;
 
-//    pos_lvlh(loc.att.lvlh.utc, loc);
+    //    pos_lvlh(loc.att.lvlh.utc, loc);
 
     // Rotate LVLH frame into ITRS frame
     patt->s = q_fmult(loc.pos.extra.e2l, loc.att.lvlh.s);
@@ -3274,6 +3299,7 @@ int32_t ric2eci(cartpos orig, Vector ric, cartpos& result)
     return 0;
 }
 
+// JIMNOTE: not sure about this one, should probably call ric2eci
 /**
          * @brief Converts Origin coordinates to RIC offset coordinates
          *
@@ -3375,9 +3401,8 @@ int32_t pos_origin2lvlh(locstruc& loc)
     rvector lvlh_x;
     rvector lvlh_y;
     rvector lvlh_z;
-//    locstruc tloc1 = loc;
 
-    cartpos origin = loc.pos.geoc;
+//    cartpos origin = loc.pos.geoc;
     // 1 Get lvlh basis vectors
     lvlh_z = -rv_normal(loc.pos.geoc.s);
     lvlh_y = rv_normal(rv_cross(lvlh_z, loc.pos.geoc.v));
@@ -3444,51 +3469,15 @@ int32_t pos_origin2lvlh(locstruc& loc)
     // Compute
     // A_a_P = A_a_Q + B_a_P/Q
     loc.pos.geoc.a = loc.pos.geoc.a + geoc_offset.a
-                    //     + A_alpha_B x r_P/Q        = Euler acceleration
-                    + rv_cross(angular_acceleration, geoc_offset.s)
-                    //     + 2 * A_w_B x B_v_P/Q      = Coriolis acceleration
-                    + 2 * rv_cross(angular_velocity, geoc_offset.v)
-                    //     + A_w_B x (A_w_B x r_P/Q)  = Centripetal acceleration
-                    + rv_cross(angular_velocity, w_x_r);
+                     //     + A_alpha_B x r_P/Q        = Euler acceleration
+                     + rv_cross(angular_acceleration, geoc_offset.s)
+                     //     + 2 * A_w_B x B_v_P/Q      = Coriolis acceleration
+                     + 2 * rv_cross(angular_velocity, geoc_offset.v)
+                     //     + A_w_B x (A_w_B x r_P/Q)  = Centripetal acceleration
+                     + rv_cross(angular_velocity, w_x_r);
 
     loc.pos.geoc.pass = std::max(loc.pos.eci.pass, loc.pos.geos.pass) + 1;
-//    tloc1.pos.geoc.utc = origin.utc;
-//    ++tloc1.pos.geoc.pass;
     pos_geoc(loc);
-
-//    locstruc tloc = loc;
-//    eci_offset.s = rv_mmult(tloc.pos.extra.p2l, lvlh.s);
-//    tloc.pos.eci.s += eci_offset.s;
-//    tloc.pos.eci.v += rv_mmult(tloc.pos.extra.dp2l, lvlh.v);
-//    tloc.pos.eci.a += rv_mmult(tloc.pos.extra.ddp2l, lvlh.a);
-//    tloc.pos.eci.pass++;
-//    pos_eci(tloc);
-
-//    lvlh_x = drotate(loc.pos.extra.e2l, rvector(1., 0., 0.));
-//    lvlh_y = drotate(loc.pos.extra.e2l, rvector(0., 1., 0.));
-
-//    loc.pos.geoc.v += drotate(loc.pos.extra.e2l, lvlh.v);
-//    loc.pos.geoc.a += drotate(loc.pos.extra.e2l, lvlh.a);
-//    loc.pos.geoc.j += drotate(loc.pos.extra.e2l, lvlh.j);
-
-//    double r = length_rv(loc.pos.geoc.s);
-
-//    // Rotate around LVLH y axis by -dx/r
-//    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_y, -lvlh.s.col[0] / r);
-
-//    // Rotate forwards around LVLH x axis by dy/r
-//    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_x, lvlh.s.col[1] / r);
-
-//    // Scale the whole thing by dz/z
-//    loc.pos.geoc.s *= ((r - lvlh.s.col[2]) / r);
-
-//    // Set LVLH
-//    loc.pos.lvlh = lvlh;
-//    loc.pos.lvlh.utc = loc.pos.geoc.utc;
-
-//    // Set geoc
-//    ++loc.pos.geoc.pass;
-//    pos_geoc(loc);
 
     return 0;
 }
@@ -3548,91 +3537,234 @@ int32_t pos_lvlh2origin(locstruc& loc)
         }
     }
 
-//    double r = length_rv(loc.pos.geoc.s) +  loc.pos.lvlh.s.col[2];
+    //    double r = length_rv(loc.pos.geoc.s) +  loc.pos.lvlh.s.col[2];
 
-//    lvlh_x = drotate(loc.pos.extra.e2l, rvector(1., 0., 0.));
-//    lvlh_y = drotate(loc.pos.extra.e2l, rvector(0., 1., 0.));
-//    lvlh_z = drotate(loc.pos.extra.e2l, rvector(0., 0., 1.));
+    //    lvlh_x = drotate(loc.pos.extra.e2l, rvector(1., 0., 0.));
+    //    lvlh_y = drotate(loc.pos.extra.e2l, rvector(0., 1., 0.));
+    //    lvlh_z = drotate(loc.pos.extra.e2l, rvector(0., 0., 1.));
 
-//    // TODO: should this be ECI, not GEOC?
-//    loc.pos.geoc.v -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.v);
-//    loc.pos.geoc.a -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.a);
-//    loc.pos.geoc.j -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.j);
+    //    // TODO: should this be ECI, not GEOC?
+    //    loc.pos.geoc.v -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.v);
+    //    loc.pos.geoc.a -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.a);
+    //    loc.pos.geoc.j -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.j);
 
-//    // Rotate around LVLH y axis by dx/r
-//    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_y, loc.pos.lvlh.s.col[0] / r);
+    //    // Rotate around LVLH y axis by dx/r
+    //    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_y, loc.pos.lvlh.s.col[0] / r);
 
-//    // Rotate backwards around LVLH x axis by -dy/r
-//    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_x, -loc.pos.lvlh.s.col[1] / r);
+    //    // Rotate backwards around LVLH x axis by -dy/r
+    //    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_x, -loc.pos.lvlh.s.col[1] / r);
 
-//    // Scale by dz/z
-//    loc.pos.geoc.s *= (r / (r - loc.pos.lvlh.s.col[2]));
+    //    // Scale by dz/z
+    //    loc.pos.geoc.s *= (r / (r - loc.pos.lvlh.s.col[2]));
 
     loc.pos.geoc.pass = std::max(loc.pos.eci.pass, loc.pos.geos.pass) + 1;
     pos_geoc(loc);
 
-//    loc.pos.lvlh = cartpos();
+    //    loc.pos.lvlh = cartpos();
 
     return 0;
 }
 
 /**
-         * @brief Converts Origin coordinates to RIC offset coordinates
+         * @brief Converts LVLH offset coordinates to base coordinates
          *
-         * Convert position as if it was Origin (zero RIC offsets) into Offset (RIC offsets applied).
-         * Leaves RIC offset position, velocity and acceleration in loc.pos.lvlh.
+         * Requires lvlh.pos to be fully set with current LVLH offset position.
+         * Requires geoc.pos to be fully set with current LVLH offset position.
          *
-         * @param loc ::locstruc containing Origin to convert to Offset
-         * @param lvlh ::cartpos RIC offsets to apply
+         * @param loc ::locstruc containing Offset to convert to Origin
+         * @param lvlh ::cartpos LVLH offsets to apply
          * @return int32_t 0 on success, negative on error
          */
-int32_t ric2lvlh(cartpos ric, cartpos& lvlh)
+int32_t pos_lvlh2geoc(locstruc *base, locstruc *geoc)
 {
-    lvlh.s.col[0] = ric.s.col[1];
-    lvlh.s.col[1] = -ric.s.col[2];
-    lvlh.s.col[2] = -ric.s.col[0];
+    return pos_lvlh2geoc(*base, *geoc);
+}
 
-    lvlh.v.col[0] = ric.v.col[1];
-    lvlh.v.col[1] = -ric.v.col[2];
-    lvlh.v.col[2] = -ric.v.col[0];
+int32_t pos_lvlh2geoc(locstruc &base, locstruc &geoc)
+{
+    pos_geoc(base);
+    pos_geoc(base);
+    cartpos geoc_offset;
+    geoc_offset.s = irotate(base.pos.extra.e2l, geoc_offset.s);
+    geoc_offset.v = irotate(base.pos.extra.e2l, geoc_offset.v);
+    geoc_offset.a = irotate(base.pos.extra.e2l, geoc_offset.a);
+    geoc_offset.s = rv_add(base.pos.geoc.s, geoc_offset.s);
+    geoc_offset.v = rv_add(base.pos.geoc.v, geoc_offset.v);
+    geoc_offset.a = rv_add(base.pos.geoc.a, geoc_offset.a);
+    geoc.pos.lvlh.s = rv_zero();
+    geoc.pos.lvlh.v = rv_zero();
+    geoc.pos.lvlh.a = rv_zero();
 
-    lvlh.a.col[0] = ric.a.col[1];
-    lvlh.a.col[1] = -ric.a.col[2];
-    lvlh.a.col[2] = -ric.a.col[0];
-
-    lvlh.j.col[0] = ric.j.col[1];
-    lvlh.j.col[1] = -ric.j.col[2];
-    lvlh.j.col[2] = -ric.j.col[0];
+    geoc.pos.geoc.pass = std::max(geoc.pos.eci.pass, geoc.pos.geos.pass) + 1;
+    pos_geoc(geoc);
 
     return 0;
 }
 
+/**
+         * @brief Converts GEOC based LVLH offset coordinates to base coordinates
+         *
+         * Requires lvlh.pos to be fully set with current LVLH offset position.
+         * Requires geoc.pos to be fully set with current LVLH offset position.
+         *
+         * @param loc ::locstruc containing Offset to convert to Origin
+         * @param lvlh ::cartpos LVLH offsets to apply
+         * @return int32_t 0 on success, negative on error
+         */
+int32_t pos_geoc2lvlh(locstruc *geoc, locstruc *base)
+{
+    return pos_geoc2lvlh(*geoc, *base);
+}
+
+int32_t pos_geoc2lvlh(locstruc &geoc, locstruc &base)
+{
+    pos_geoc(geoc);
+    pos_geoc(base);
+    cartpos geoc_offset;
+    geoc_offset.s = rv_sub(geoc.pos.geoc.s, base.pos.geoc.s);
+    geoc_offset.v = rv_sub(geoc.pos.geoc.v, base.pos.geoc.v);
+    geoc_offset.a = rv_sub(geoc.pos.geoc.a, base.pos.geoc.a);
+    base.pos.lvlh.s = irotate(base.pos.extra.e2l, geoc_offset.s);
+    base.pos.lvlh.v = irotate(base.pos.extra.e2l, geoc_offset.v);
+    base.pos.lvlh.a = irotate(base.pos.extra.e2l, geoc_offset.a);
+
+    //    base.pos.geoc.pass = std::max(geoc.pos.eci.pass, geoc.pos.geos.pass) + 1;
+    //    pos_geoc(base);
+
+    return 0;
+}
+
+// JIMNOTE: this function is wrong and should be removed
+/**
+         * @brief Converts Origin coordinates to RIC offset coordinates
+         *
+         * Convert RIC coordinates to equivalent LVLH coordinates.
+         *
+         * @param radius ::radius of orbit at location
+         * @param loc ::locstruc containing Origin to convert to Offset
+         * @param lvlh ::cartpos RIC offsets to apply
+         * @return int32_t 0 on success, negative on error
+         */
+int32_t ric2lvlh(double radius, cartpos ric, cartpos& lvlh)
+{
+    // First, calculations have shown that if changes are less than 1/100th
+    // orbital radius. LVLH and RIC are same magnitude to less than 10 cm.
+
+    double IC2 = ric.s.col[1] * ric.s.col[1] + ric.s.col[2] * ric.s.col[2];
+    if (sqrt(IC2 + ric.s.col[0] * ric.s.col[0]) / radius < .01)
+    {
+        lvlh.s.col[0] = ric.s.col[1];
+        lvlh.s.col[1] = -ric.s.col[2];
+        lvlh.s.col[2] = -ric.s.col[0];
+        lvlh.v.col[0] = ric.v.col[1];
+        lvlh.v.col[1] = -ric.v.col[2];
+        lvlh.v.col[2] = -ric.v.col[0];
+        lvlh.a.col[0] = ric.a.col[1];
+        lvlh.a.col[1] = -ric.a.col[2];
+        lvlh.a.col[2] = -ric.a.col[0];
+        lvlh.j.col[0] = ric.j.col[1];
+        lvlh.j.col[1] = -ric.j.col[2];
+        lvlh.j.col[2] = -ric.j.col[0];
+        return 0;
+    }
+
+    // Everything happens at current working radius
+    // Save original value for Z measurement
+    lvlh.s.col[2] = radius;
+    radius += ric.s.col[0];
+
+    // These are the angles along I and C, as well as the diagonal
+    double iangle = ric.s.col[1] / radius;
+    double cangle = ric.s.col[2] / radius;
+    double tangle = sqrt(IC2) / radius;
+
+    // Position
+    lvlh.s.col[0] = radius * sin(iangle);
+    lvlh.s.col[1] = -radius * sin(cangle);
+    lvlh.s.col[2] = lvlh.s.col[2] * (1. - cos(tangle)) - ric.s.col[0] * sin(tangle);
+
+    // Velocity
+    lvlh.v.col[0] = ric.v.col[1] * sin(iangle);
+    lvlh.v.col[1] = -ric.v.col[2] * sin(cangle);
+    lvlh.v.col[2] = -ric.v.col[0] * sin(tangle);
+
+    // Acceleration
+    lvlh.a.col[0] = ric.a.col[1] * sin(iangle);
+    lvlh.a.col[1] = -ric.a.col[2] * sin(cangle);
+    lvlh.a.col[2] = -ric.a.col[0] * sin(tangle);
+
+    // Jerk
+    lvlh.j.col[0] = ric.j.col[1] * sin(iangle);
+    lvlh.j.col[1] = -ric.j.col[2] * sin(cangle);
+    lvlh.j.col[2] = -ric.j.col[0] * sin(tangle);
+
+    return 0;
+}
+
+// JIMNOTE: this function is wrong and should be removed
+// EJP: if something is wrong, then it should be fixed, not removed
 /**
          * @brief Converts RIC offset coordinates to LVLH coordinates
          *
          * Requires loc.pos to be fully set with current RIC offset position.
          *
+         * @param radius ::radius of orbit at location
          * @param loc ::locstruc containing Offset to convert to Origin
          * @param ric ::cartpos RIC offsets to apply
          * @return int32_t 0 on success, negative on error
          */
-int32_t lvlh2ric(cartpos lvlh, cartpos& ric)
+int32_t lvlh2ric(double radius, cartpos lvlh, cartpos& ric)
 {
-    ric.s.col[0] = -lvlh.s.col[2];
-    ric.s.col[1] = lvlh.s.col[0];
-    ric.s.col[2] = -lvlh.s.col[1];
+    // First, calculations have shown that if changes are less than 1/100th
+    // orbital radius. LVLH and RIC are same magnitude to less than 10 cm.
 
-    ric.v.col[0] = -lvlh.v.col[2];
-    ric.v.col[1] = lvlh.v.col[0];
-    ric.v.col[2] = -lvlh.v.col[1];
+    double XY2 = lvlh.s.col[0] * lvlh.s.col[0] + lvlh.s.col[1] * lvlh.s.col[1];
+    if (sqrt(XY2 + lvlh.s.col[2] * lvlh.s.col[2]) / radius < .01)
+    {
+        ric.s.col[0] = -lvlh.s.col[2];
+        ric.s.col[1] = lvlh.s.col[0];
+        ric.s.col[2] = -lvlh.s.col[1];
+        ric.v.col[0] = -lvlh.v.col[2];
+        ric.v.col[1] = lvlh.v.col[0];
+        ric.v.col[2] = -lvlh.v.col[1];
+        ric.a.col[0] = -lvlh.a.col[2];
+        ric.a.col[1] = lvlh.a.col[0];
+        ric.a.col[2] = -lvlh.a.col[1];
+        ric.j.col[0] = -lvlh.j.col[2];
+        ric.j.col[1] = lvlh.j.col[0];
+        ric.j.col[2] = -lvlh.j.col[1];
+        return 0;
+    }
 
-    ric.a.col[0] = -lvlh.a.col[2];
-    ric.a.col[1] = lvlh.a.col[0];
-    ric.a.col[2] = -lvlh.a.col[1];
+    // Everything happens at current working radius
+    // Save original value for R measurement
+    ric.s.col[0] = radius;
+    radius -= lvlh.s.col[2];
 
-    ric.j.col[0] = -lvlh.j.col[2];
-    ric.j.col[1] = lvlh.j.col[0];
-    ric.j.col[2] = -lvlh.j.col[1];
+    // These are the angles along I and C, as well as the diagonal
+    double iangle = asin(lvlh.s.col[0] / radius);
+    double cangle = asin(lvlh.s.col[1] / radius);
+    double tangle = asin(sqrt(XY2) / radius);
+
+    // Position
+    ric.s.col[0] = -(lvlh.s.col[2] - ric.s.col[0] * (1 - cos(tangle))) / sin(tangle);
+    ric.s.col[1] = radius / sin(iangle);
+    ric.s.col[2] = -radius / sin(cangle);
+
+    // Velocity
+    ric.v.col[0] = -radius / sin(tangle);
+    ric.v.col[1] = radius / sin(iangle);
+    ric.v.col[2] = -radius / sin(cangle);
+
+    // Acceleration
+    ric.a.col[0] = -radius / sin(tangle);
+    ric.a.col[1] = radius / sin(iangle);
+    ric.a.col[2] = -radius / sin(cangle);
+
+    // Jerk
+    ric.j.col[0] = -radius / sin(tangle);
+    ric.j.col[1] = radius / sin(iangle);
+    ric.j.col[2] = -radius / sin(cangle);
 
     return 0;
 }
@@ -3709,7 +3841,7 @@ Convert::cartpos eci2lvlh(Convert::cartpos origin, Convert::cartpos point)
         {X_lvlh_x_unit, Y_lvlh_x_unit, Z_lvlh_x_unit},
         {X_lvlh_y_unit, Y_lvlh_y_unit, Z_lvlh_y_unit},
         {X_lvlh_z_unit, Y_lvlh_z_unit, Z_lvlh_z_unit}
-    );
+        );
     // Basis transformations
     // Solves x for Ax = b, which in this case would just be x = A'b
     A = rm_transpose(A);
@@ -3757,19 +3889,19 @@ Convert::cartpos eci2hill(const Convert::cartpos& tgteci, const Convert::cartpos
 
     //  find rotation matrix to go from rsw to SEZ of interceptor
     rmatrix rotrswtoSEZ(
-    {
-        sinphiint * coslambdaint, // rotrswtoSEZ(1,1) = sinphiint * coslambdaint;
-        sinphiint * sinlambdaint, // rotrswtoSEZ(1,2) = sinphiint * sinlambdaint;
-        -cosphiint                // rotrswtoSEZ(1,3) = -cosphiint;
-    },{
-        -sinlambdaint,            // rotrswtoSEZ(2,1) = -sinlambdaint;
-        coslambdaint,             // rotrswtoSEZ(2,2) = coslambdaint;
-        0.0                       // rotrswtoSEZ(2,3) = 0.0;
-    },{
-        cosphiint * coslambdaint, // rotrswtoSEZ(3,1) = cosphiint * coslambdaint;
-        cosphiint * sinlambdaint, // rotrswtoSEZ(3,2) = cosphiint * sinlambdaint;
-        sinphiint                 // rotrswtoSEZ(3,3) = sinphiint;
-    });
+        {
+            sinphiint * coslambdaint, // rotrswtoSEZ(1,1) = sinphiint * coslambdaint;
+            sinphiint * sinlambdaint, // rotrswtoSEZ(1,2) = sinphiint * sinlambdaint;
+            -cosphiint                // rotrswtoSEZ(1,3) = -cosphiint;
+        },{
+            -sinlambdaint,            // rotrswtoSEZ(2,1) = -sinlambdaint;
+            coslambdaint,             // rotrswtoSEZ(2,2) = coslambdaint;
+            0.0                       // rotrswtoSEZ(2,3) = 0.0;
+        },{
+            cosphiint * coslambdaint, // rotrswtoSEZ(3,1) = cosphiint * coslambdaint;
+            cosphiint * sinlambdaint, // rotrswtoSEZ(3,2) = cosphiint * sinlambdaint;
+            sinphiint                 // rotrswtoSEZ(3,3) = sinphiint;
+        });
     //  find velocity component positions by using angular rates in SEZ frame
     rvector vintSEZ = rv_mmult(rotrswtoSEZ, intrsw.v);          // vintSEZ      = matvecmult( rotrswtoSEZ, vintrsw, 3);
     double phidotint = -vintSEZ.col[0]/magrint;                 // phidotint    = -vintSEZ(1)/magrint;
@@ -3779,39 +3911,12 @@ Convert::cartpos eci2hill(const Convert::cartpos& tgteci, const Convert::cartpos
     inthill.v.col[1] = magrtgt * (lambdadotint - lambdadottgt); // vhill(2) = magrtgt * (lambdadotint - lambdadottgt);
     inthill.v.col[2] = magrtgt * phidotint;                     // vhill(3) = magrtgt * phidotint;
 
-    // Swap around to match COSMOS's definition of the axises
-    std::swap(inthill.s.col[0], inthill.s.col[2]);
-    std::swap(inthill.s.col[0], inthill.s.col[1]);
-    std::swap(inthill.v.col[0], inthill.v.col[2]);
-    std::swap(inthill.v.col[0], inthill.v.col[1]);
-    inthill.s.col[1] *= -1;
-    inthill.s.col[2] *= -1;
-    inthill.v.col[1] *= -1;
-    inthill.v.col[2] *= -1;
-
     return inthill;
 }
 
 Convert::cartpos hill2eci (const Convert::cartpos& tgteci, const Convert::cartpos& inthill, bool relative_accel)
 {
-    // Swap around to match this derivation's definition of the axises,
-    // which defines the HILL frame with basis vectors:
-    // 0: Radial vector (i.e., reverse-nadir) of target
-    // 1: Normal to orbital plane in direction of velocity of target
-    // 2: Cross-product
     Convert::cartpos hill = inthill;
-    hill.s.col[1] *= -1;
-    hill.s.col[2] *= -1;
-    hill.v.col[1] *= -1;
-    hill.v.col[2] *= -1;
-    hill.a.col[1] *= -1;
-    hill.a.col[2] *= -1;
-    std::swap(hill.s.col[0], hill.s.col[1]);
-    std::swap(hill.s.col[0], hill.s.col[2]);
-    std::swap(hill.v.col[0], hill.v.col[1]);
-    std::swap(hill.v.col[0], hill.v.col[2]);
-    std::swap(hill.a.col[0], hill.a.col[1]);
-    std::swap(hill.a.col[0], hill.a.col[2]);
 
 
     // RSW basis vectors and rotation matrix
@@ -3843,19 +3948,19 @@ Convert::cartpos hill2eci (const Convert::cartpos& tgteci, const Convert::cartpo
 
     //  find rotation matrix to go from SEZ of interceptor to RSW of target
     rmatrix rotSEZtoRSW(
-    {
-        sinphiint * coslambdaint, // rotrswtoSEZ(1,1) = sinphiint * coslambdaint;
-        -sinlambdaint,            // rotrswtoSEZ(2,1) = -sinlambdaint;
-        cosphiint * coslambdaint  // rotrswtoSEZ(3,1) = cosphiint * coslambdaint;
-    },{
-        sinphiint * sinlambdaint, // rotrswtoSEZ(1,2) = sinphiint * sinlambdaint;
-        coslambdaint,             // rotrswtoSEZ(2,2) = coslambdaint;
-        cosphiint * sinlambdaint  // rotrswtoSEZ(3,2) = cosphiint * sinlambdaint;
-    },{
-        -cosphiint,               // rotrswtoSEZ(1,3) = -cosphiint;
-        0.0,                      // rotrswtoSEZ(2,3) = 0.0;
-        sinphiint                 // rotrswtoSEZ(3,3) = sinphiint;
-    });
+        {
+            sinphiint * coslambdaint, // rotrswtoSEZ(1,1) = sinphiint * coslambdaint;
+            -sinlambdaint,            // rotrswtoSEZ(2,1) = -sinlambdaint;
+            cosphiint * coslambdaint  // rotrswtoSEZ(3,1) = cosphiint * coslambdaint;
+        },{
+            sinphiint * sinlambdaint, // rotrswtoSEZ(1,2) = sinphiint * sinlambdaint;
+            coslambdaint,             // rotrswtoSEZ(2,2) = coslambdaint;
+            cosphiint * sinlambdaint  // rotrswtoSEZ(3,2) = cosphiint * sinlambdaint;
+        },{
+            -cosphiint,               // rotrswtoSEZ(1,3) = -cosphiint;
+            0.0,                      // rotrswtoSEZ(2,3) = 0.0;
+            sinphiint                 // rotrswtoSEZ(3,3) = sinphiint;
+        });
 
     // find acceleration component positions by using angular rates in SEZ frame
     double rdotdotint = hill.a.col[0];
@@ -4195,6 +4300,69 @@ int32_t topo2azel(Vector tpos, float &az, float &el)
     az = static_cast<float>(atan2(tpos[0], tpos[1]));
     el = static_cast<float>(atan2(tpos[2], sqrt(tpos[0] * tpos[0] + tpos[1] * tpos[1])));
     return 0;
+}
+
+//! Radius of Earth
+//! Calculate the radius of the Earth at given latitude due to oblateness
+//! \param lat Latitude in radians
+//! \return Radius in meters or 0.
+double Rearth(double lat)
+{
+    double st,ct;
+    double c;
+
+    st = sin(lat);
+    ct = cos(lat);
+    c = sqrt(((FRATIO2 * FRATIO2 * st * st) + (ct * ct))/((ct * ct) + (FRATIO2 * st * st)));
+    return (REARTHM * c);
+}
+
+//! Satellite to Geocentric position
+//! Calculate the Geocentric intersection of a satellite vector given satellite attitude.
+//! \param sat rvector in satellite body frame
+//! \param loc locstruc representing satellites position and attitude
+//! \param pos rvector representing geocentric point of instersection
+//! \return Distance to position or 0
+int32_t sat2geoc(rvector sat, locstruc& loc, rvector &pos)
+{
+    rvector tpos = rv_normal(drotate(loc.att.geoc.s, sat));
+    double angle = sep_rv(tpos, -loc.pos.geoc.s);
+    double c1a = cos(angle);
+    double c2a = c1a * c1a;
+    double h = loc.pos.geod.s.h;
+    double h2 = h * h;
+    locstruc tloc;
+    tloc.pos.geoc.utc = loc.utc;
+    tloc.pos.geoc = loc.pos.geoc;
+    pos_geoc2geod(tloc);
+    pos = tloc.pos.geoc.s;
+    double r1 = Rearth(tloc.pos.geod.s.lat);
+    double r2;
+    double r1m;
+    do
+    {
+        tloc.pos.geoc.s = pos;
+        pos_geoc2geod(tloc);
+        r2 = Rearth(tloc.pos.geod.s.lat);
+        double t1 = (r1 * r1 + 2 * r1 * h + h2) * c2a;
+        double t2 = ((r1 * r1 - r2 * r2) + 2 * r1 * h + h2);
+        if (t1 >= t2)
+        {
+            r1m = (r1 + h) * c1a - sqrt(t1 - t2);
+            // Adjust for relative curvature of earth
+            pos = tpos * r1m;
+            pos = pos + loc.pos.geoc.s;
+//            pos_geoc2geod(tloc);
+//            double rt = Rearth(tloc.pos.geod.s.lat);
+//            pos = tpos * (r1m - 3. * (rt -r) * sin(angle));
+//            pos = pos + loc.pos.geoc.s;
+        }
+        else
+        {
+            return 0;
+        }
+    } while (length_rv(tloc.pos.geoc.s-pos) > 10.);
+    return (length_rv(loc.pos.geoc.s-pos));
 }
 
 //! Geodetic to Separation
@@ -4775,35 +4943,37 @@ int32_t eci2tle(cartpos eci, tlestruc &tle)
          */
 int32_t eci2tle2(cartpos eci, tlestruc &tle)
 {
+    cartpos ecinew = eci;
+
     // ICRF to Mean of Data (undo Precession)
     rmatrix bm;
     gcrf2j2000(&bm);
-    eci.s = rv_mmult(bm,eci.s);
-    eci.v = rv_mmult(bm,eci.v);
+    ecinew.s = rv_mmult(bm,ecinew.s);
+    ecinew.v = rv_mmult(bm,ecinew.v);
 
     rmatrix pm;
-    j20002mean(eci.utc,&pm);
-    eci.s = rv_mmult(pm,eci.s);
-    eci.v = rv_mmult(pm,eci.v);
+    j20002mean(ecinew.utc,&pm);
+    ecinew.s = rv_mmult(pm,ecinew.s);
+    ecinew.v = rv_mmult(pm,ecinew.v);
 
     // Mean of Date to True of Date (undo Nutation)
     rmatrix nm;
-    mean2true(eci.utc,&nm);
-    eci.s = rv_mmult(nm,eci.s);
-    eci.v = rv_mmult(nm,eci.v);
+    mean2true(ecinew.utc,&nm);
+    ecinew.s = rv_mmult(nm,ecinew.s);
+    ecinew.v = rv_mmult(nm,ecinew.v);
 
     // True of Date to Uniform of Date (undo Equation of Equinoxes)
     rmatrix sm;
-    true2teme(eci.utc, &sm);
-    eci.s = rv_mmult(sm,eci.s);
-    eci.v = rv_mmult(sm,eci.v);
+    true2teme(ecinew.utc, &sm);
+    ecinew.s = rv_mmult(sm,ecinew.s);
+    ecinew.v = rv_mmult(sm,ecinew.v);
 
     // Convert to Keplerian Elements
     kepstruc kep;
     eci2kep(eci, kep);
 
     // Store in relevant parts of TLE
-    tle.bstar = .0001;
+    tle.bstar = 0.001;
     tle.orbit = 0;
     tle.ap = kep.ap;
     tle.e = kep.e;
@@ -4812,300 +4982,221 @@ int32_t eci2tle2(cartpos eci, tlestruc &tle)
     tle.mm = kep.mm;
     tle.dmm = kep.dmm * D2PI / (86400. * 86400.);
     tle.raan = kep.raan;
-    tle.utc = eci.utc;
-//    eci2tle(eci, tle);
-//    tle.bstar = .0001;
-    cartpos ecinew;
-//    tle2eci(eci.utc, tle, ecinew);
-    tlestruc tlenew;
-    tlenew = tle;
-    double errornew;
+    tle.utc = ecinew.utc;
+    cartpos ecinewp;
+    cartpos ecinewm;
+    tlestruc tlep;
+    tlestruc tlem;
+    double errorp;
+    double errorm;
     double error;
 
     double scale = .01;
-//    tle2eci(eci.utc, tle, ecinew);
-//    error = length_rv(ecinew.s-eci.s);
-    bool improved = false;
     size_t count = 0;
+
+    tle2eci(ecinew.utc, tle, ecinew);
+    error = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
+
+
+    scale = 0.01;
+    tlep = tle;
+    tlem = tle;
     do
     {
-        tle2eci(eci.utc, tlenew, ecinew);
-        error = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-        improved = false;
-
-        tlenew.bstar = (1.+scale) * tle.bstar;
-        tle2eci(eci.utc, tlenew, ecinew);
-        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-        if (error - errornew > scale)
+        tlep.ap = (1.+scale) * tle.ap;
+        tle2eci(eci.utc, tlep, ecinewp);
+        errorp = length_rv(ecinewp.s-eci.s) / length_rv(eci.s) + length_rv(ecinewp.v-eci.v) / length_rv(eci.v);
+        tlem.ap = (1.-scale) * tle.ap;
+        tle2eci(eci.utc, tlem, ecinewm);
+        errorm = length_rv(ecinewm.s-eci.s) / length_rv(eci.s) + length_rv(ecinewm.v-eci.v) / length_rv(eci.v);
+        if (error > errorp || error > errorm)
         {
-            improved = true;
-            error = errornew;
-            tlenew.bstar = (1.-scale) * tle.bstar;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
+            if (errorp < errorm)
             {
-                error = errornew;
-                tle.bstar = tlenew.bstar;
+                error = errorp;
+                tle.ap = tlep.ap;
+                ecinew = ecinewp;
             }
             else
             {
-                tlenew.bstar = (1.+scale) * tle.bstar;
-                tle.bstar = tlenew.bstar;
+                error = errorm;
+                tle.ap = tlem.ap;
+                ecinew = ecinewm;
             }
         }
         else
         {
-            tlenew.bstar = (1.-scale) * tle.bstar;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
-            {
-                improved = true;
-                error = errornew;
-                tle.bstar = tlenew.bstar;
-            }
-            else
-            {
-                tlenew.bstar = tle.bstar;
-            }
+            scale /= 2.;
         }
+    }
+    while (scale > 1e-8);
 
-        tlenew.ap = (1.+scale) * tle.ap;
-        tle2eci(eci.utc, tlenew, ecinew);
-        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-        if (error - errornew > scale)
+    scale = 0.01;
+    tlep = tle;
+    tlem = tle;
+    do
+    {
+        tlep.e = (1.+scale) * tle.e;
+        tle2eci(eci.utc, tlep, ecinewp);
+        errorp = length_rv(ecinewp.s-eci.s) / length_rv(eci.s) + length_rv(ecinewp.v-eci.v) / length_rv(eci.v);
+        tlem.e = (1.-scale) * tle.e;
+        tle2eci(eci.utc, tlem, ecinewm);
+        errorm = length_rv(ecinewm.s-eci.s) / length_rv(eci.s) + length_rv(ecinewm.v-eci.v) / length_rv(eci.v);
+        if (error > errorp || error > errorm)
         {
-            improved = true;
-            error = errornew;
-            tlenew.ap = (1.-scale) * tle.ap;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
+            if (errorp < errorm)
             {
-                error = errornew;
-                tle.ap = tlenew.ap;
+                error = errorp;
+                tle.e = tlep.e;
+                ecinew = ecinewp;
             }
             else
             {
-                tlenew.ap = (1.+scale) * tle.ap;
-                tle.ap = tlenew.ap;
+                error = errorm;
+                tle.e = tlem.e;
+                ecinew = ecinewm;
             }
         }
         else
         {
-            tlenew.ap = (1.-scale) * tle.ap;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
-            {
-                improved = true;
-                error = errornew;
-                tle.ap = tlenew.ap;
-            }
-            else
-            {
-                tlenew.ap = tle.ap;
-            }
+            scale /= 2.;
         }
+    }
+    while (scale > 1e-8);
 
-       tlenew.e = (1.+scale) * tle.e;
-        tle2eci(eci.utc, tlenew, ecinew);
-        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-        if (error - errornew > scale)
+    scale = 0.01;
+    tlep = tle;
+    tlem = tle;
+    do
+    {
+        tlep.i = (1.+scale) * tle.i;
+        tle2eci(eci.utc, tlep, ecinewp);
+        errorp = length_rv(ecinewp.s-eci.s) / length_rv(eci.s) + length_rv(ecinewp.v-eci.v) / length_rv(eci.v);
+        tlem.i = (1.-scale) * tle.i;
+        tle2eci(eci.utc, tlem, ecinewm);
+        errorm = length_rv(ecinewm.s-eci.s) / length_rv(eci.s) + length_rv(ecinewm.v-eci.v) / length_rv(eci.v);
+        if (error > errorp || error > errorm)
         {
-            improved = true;
-            error = errornew;
-            tlenew.e = (1.-scale) * tle.e;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
+            if (errorp < errorm)
             {
-                error = errornew;
-                tle.e = tlenew.e;
+                error = errorp;
+                tle.i = tlep.i;
+                ecinew = ecinewp;
             }
             else
             {
-                tlenew.e = (1.+scale) * tle.e;
-                tle.e = tlenew.e;
+                error = errorm;
+                tle.i = tlem.i;
+                ecinew = ecinewm;
             }
         }
         else
         {
-            tlenew.e = (1.-scale) * tle.e;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
-            {
-                improved = true;
-                error = errornew;
-                tle.e = tlenew.e;
-            }
-            else
-            {
-                tlenew.e = tle.e;
-            }
+            scale /= 2.;
         }
+    }
+    while (scale > 1e-8);
 
-        tlenew.i = (1.+scale) * tle.i;
-        tle2eci(eci.utc, tlenew, ecinew);
-        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-        if (error - errornew > scale)
+    scale = 0.01;
+    tlep = tle;
+    tlem = tle;
+    do
+    {
+        tlep.mm = (1.+scale) * tle.mm;
+        tle2eci(eci.utc, tlep, ecinewp);
+        errorp = length_rv(ecinewp.s-eci.s) / length_rv(eci.s) + length_rv(ecinewp.v-eci.v) / length_rv(eci.v);
+        tlem.mm = (1.-scale) * tle.mm;
+        tle2eci(eci.utc, tlem, ecinewm);
+        errorm = length_rv(ecinewm.s-eci.s) / length_rv(eci.s) + length_rv(ecinewm.v-eci.v) / length_rv(eci.v);
+        if (error > errorp || error > errorm)
         {
-            improved = true;
-            error = errornew;
-            tlenew.i = (1.-scale) * tle.i;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
+            if (errorp < errorm)
             {
-                error = errornew;
-                tle.i = tlenew.i;
+                error = errorp;
+                tle.mm = tlep.mm;
+                ecinew = ecinewp;
             }
             else
             {
-                tlenew.i = (1.+scale) * tle.i;
-                tle.i = tlenew.i;
+                error = errorm;
+                tle.mm = tlem.mm;
+                ecinew = ecinewm;
             }
         }
         else
         {
-            tlenew.i = (1.-scale) * tle.i;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
-            {
-                improved = true;
-                error = errornew;
-                tle.i = tlenew.i;
-            }
-            else
-            {
-                tlenew.i = tle.i;
-            }
+            scale /= 2.;
         }
+    }
+    while (scale > 1e-8);
 
-        tlenew.mm = (1.+scale) * tle.mm;
-        tle2eci(eci.utc, tlenew, ecinew);
-        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-        if (error - errornew > scale)
+    scale = 0.01;
+    tlep = tle;
+    tlem = tle;
+    do
+    {
+        tlep.ma = (1.+scale) * tle.ma;
+        tle2eci(eci.utc, tlep, ecinewp);
+        errorp = length_rv(ecinewp.s-eci.s) / length_rv(eci.s) + length_rv(ecinewp.v-eci.v) / length_rv(eci.v);
+        tlem.ma = (1.-scale) * tle.ma;
+        tle2eci(eci.utc, tlem, ecinewm);
+        errorm = length_rv(ecinewm.s-eci.s) / length_rv(eci.s) + length_rv(ecinewm.v-eci.v) / length_rv(eci.v);
+        if (error > errorp || error > errorm)
         {
-            improved = true;
-            error = errornew;
-            tlenew.mm = (1.-scale) * tle.mm;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
+            if (errorp < errorm)
             {
-                error = errornew;
-                tle.mm = tlenew.mm;
+                error = errorp;
+                tle.ma = tlep.ma;
+                ecinew = ecinewp;
             }
             else
             {
-                tlenew.mm = (1.+scale) * tle.mm;
-                tle.mm = tlenew.mm;
+                error = errorm;
+                tle.ma = tlem.ma;
+                ecinew = ecinewm;
             }
         }
         else
         {
-            tlenew.mm = (1.-scale) * tle.mm;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
-            {
-                improved = true;
-                error = errornew;
-                tle.mm = tlenew.mm;
-            }
-            else
-            {
-                tlenew.mm = tle.mm;
-            }
+            scale /= 2.;
         }
+    }
+    while (scale > 1e-8);
 
-        tlenew.ma = (1.+scale) * tle.ma;
-        tle2eci(eci.utc, tlenew, ecinew);
-        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-        if (error - errornew > scale)
+    scale = 0.01;
+    tlep = tle;
+    tlem = tle;
+    do
+    {
+        tlep.raan = (1.+scale) * tle.raan;
+        tle2eci(eci.utc, tlep, ecinewp);
+        errorp = length_rv(ecinewp.s-eci.s) / length_rv(eci.s) + length_rv(ecinewp.v-eci.v) / length_rv(eci.v);
+        tlem.raan = (1.-scale) * tle.raan;
+        tle2eci(eci.utc, tlem, ecinewm);
+        errorm = length_rv(ecinewm.s-eci.s) / length_rv(eci.s) + length_rv(ecinewm.v-eci.v) / length_rv(eci.v);
+        if (error > errorp || error > errorm)
         {
-            improved = true;
-            error = errornew;
-            tlenew.ma = (1.-scale) * tle.ma;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
+            if (errorp < errorm)
             {
-                error = errornew;
-                tle.ma = tlenew.ma;
+                error = errorp;
+                tle.raan = tlep.raan;
+                ecinew = ecinewp;
             }
             else
             {
-                tlenew.ma = (1.+scale) * tle.ma;
-                tle.ma = tlenew.ma;
+                error = errorm;
+                tle.raan = tlem.raan;
+                ecinew = ecinewm;
             }
         }
         else
         {
-            tlenew.ma = (1.-scale) * tle.ma;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
-            {
-                improved = true;
-                error = errornew;
-                tle.ma = tlenew.ma;
-            }
-            else
-            {
-                tlenew.ma = tle.ma;
-            }
+            scale /= 2.;
         }
+    }
+    while (scale > 1e-8);
 
-        tlenew.raan = (1.+scale) * tle.raan;
-        tle2eci(eci.utc, tlenew, ecinew);
-        errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-        if (error - errornew > scale)
-        {
-            improved = true;
-            error = errornew;
-            tlenew.raan = (1.-scale) * tle.raan;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
-            {
-                error = errornew;
-                tle.raan = tlenew.raan;
-            }
-            else
-            {
-                tlenew.raan = (1.+scale) * tle.raan;
-                tle.raan = tlenew.raan;
-            }
-        }
-        else
-        {
-            tlenew.raan = (1.-scale) * tle.raan;
-            tle2eci(eci.utc, tlenew, ecinew);
-            errornew = length_rv(ecinew.s-eci.s) / length_rv(eci.s) + length_rv(ecinew.v-eci.v) / length_rv(eci.v);
-            if (error - errornew > scale)
-            {
-                improved = true;
-                error = errornew;
-                tle.raan = tlenew.raan;
-            }
-            else
-            {
-                tlenew.raan = tle.raan;
-            }
-        }
-        ++count;
-
-        if (!improved)
-        {
-            scale /= 10.;
-            count = 0;
-        }
-    } while (scale > .000001);
+    ++count;
 
     return 0;
 }
@@ -5876,8 +5967,8 @@ string eci2tlestring(cartpos eci, tlestruc &reftle)
 
 string tle2tlestring(tlestruc reftle)
 {
-//    string line_1(69, ' ');
-//    string line_2(69, ' ');
+    //    string line_1(69, ' ');
+    //    string line_2(69, ' ');
     string line_1;
     string line_2;
 
@@ -6600,5 +6691,94 @@ double gps2utc(double gps)
     return (utc);
 }
 
+
+// Create Swarm Info object (JSON)
+json11::Json    make_swarm_information_object(const string& name, const string& desc, const vector<string>& node_names) {
+    json11::Json swarm_info;
+    json11::Json::array names;
+
+    for(size_t i = 0; i < node_names.size(); ++i)   {
+        names.push_back(node_names[i]);
+    }
+    swarm_info+=json11::Json::object{{"name", name},{"desc", desc}};
+    swarm_info+=json11::Json::object{{"node_names", names }}; // obs need to fill the array from node_names
+    swarm_info+=json11::Json::object{{"number_of_nodes", static_cast<int>(names.size())}};
+
+    return json11::Json::object{{ "Swarm Information", swarm_info }};
 }
+
+// Make Sensor Info object (JSON)
+json11::Json make_sensor_information_object(const string& sensor_name, const double& fov, const double& ifov)   {
+    return json11::Json::object{{
+        sensor_name, json11::Json::object{{
+            { "fov", fov },
+            { "ifov", ifov }
+        }}
+    }};
 }
+
+
+// Make Constraints Info object (JSON)
+json11::Json make_constraints_information_object(const double& max_slew_rate, const double& max_thrust_total, const double& max_thrust_impulse)   {
+    //return json11::Json::object{{
+        //"constraints", json11::Json::object{{
+            //{ "max_slew_rate", max_slew_rate },
+            //{ "max_thrust_total", max_thrust_total },
+            //{ "max_thrust_impulse", max_thrust_impulse }
+        //}}
+    //}};
+    return json11::Json::object{{
+            { "max_slew_rate", max_slew_rate },
+            { "max_thrust_total", max_thrust_total },
+            { "max_thrust_impulse", max_thrust_impulse }
+    }};
+}
+
+// Make TLE Info object (JSON)
+json11::Json    make_tle_information_object(const string& tle_file)  {
+    json11::Json tle_info;
+    tlestruc tle_tlestruc;
+    sgp4struc tle_sgp4struc;
+    string tle_string;
+
+    // the tlestruc is what gets used in the simulation
+    ifstream file(tle_file);
+    if(file.good()) {
+        // make tlestruc from file
+        load_tle(tle_file, tle_tlestruc); // check return value
+        // make sgp4struc from tlestruc
+        tle2sgp4(tle_tlestruc, tle_sgp4struc);
+        // make tlestring from tlestruc
+        tle_string = tle2tlestring(tle_tlestruc);
+    } else {
+        tle_string = "unable to load tle file <" + tle_file + ">";
+    }
+    tle_info+=json11::Json::object{{"tle_file", tle_file}};
+    tle_info+=json11::Json::object{{"tle_string", tle_string}};
+    tle_info+=json11::Json::object{{"tlestruc", tle_tlestruc}};
+    tle_info+=json11::Json::object{{"sgp4struc", tle_sgp4struc}};
+    return tle_info;
+}
+
+// Create Node Info object (JSON)
+json11::Json make_node_information_object(json11::Json swarm_info_obj)  {
+    json11::Json node_info;
+
+    vector<string> names = json11::find_json_value<vector<string>>(swarm_info_obj, "node_names");
+    for(size_t i = 0; i < names.size(); ++i)    {
+        node_info+=json11::Json::object{{ names[i],
+            json11::Json::object{
+                {"constraints", make_constraints_information_object() },
+                {"sensors", json11::Json::array() },
+                {"type", json11::Json() },
+                {"tle", Cosmos::Convert::make_tle_information_object() }
+            }
+        }};
+    }
+
+    return json11::Json::object{{ "Node Information", node_info }};
+}
+
+
+} // end namespace Convert
+} // end namespace Cosmos

@@ -91,12 +91,12 @@ string to_signed(ptrdiff_t value, uint16_t digits=0, bool zerofill=false);
 
 string to_fixed(double value, uint16_t digits, uint16_t precision=0, bool zerofill=false);
 //string to_fixed(double value, uint16_t digits, uint16_t precision=0, bool zerofill=false);
-string to_floating(float value, uint16_t precision=0);
-string to_floating(double value, uint16_t precision=0);
-string to_floatexp(float value, uint16_t precision=0);
-string to_floatexp(double value, uint16_t precision=0);
-string to_floatany(float value, uint16_t precision=0);
-string to_floatany(double value, uint16_t precision=0);
+string to_floating(float value, int16_t precision=-1);
+string to_floating(double value, int16_t precision=-1);
+string to_floatexp(float value, int16_t precision=-1);
+string to_floatexp(double value, int16_t precision=-1);
+string to_floatany(float value, int16_t precision=-1);
+string to_floatany(double value, int16_t precision=-1);
 string to_mjd(double value);
 string to_temperature(double value, char units='K', uint8_t precision=4);
 string to_angle(double value, char units='R', uint8_t precision=4);

@@ -36,6 +36,7 @@
 #include "support/timelib.h"
 #include "physics/nrlmsise-00.h"
 #include "support/datalib.h"
+#include "support/demlib.h"
 using namespace Cosmos::Convert;
 
 
@@ -96,9 +97,12 @@ namespace Cosmos
             int32_t add_hex(double width=30, double height=30, ExternalPanelType type=NoPanel);
             int32_t add_oct(double width=30, double height=30, ExternalPanelType type=NoPanel);
             int32_t add_u(double x=1, double y=1, double z=1, ExternalPanelType type=NoPanel);
-            int32_t add_cuboid(string name, Vector size, double depth, Quaternion orientation, Vector offset);
-            int32_t add_face(string name, Vector point0, Vector point1, Vector point2, Vector point3, double depth, uint8_t external=1, float pcell=.85, Quaternion orientation=Math::Quaternions::eye(), Vector offset=Vector());
-            int32_t add_face(string name, Vector size, Quaternion orientation, Vector offset);
+//            int32_t add_cuboid(string name, Vector dimensions, double depth, Quaternion orientation, Vector offset);
+            int32_t add_panel(string name, Vector point0, Vector point1, Vector point2, Vector point3, double thickness=0.01, uint8_t external=1, float pcell=0.85, Quaternion orientation=Math::Quaternions::eye(), Vector offset=Vector(), float density=2700.);
+            int32_t add_panel(string name, vector<Vector> points, double thickness=0.01, uint8_t external=1, float pcell=0.85, Quaternion orientation=Math::Quaternions::eye(), Vector offset=Vector(), float density=2700.);
+            int32_t add_face(Vector point0, Vector point1, Vector point2, Vector point3, double thickness=0.01, uint8_t external=1, float pcell=0.85, Quaternion orientation=Math::Quaternions::eye(), Vector offset=Vector());
+            int32_t add_face(vector<Vector> points, double thickness=0.01, uint8_t external=1, float pcell=0.85, Quaternion orientation=Math::Quaternions::eye(), Vector offset=Vector());
+            int32_t add_face(Vector dimensions, uint8_t external=1, float pcell=0.85, Quaternion orientation=Math::Quaternions::eye(), Vector offset=Vector());
             int32_t add_triangle(Vector pointa, Vector pointb, Vector pointc, double depth, bool external=true, float pcell=.85);
             int32_t add_vertex(Vector point);
 
@@ -143,6 +147,7 @@ namespace Cosmos
                 AttitudeGeo = 23,
                 AttitudeSolar = 24,
                 AttitudeTarget = 25,
+                AttitudeRequest = 26,
                 Thermal = 30,
                 Electrical = 40,
                 OrbitalEvent = 50,
@@ -245,8 +250,6 @@ namespace Cosmos
 
             struct gjstruc
             {
-                vector <double> a;
-                vector <double> b;
                 rvector s;
                 rvector ss;
                 rvector sa;
@@ -255,6 +258,8 @@ namespace Cosmos
                 locstruc loc;
             };
 
+            vector<vector <double>> a;
+            vector<vector <double>> b;
             vector< vector<int32_t> > binom;
             vector<double> c;
             vector<double> gam;
@@ -382,6 +387,23 @@ namespace Cosmos
             Vector optimum{0.,0.,1.};
         };
 
+        class RequestAttitudePropagator : public Propagator
+        {
+        public:
+            RequestAttitudePropagator(cosmosstruc *newinfo, double idt)
+                : Propagator{ newinfo, idt }
+            {
+                type = AttitudeRequest;
+            }
+
+            int32_t Init();
+            int32_t Propagate(double nextutc=0.);
+            int32_t Reset(double nextutc=0.);
+
+        private:
+            Vector optimum{0.,0.,1.};
+        };
+
         class ThermalPropagator : public Propagator
         {
         public:
@@ -435,6 +457,23 @@ namespace Cosmos
             int32_t Reset();
             int32_t End();
         private:
+            bool in_land = false;
+            bool in_umbra = false;
+            bool in_gs = false;
+            bool in_targ = false;
+            double time_start = 0.;
+            double time_end = 0.;
+            ElapsedTime time_alarm;
+            //! Track when a land region starts
+            double land_start = 0.;
+            //! Track lat crossings
+            int8_t lat_direction = 0;
+            double alat_start = 0.;
+            double dlat_start = 0.;
+            double lastlat = 0.;
+            double minlat_start = 0.;
+            double maxlat = 0.;
+            double minlat = 0.;
             //! Track when an umbra region starts
             double umbra_start = 0.;
 //            //! Reference to target list in cosmosstruc
@@ -455,21 +494,25 @@ namespace Cosmos
             //! Tracks Acquisition of Signal events for each groundstation
             map<string, target_aos_set> gs_AoS;
             //! Tracks Acquisition of Sight events for each target. Targets track only DEG0
-            map<string, aos_pair> target_AoS;
+            map<string, targetstruc> target_AoS;
 
+            int32_t check_all_event(bool force_end);
+            int32_t check_lat_event(bool force_end, float lat=0.0);
             //! Checks for Umbra enter/exit event
             //! \param final If true, forces end of event if active
-            void check_umbra_event(bool force_end);
+            int32_t check_umbra_event(bool force_end);
             //! Iterates over targets, then calls gs or target function depending on the type
-            void check_target_events(bool force_end);
+            int32_t check_target_events(bool force_end);
+            int32_t check_land_event(bool force_end);
+            int32_t check_time_event(bool force_end);
             //! Checks for groundstation AoS/LoS events
             //! \param gs Reference to groundstation to check
             //! \param final If true, forces end of event if active
-            void check_gs_aos_event(const targetstruc& gs, bool force_end);
+            int32_t check_gs_aos_event(const targetstruc& gs, bool force_end);
             //! Checks for target AoS/LoS events
             //! \param target Reference to target to check
             //! \param final If true, forces end of event if active
-            void check_target_aos_event(const targetstruc& target, bool force_end);
+            int32_t check_target_event(const targetstruc& target, bool force_end);
         };
 
         class MetricGenerator : public Propagator
@@ -522,6 +565,9 @@ namespace Cosmos
 
 
             cosmosstruc currentinfo;
+//            uint16_t targetidx = -1;
+
+            string sohstring;
 
             locstruc initialloc;
 
@@ -547,6 +593,7 @@ namespace Cosmos
             GeoAttitudePropagator *geoattitude;
             SolarAttitudePropagator *solarattitude;
             TargetAttitudePropagator *targetattitude;
+            RequestAttitudePropagator *requestattitude;
 
             Propagator::Type ttype;
             ThermalPropagator *thermal;
@@ -570,17 +617,13 @@ namespace Cosmos
             int32_t Propagate(locstruc& nextloc);
             //! Propagates simulated physical state to the next timestep
             //! Runs any code that the propagators need to run at the end of a simulation run
+            int32_t Update();
             int32_t End();
             int32_t Reset(double nextutc=0.);
-//            int32_t AddTarget(string name, locstruc loc, NODE_TYPE type=NODE_TYPE_GROUNDSTATION, gvector size={0.,0.,0.});
-//            int32_t AddTarget(string name, locstruc loc, NODE_TYPE type=NODE_TYPE_GROUNDSTATION, double area=0.);
-//            int32_t AddTarget(string name, double lat, double lon, double alt, NODE_TYPE type=NODE_TYPE_GROUNDSTATION);
-//            int32_t AddTarget(string name, double lat, double lon, double area, double alt, NODE_TYPE type=NODE_TYPE_GROUNDSTATION);
-//            int32_t AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, NODE_TYPE type=NODE_TYPE_SQUARE);
         };
 
 
-        double Rearth(double lat);
+//        double Rearth(double lat);
         double Msis00Density(posstruc pos,float f107avg,float f107,float magidx);
         Vector GravityAccel(posstruc pos, uint16_t model, uint32_t degree);
         int32_t GravityParams(int16_t model);
@@ -598,6 +641,7 @@ namespace Cosmos
         locstruc shape2eci(double utc, double altitude, double angle, double timeshift);
         locstruc shape2eci(double utc, double latitude, double longitude, double altitude, double angle, double timeshift);
         int32_t load_loc(string fname, locstruc& loc);
+        Vector ControlAlpha(qatt tatt, qatt catt, double seconds);
         Vector ControlTorque(qatt tatt, qatt catt, Vector moi, double seconds);
         Vector ControlAccel(cartpos cpos, cartpos tpos, double maxaccel, double seconds);
         Vector ControlThrust(cartpos cpos, cartpos tpos, double mass, double maxaccel, double seconds);

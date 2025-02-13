@@ -171,6 +171,9 @@ namespace Cosmos {
             //! pass indicator: allows synchronization with other attitude and position values.
             uint32_t pass = 0;
 
+            cartpos() = default;
+            cartpos(double utc, rvector s, rvector v, rvector a, rvector j, uint32_t pass) : utc(utc), s(s), v(v), a(a), j(j), pass(pass) {}
+
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
         @return	A json11 JSON object containing every member variable within the class
@@ -182,7 +185,7 @@ namespace Cosmos {
                     { "v", v },
                     { "a", a },
                     { "j", j },
-                    { "pass", static_cast<long>(pass) }
+                    { "pass", pass }
                 };
             }
 
@@ -287,7 +290,7 @@ namespace Cosmos {
                     { "s", s },
                     { "v", v },
                     { "a", a },
-                    { "pass", static_cast<long>(pass) }
+                    { "pass", pass }
                 };
             }
 
@@ -348,7 +351,7 @@ namespace Cosmos {
                     { "s", s },
                     { "v", v },
                     { "a", a },
-                    { "pass", static_cast<long>(pass) }
+                    { "pass", pass }
                 };
             }
 
@@ -514,7 +517,7 @@ namespace Cosmos {
                     { "s" , s },
                     { "v" , v },
                     { "a" , a },
-                    { "pass" , static_cast<long>(pass) }
+                    { "pass" , pass }
                 };
             }
 
@@ -627,6 +630,9 @@ namespace Cosmos {
             //! Transform between LVLH and ECI/SCI
             quaternion l2e;
             quaternion e2l;
+            //! Transform between LVLH and GEOC
+            quaternion l2g;
+            quaternion g2l;
             rmatrix l2p;
             rmatrix p2l;
             rmatrix dl2p;
@@ -673,7 +679,7 @@ namespace Cosmos {
 
                     { "sun2earth" , sun2earth },
                     { "sun2moon"  , sun2moon },
-                    { "closest"   , static_cast<long>(closest) }
+                    { "closest"   , closest }
                 };
             }
 
@@ -761,7 +767,7 @@ namespace Cosmos {
                 return json11::Json::object {
                     { "utc" , utc },
                     { "name" , name },
-                    { "snumber" , static_cast<long>(snumber) },
+                    { "snumber" , snumber },
                     { "id" , id },
                     { "bstar" , bstar },
                     { "i" , i },
@@ -772,7 +778,7 @@ namespace Cosmos {
                     { "mm" , mm },
                     { "dmm" , dmm },
                     { "ddmm" , ddmm },
-                    { "orbit" , static_cast<long>(orbit) }
+                    { "orbit" , orbit }
                 };
             }
 
@@ -1100,7 +1106,52 @@ namespace Cosmos {
             double ma;
             // Epoch (year.day)
             double ep = 0.;
+
+
+            /// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+        @return	A json11 JSON object containing every member variable within the class
+    */
+            json11::Json to_json() const {
+                return json11::Json::object {
+                    { "i" , i },
+                    { "e" , e },
+                    { "raan" , raan },
+                    { "ap" , ap },
+                    { "bstar" , bstar },
+                    { "mm" , mm },
+                    { "ma" , ma },
+                    { "ep" , ep }
+                };
+            }
+
+            /// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+        @param  s   JSON-formatted string to set class contents to
+        @return n/a
+    */
+            void from_json(const string& js) {
+                string error;
+                json11::Json parsed = json11::Json::parse(js,error);
+                if(error.empty()) {
+                    if(!parsed["i"].is_null())    i =  parsed["i"].number_value();
+                    if(!parsed["e"].is_null())    e =  parsed["e"].number_value();
+                    if(!parsed["raan"].is_null())    raan =  parsed["raan"].number_value();
+                    if(!parsed["ap"].is_null())    ap =  parsed["ap"].number_value();
+                    if(!parsed["bstar"].is_null())    bstar =  parsed["bstar"].number_value();
+                    if(!parsed["mm"].is_null())    mm =  parsed["mm"].number_value();
+                    if(!parsed["ma"].is_null())    ma =  parsed["ma"].number_value();
+                    if(!parsed["ep"].is_null())    ep =  parsed["ep"].number_value();
+                } else {
+                    cerr<<"ERROR = "<<error<<endl;
+                }
+                return;
+            }
         };
+
+        ::std::ostream& operator << (::std::ostream& out, const sgp4struc& a);
+        ::std::istream& operator >> (::std::istream& in, sgp4struc& a);
+
     }
 }
 

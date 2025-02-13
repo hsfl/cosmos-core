@@ -524,7 +524,7 @@ int32_t parse_sat(string args)
         initialloc.pos.lvlh.v.col[0] = values["vx"].number_value();
         initialloc.pos.lvlh.v.col[1] = values["vy"].number_value();
         initialloc.pos.lvlh.v.col[2] = values["vz"].number_value();
-        ric2lvlh(initialloc.pos.lvlh, initialloc.pos.lvlh);
+        ric2lvlh(length_rv(initialloc.pos.geoc.s), initialloc.pos.lvlh, initialloc.pos.lvlh);
         initialloc.pos.lvlh.pass++;
         pos_origin2lvlh(initialloc);
         eci2tle2(initialloc.pos.eci, initialloc.tle);

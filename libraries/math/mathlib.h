@@ -142,7 +142,7 @@ typedef union
 /*! A union of a ::cvector, ::rvector, ::matrix1d, and a ::quaternion that allows manipulating all.
 */
 // TODO: explain why this union is used for
-typedef union
+union uvector
 {
     quaternion q;
     qcomplex qc;
@@ -155,7 +155,7 @@ typedef union
     matrix1d m1;
     avector a;
     double a4[4];
-} uvector;
+} ;
 
 
 //! pxnxm element cube
@@ -413,6 +413,7 @@ public:
     quaternion jerkquaternion(double x);
     vector < vector <double> > getparms();
     double getbasex();
+    bool is_ready();
 };
 
 

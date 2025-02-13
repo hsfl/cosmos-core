@@ -57,6 +57,7 @@
 #if defined (COSMOS_WIN_OS)
 #include "windows.h"
 #include <tchar.h>
+#include <signal.h>
 #endif
 
 #include <fstream>   // std::ifstream
@@ -79,7 +80,7 @@ public:
     string getHostName();
     double getVirtualMemoryUsed();
     double getVirtualMemoryTotal();
-    pid_t getPidOf(string processName);
+    int32_t getPidOf(string processName);
 };
 
 #endif

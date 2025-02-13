@@ -1,4 +1,7 @@
 #include "packetcomm.h"
+#include "math/constants.h"
+#include "math/bytelib.h"
+
 namespace Cosmos {
     namespace Support {
         PacketComm::PacketComm(uint16_t size)
@@ -11,6 +14,7 @@ namespace Cosmos {
             {
                 data.resize(4);
             }
+            //ByteOrder var = ByteOrder::BIGENDIAN;
             uint32to(decisec(), &data[0], ByteOrder::LITTLEENDIAN);
             RawPacketize();
         }
@@ -145,7 +149,7 @@ namespace Cosmos {
             {
                 return false;
             }
-            return Unwrap(checkcrc);
+            return (Unwrap(checkcrc) >= 0);
         }
 
         bool PacketComm::ASMUnPacketize()
@@ -194,7 +198,7 @@ namespace Cosmos {
             Ax25Handle axhandle;
             axhandle.unstuff(packetized);
             wrapped = axhandle.ax25_packet;
-            return Unwrap(checkcrc);
+            return (Unwrap(checkcrc) >= 0);
         }
 
         bool PacketComm::AX25UnPacketize(bool checkcrc)
@@ -206,7 +210,7 @@ namespace Cosmos {
             if (iretn >= 0)
             {
                 wrapped = axhandle.get_data();
-                return Unwrap(checkcrc);
+                return (Unwrap(checkcrc) >= 0);
             }
             else
             {
