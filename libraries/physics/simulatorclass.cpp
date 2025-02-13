@@ -305,8 +305,11 @@ int32_t Simulator::ParseOrbitString(string args)
         initialloc.pos.eci.v.col[0] = (values["vx"].number_value());
         initialloc.pos.eci.v.col[1] = (values["vy"].number_value());
         initialloc.pos.eci.v.col[2] = (values["vz"].number_value());
+        initialloc.pos.eci.a.col[0] = (values["ax"].number_value());
+        initialloc.pos.eci.a.col[1] = (values["ay"].number_value());
+        initialloc.pos.eci.a.col[2] = (values["az"].number_value());
         initialloc.pos.eci.pass++;
-        initialutc += initialloc.pos.eci.utc;
+        initialutc = initialloc.pos.eci.utc;
         currentutc = initialutc;
         offsetutc = initialutc - currentmjd();
         dt = 86400.*((initialutc + (dt / 86400.))-initialutc);
@@ -546,6 +549,22 @@ int32_t Simulator::ParseSatString(string args)
         satloc.pos.lvlh.pass++;
         pos_origin2lvlh(satloc);
         eci2tle2(satloc.pos.eci, satloc.tle);
+    }
+    if (!jargs["eci"].is_null())
+	{
+        json11::Json::object values = jargs["eci"].object_items();
+        satloc.pos.eci.utc = (values["utc"].number_value());
+        satloc.pos.eci.s.col[0] = (values["x"].number_value());
+        satloc.pos.eci.s.col[1] = (values["y"].number_value());
+        satloc.pos.eci.s.col[2] = (values["z"].number_value());
+        satloc.pos.eci.v.col[0] = (values["vx"].number_value());
+        satloc.pos.eci.v.col[1] = (values["vy"].number_value());
+        satloc.pos.eci.v.col[2] = (values["vz"].number_value());
+        satloc.pos.eci.a.col[0] = (values["ax"].number_value());
+        satloc.pos.eci.a.col[1] = (values["ay"].number_value());
+        satloc.pos.eci.a.col[2] = (values["az"].number_value());
+        satloc.pos.eci.pass++;
+        pos_eci(satloc);
     }
     if (!cnodes.size())
     {
