@@ -415,6 +415,14 @@ struct quaternion
 		d = td;
 		w = tw;
 	}
+    quaternion operator + (const quaternion &q2); // add vector by vector operator
+    quaternion &operator += (const quaternion &v2); // add quaternion by quaternion operator in place
+    quaternion operator - (const quaternion &q2) const; // Subtract vector by vector operator
+    quaternion &operator -= (const quaternion &v2); // add quaternion by quaternion operator in place
+    quaternion operator - () const; // negate quaternion in place
+    quaternion operator * (const double &scale) const; // multiply quaternion by scalar operator
+    quaternion &operator *= (const double &scale); // add quaternion by quaternion operator in place
+    quaternion operator * (const quaternion &q2) const;
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
@@ -861,8 +869,8 @@ namespace Cosmos {
 			// operators
 //            Quaternion &operator = (const Quaternion &q) { return *this; }
 			Quaternion &operator = (const quaternion &q2);
-			Quaternion operator * (const double scale) const; // multiply vector by scalar operator
-			Quaternion &operator *= ( const double scale); // multiply vector by scalar operator in place
+            Quaternion operator * (const double &scale) const; // multiply vector by scalar operator
+            Quaternion &operator *= (const double &scale); // multiply vector by scalar operator in place
 			Quaternion operator * (const Quaternion &q2) const;
 
 //            Quaternion operator / (double scale); // multiply vector by scalar operator
