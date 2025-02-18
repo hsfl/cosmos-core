@@ -12,13 +12,13 @@ int32_t Simulator::Init(double idt, string realm, double iutc)
     initialutc = iutc;
     dt = idt;
     dtj = dt / 86400.;
-//    if (initialutc > 3600.)
-//    {
-//        currentutc = initialutc;
-//        offsetutc = initialutc - currentmjd();
-//        dt = 86400.*((initialutc + (dt / 86400.))-initialutc);
-//        dtj = dt / 86400.;
-//    }
+    //    if (initialutc > 3600.)
+    //    {
+    //        currentutc = initialutc;
+    //        offsetutc = initialutc - currentmjd();
+    //        dt = 86400.*((initialutc + (dt / 86400.))-initialutc);
+    //        dtj = dt / 86400.;
+    //    }
 
     RunState = State::Paused;
     if (server)
@@ -74,7 +74,7 @@ int32_t Simulator::AddTarget(std::string name, locstruc loc, NODE_TYPE type, gve
     targetstruc ttarget;
     ttarget.type = type;
     ttarget.name = name;
-//    ttarget.cloc = loc;
+    //    ttarget.cloc = loc;
     ttarget.area = 0.;
     ttarget.size = size;
     ttarget.loc = loc;
@@ -94,7 +94,7 @@ int32_t Simulator::AddTarget(std::string name, locstruc loc, NODE_TYPE type, dou
     targetstruc ttarget;
     ttarget.type = type;
     ttarget.name = name;
-//    ttarget.cloc = loc;
+    //    ttarget.cloc = loc;
     ttarget.size = gvector();
     ttarget.area  = area;
     ttarget.loc = loc;
@@ -255,7 +255,7 @@ int32_t Simulator::ParseOrbitString(string args)
             fastcalc = false;
         }
     }
-	// JIMNOTE: this is the path
+    // JIMNOTE: this is the path
     if (!jargs["phys"].is_null())
     {
         ++argcount;
@@ -287,7 +287,7 @@ int32_t Simulator::ParseOrbitString(string args)
         double initiallon = RADOF(-157.8583);
         double initialalt = 400000.;
         double initialangle = RADOF(54.);
-		// JIMNOTE: need checks for existence?
+        // JIMNOTE: need checks for existence?
         initiallat = RADOF(values["lat"].number_value());
         initiallon = RADOF(values["lon"].number_value());
         initialalt = values["alt"].number_value();
@@ -295,7 +295,7 @@ int32_t Simulator::ParseOrbitString(string args)
         initialloc = Physics::shape2eci(initialutc, initiallat, initiallon, initialalt, initialangle, 0.);
     }
     if (!jargs["eci"].is_null())
-	{
+    {
         ++argcount;
         json11::Json::object values = jargs["eci"].object_items();
         initialloc.pos.eci.utc = (values["utc"].number_value());
@@ -559,11 +559,11 @@ int32_t Simulator::ParseSatString(string args)
         }
         if (fastcalc)
         {
-            iretn = AddNode(nodename, type, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.tle, initialloc.att.icrf);
+            iretn = AddNode(nodename, type, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeIterative, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.tle, initialloc.att.icrf);
         }
         else
         {
-            iretn = AddNode(nodename, type, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
+            iretn = AddNode(nodename, type, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeIterative, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
         }
     }
     else
@@ -578,11 +578,11 @@ int32_t Simulator::ParseSatString(string args)
         }
         if (fastcalc)
         {
-            iretn = AddNode(nodename, type, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, satloc.tle, initialloc.att.icrf);
+            iretn = AddNode(nodename, type, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeIterative, Physics::Propagator::Thermal, Physics::Propagator::Electrical, satloc.tle, initialloc.att.icrf);
         }
         else
         {
-            iretn = AddNode(nodename, type, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeTarget, Physics::Propagator::Thermal, Physics::Propagator::Electrical, satloc.pos.eci, initialloc.att.icrf);
+            iretn = AddNode(nodename, type, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeIterative, Physics::Propagator::Thermal, Physics::Propagator::Electrical, satloc.pos.eci, initialloc.att.icrf);
         }
     }
 
@@ -672,8 +672,8 @@ int32_t Simulator::ParseSatString(string args)
     }
 
     json_map_node(&(*sit)->currentinfo);
-//    jsonnode json;
-//    json_setup_node(json, &(*sit)->currentinfo, false);
+    //    jsonnode json;
+    //    json_setup_node(json, &(*sit)->currentinfo, false);
     json_updatecosmosstruc(&(*sit)->currentinfo);
 
     (*sit)->sohstring = json_list_of_soh(&(*sit)->currentinfo);
@@ -747,10 +747,10 @@ int32_t Simulator::ParseTargetJson(json11::Json jargs)	{
         if (!data["type"].is_null()) { targ.type = data["type"].number_value(); }
 
         // Extract GEOD
-           targ.loc.pos.geod.s.lat = 0.0;
+        targ.loc.pos.geod.s.lat = 0.0;
         if (!data["latitude"].is_null()) { targ.loc.pos.geod.s.lat = RADOF(data["latitude"].number_value()); }
 
-           targ.loc.pos.geod.s.lon = 0.0;
+        targ.loc.pos.geod.s.lon = 0.0;
         if (!data["longitude"].is_null()) { targ.loc.pos.geod.s.lon = RADOF(data["longitude"].number_value()); }
 
         targ.loc.pos.geod.s.h = 0.;
@@ -1214,6 +1214,52 @@ int32_t Simulator::Propagate(vector<vector<cosmosstruc> > &results, uint32_t run
     return results.size();
 }
 
+int32_t Simulator::Target(map<uint32_t, vector<qatt> > &pschedule)
+{
+    if (pschedule.size() > 1 && pschedule.begin()->second.size() == cnodes.size())
+    {
+        qatt catt;
+        if (currentutc < pschedule.begin()->second[0].utc)
+        {
+            for (uint16_t j=0; j<cnodes.size(); ++j)
+            {
+                cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule.begin()->second[j];
+                att_lvlh(cnodes[j]->currentinfo.node.loc);
+            }
+        }
+        else if (currentutc > pschedule.rbegin()->second[0].utc)
+        {
+            for (uint16_t j=0; j<cnodes.size(); ++j)
+            {
+                cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule.rbegin()->second[j];
+                att_lvlh(cnodes[j]->currentinfo.node.loc);
+            }
+        }
+        else
+        {
+            for (uint16_t j=0; j<cnodes.size(); ++j)
+            {
+                cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule[decisec(currentutc)][j];
+                att_lvlh(cnodes[j]->currentinfo.node.loc);
+            }
+        }
+        return pschedule.size();
+    }
+    else
+    {
+        for (uint16_t j=0; j<cnodes.size(); ++j)
+        {
+            cnodes[j]->currentinfo.node.loc.att.lvlh.s = q_eye();
+            cnodes[j]->currentinfo.node.loc.att.lvlh.v = rv_zero();
+            cnodes[j]->currentinfo.node.loc.att.lvlh.a = rv_zero();
+            cnodes[j]->currentinfo.node.loc.att.lvlh.utc = currentutc;
+            cnodes[j]->currentinfo.node.loc.att.lvlh.pass++;
+            att_lvlh(cnodes[j]->currentinfo.node.loc);
+        }
+        return 0;
+    }
+}
+
 int32_t Simulator::Target()
 {
     int32_t iretn = 0;
@@ -1394,11 +1440,11 @@ int32_t Simulator::Thrust()
     // Calculate thrust
     for (uint16_t i=0; i<cnodes.size(); ++i)
     {
-//        locstruc goal;
+        //        locstruc goal;
         cnodes[i]->currentinfo.node.loc_req.pos.eci = cnodes[0]->currentinfo.node.loc.pos.eci;
         cnodes[i]->currentinfo.node.loc_req.pos.geoc = cnodes[0]->currentinfo.node.loc.pos.geoc;
-//        cnodes[i]->currentinfo.node.loc_req.pos.eci.pass++;
-//        pos_eci(cnodes[i]->currentinfo.node.loc_req);
+        //        cnodes[i]->currentinfo.node.loc_req.pos.eci.pass++;
+        //        pos_eci(cnodes[i]->currentinfo.node.loc_req);
         cnodes[i]->currentinfo.node.loc_req.pos.lvlh = cnodes[i]->currentinfo.node.loc.pos.lvlh;
         pos_origin2lvlh(cnodes[i]->currentinfo.node.loc_req);
         UpdatePush(cnodes[i]->currentinfo.node.name, Physics::ControlThrust(cnodes[i]->currentinfo.node.loc.pos.eci, cnodes[i]->currentinfo.node.loc_req.pos.eci, cnodes[i]->currentinfo.mass, cnodes[i]->currentinfo.devspec.thst[0].maxthrust/cnodes[i]->currentinfo.mass, dt));
@@ -1427,7 +1473,7 @@ int32_t Simulator::Formation(string type, double spacing)
         for (uint16_t i=1; i<cnodes.size(); ++i)
         {
             cnodes[i]->currentinfo.node.loc.pos.lvlh.s = rv_zero();
-//            lvlh2ric(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc.pos.lvlh, cnodes[i]->currentinfo.node.loc.pos.lvlh);
+            //            lvlh2ric(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc.pos.lvlh, cnodes[i]->currentinfo.node.loc.pos.lvlh);
             if (i == 2)
             {
                 cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[1] = -spacing * 2.5;
@@ -1453,7 +1499,7 @@ int32_t Simulator::Formation(string type, double spacing)
         {
             cnodes[i]->currentinfo.node.loc.pos.lvlh.s = rv_zero();
             cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[1] = -spacing * i;
-//            lvlh2ric(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc.pos.lvlh, cnodes[i]->currentinfo.node.loc.pos.lvlh);
+            //            lvlh2ric(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc.pos.lvlh, cnodes[i]->currentinfo.node.loc.pos.lvlh);
             if (i%2)
             {
                 cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[2] = -spacing * uint16_t((i + 1) / 2);

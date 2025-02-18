@@ -2942,7 +2942,7 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
         cevent.dtime = 0.;
-        cevent.flag = EVENT_FLAG_COLOR_CYAN;
+        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_COLOR_CYAN;
         if (in_land)
         {
             cevent.flag |= EVENT_FLAG_LAND;
@@ -2972,7 +2972,7 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
         cevent.dtime = 0.;
-        cevent.flag = EVENT_FLAG_COLOR_CYAN;
+        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_COLOR_CYAN;
         if (in_land)
         {
             cevent.flag |= EVENT_FLAG_LAND;
@@ -3005,7 +3005,7 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
             cevent.utc = currentutc;
             cevent.utcexec = cevent.utc;
             cevent.dtime = 0.;
-            cevent.flag = EVENT_FLAG_COLOR_CYAN;
+            cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_COLOR_CYAN;
             if (in_land)
             {
                 cevent.flag |= EVENT_FLAG_LAND;
@@ -3044,7 +3044,7 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
             cevent.utc = currentutc;
             cevent.utcexec = cevent.utc;
             cevent.dtime = 0.;
-            cevent.flag = EVENT_FLAG_COLOR_CYAN;
+            cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_COLOR_CYAN;
             if (in_land)
             {
                 cevent.flag |= EVENT_FLAG_LAND;
@@ -3125,7 +3125,7 @@ int32_t OrbitalEventGenerator::check_land_event(bool force_end)
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
         cevent.dtime = 0.;
-        cevent.flag = EVENT_FLAG_PAIR | EVENT_FLAG_LAND;
+        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_LAND;
         if (in_land)
         {
             cevent.flag |= EVENT_FLAG_LAND;
@@ -3157,7 +3157,7 @@ int32_t OrbitalEventGenerator::check_land_event(bool force_end)
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
         cevent.dtime = cevent.utc - land_start;
-        cevent.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
+        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
         if (in_land)
         {
             cevent.flag |= EVENT_FLAG_LAND;
@@ -3197,7 +3197,7 @@ int32_t OrbitalEventGenerator::check_umbra_event(bool force_end)
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
         cevent.dtime = 0.;
-        cevent.flag = EVENT_FLAG_PAIR | EVENT_FLAG_UMBRA;
+        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_UMBRA;
         if (in_land)
         {
             cevent.flag |= EVENT_FLAG_LAND;
@@ -3229,7 +3229,7 @@ int32_t OrbitalEventGenerator::check_umbra_event(bool force_end)
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
         cevent.dtime = cevent.utc - umbra_start;
-        cevent.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
+        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
         if (in_land)
         {
             cevent.flag |= EVENT_FLAG_LAND;
