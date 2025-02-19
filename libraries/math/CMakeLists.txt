@@ -18,17 +18,17 @@ endif()
 
 
 
-project(vector_bindings)
+# project(vector_bindings)
 
-# Python bindings setup
-find_package(pybind11 REQUIRED)
-find_package(Python3 REQUIRED COMPONENTS Development)
+# # Python bindings setup
+# find_package(pybind11 REQUIRED)
+# find_package(Python3 REQUIRED COMPONENTS Development)
 
-# Create a shared library for the vector module
-include_directories(${Python3_INCLUDE_DIRS})
-add_library(vector_lib vector.cpp)
-pybind11_add_module(Vectors bindings.cpp)
-target_link_libraries(Vectors PRIVATE vector_lib ${Python3_LIBRARIES})
+# # Create a shared library for the vector module
+# include_directories(${Python3_INCLUDE_DIRS})
+# add_library(vector_lib vector.cpp)
+# pybind11_add_module(Vectors bindings.cpp)
+# target_link_libraries(Vectors PRIVATE vector_lib ${Python3_LIBRARIES})
 
-# Install the Python module
-install(TARGETS Vectors DESTINATION source/core/python/modules)
+# # Install the Python module
+# install(TARGETS Vectors DESTINATION source/core/python/modules)
