@@ -1282,6 +1282,66 @@ quaternion q_smult(double a, quaternion b)
     return (c);
 }
 
+//! Scalar product.
+/*! Calculate the scalar product with the provided scale.
+         * \param scale Scale to multiply by.
+         * \return This times b.
+        */
+quaternion quaternion::operator * (const double &scale) const
+{
+    quaternion vo = *this;
+
+    vo *= scale;
+
+    return vo;
+}
+
+//! Compound Scalar product.
+/*! Calculate the scalar product with the provided scale inline.
+         * \param scale Scale to multiply by.
+         * \return Reference to this times scale.
+        */
+quaternion &quaternion::operator *= (const double &scale)
+{
+    // If scale is basically 1., don't do anything
+    if (fabs(scale - (double)1.) > D_SMALL)
+    {
+        // If scale is basically 0., set to zero
+        if (fabs(scale - (double)0.) > D_SMALL)
+        {
+            // Otherwise, multiply
+            this->d.x *= scale;
+            this->d.y *= scale;
+            this->d.z *= scale;
+            this->w *= scale;
+        }
+        else
+        {
+            this->d.x = 0.;
+            this->d.y = 0.;
+            this->d.z = 0.;
+            this->w = 0.;
+        }
+    }
+    return *this;
+}
+
+// product operator for quaternion class: q1 * q2
+quaternion quaternion::operator * (const quaternion &q2) const
+{
+    quaternion q1, q3;
+
+    q1 = *this;
+
+    q3.d.x = q1.w * q2.d.x + q1.d.x * q2.w + q1.d.y * q2.d.z - q1.d.z * q2.d.y;
+    q3.d.y = q1.w * q2.d.y + q1.d.y * q2.w + q1.d.z * q2.d.x - q1.d.x * q2.d.z;
+    q3.d.z = q1.w * q2.d.z + q1.d.z * q2.w + q1.d.x * q2.d.y - q1.d.y * q2.d.x;
+    q3.w = q1.w * q2.w - q1.d.x * q2.d.x - q1.d.y * q2.d.y - q1.d.z * q2.d.z;
+
+    return q3;
+}
+
+
 //! Add two quaternions
 /*! Add two quaternions in ::quaternion form, returning a ::quaternion.
 \param a first quaternion to be added, in ::quaternion form
@@ -1299,6 +1359,35 @@ quaternion q_add(quaternion a, quaternion b)
     return (c);
 }
 
+//! Add two ::quaternion
+/*! Add two quaternions in ::quaternion form, returning a ::quaternion.
+                \param a first quaternion to be added, in ::quaternion form
+                \param b second quaternion to be added, in ::quaternion form
+                \result the transformed quaternion, in ::quaternion form
+        */
+quaternion quaternion::operator + (const quaternion &b)
+{
+    quaternion c;
+
+    c.d.x = this->d.x + b.d.x;
+    c.d.y = this->d.y + b.d.y;
+    c.d.z = this->d.z + b.d.z;
+    c.w = this->w + b.w;
+    return (c);
+}
+
+//! compound add two ::Quaternion
+/*! Add two quaternions in ::Quaternion form, returning a ::Quaternion.
+                \param a first quaternion to be added, in ::Quaternion form
+                \param b second quaternion to be added, in ::Quaternion form
+                \result the transformed quaternion, in ::Quaternion form
+        */
+quaternion& quaternion::operator += (const quaternion &b)
+{
+    *this = *this + b;
+    return *this;
+}
+
 //! Subtract two quaternions
 /*! Subtract two quaternions in ::quaternion form, returning a
 * ::quaternion.
@@ -1314,6 +1403,46 @@ quaternion q_sub(quaternion a, quaternion b)
     c.d.x = a.d.x - b.d.x;
     c.d.y = a.d.y - b.d.y;
     c.d.z = a.d.z - b.d.z;
+    return (c);
+}
+
+//         substraction operator for quaternion class
+quaternion quaternion::operator-(const quaternion& q2) const
+{
+    quaternion q3;
+
+    q3.d.x = this->d.x - q2.d.x;
+    q3.d.y = this->d.y - q2.d.y;
+    q3.d.z = this->d.z - q2.d.z;
+    q3.w = this->w - q2.w;
+
+    return q3;
+}
+
+//! compound subtract two ::quaternion
+/*! Subtract two quaternions in ::quaternion form, returning a ::quaternion.
+                \param a minuend quaternion, in ::quaternion form
+                \param b subtrahend quaternion, in ::quaternion form
+                \result the transformed quaternion, in ::quaternion form
+        */
+quaternion &quaternion::operator -= (const quaternion &b)
+{
+    *this = *this - b;
+    return *this;
+}
+
+//! Negate ::quaternion
+/*! Return a ::quaternion with all elements negated.
+                \result the transformed quaternion, in ::quaternion form
+        */
+quaternion quaternion::operator - () const
+{
+    quaternion c;
+
+    c.d.x = -d.x;
+    c.d.y = -d.y;
+    c.d.z = -d.z;
+    c.w = -w;
     return (c);
 }
 
@@ -2513,7 +2642,7 @@ namespace Cosmos {
          * \param scale Scale to multiply by.
          * \return This times b.
         */
-            Quaternion Quaternion::operator * (const double scale) const
+            Quaternion Quaternion::operator * (const double &scale) const
             {
                 Quaternion vo = *this;
 
@@ -2527,7 +2656,7 @@ namespace Cosmos {
          * \param scale Scale to multiply by.
          * \return Reference to this times scale.
         */
-            Quaternion &Quaternion::operator *= (const double scale)
+            Quaternion &Quaternion::operator *= (const double &scale)
             {
                 // If scale is basically 1., don't do anything
                 if (fabs(scale - (double)1.) > D_SMALL)

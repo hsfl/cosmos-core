@@ -36,6 +36,8 @@ string orbitfile = "orbit.dat";
 string satfile = "sats.dat";
 string targetfile = "targets.dat";
 string tlefile = "tle.dat";
+string pointingfile;
+map<uint32_t, vector<qatt>> pschedule;
 double runcount = 1500;
 vector <cartpos> lvlhoffset;
 socket_bus data_channel_out;
@@ -125,7 +127,14 @@ int main(int argc, char *argv[])
     }
     sim->Formation(formation, spacing);
     sim->Thrust();
-    sim->Target();
+    if (pointingfile.length())
+    {
+        sim->Target(pschedule);
+    }
+    else
+    {
+        sim->Target();
+    }
     sim->Metric();
     while (agent->running() && elapsed < runcount)
     {
@@ -313,7 +322,18 @@ int main(int argc, char *argv[])
         //        }
         sim->Propagate();
         sim->Thrust();
-        sim->Target();
+        if (pointingfile.length())
+        {
+            sim->Target(pschedule);
+        }
+        else
+        {
+            sim->Target();
+        }
+        sim->cnodes[0]->currentinfo.node.loc.att.lvlh.pass++;
+        att_lvlh(&sim->cnodes[0]->currentinfo.node.loc);
+        rvector vvec = transform_q(sim->cnodes[0]->currentinfo.node.loc.att.geoc.s,rv_smult(10,rv_normal(sim->cnodes[0]->currentinfo.node.loc.pos.geoc.v)));
+        rvector svec = transform_q(sim->cnodes[0]->currentinfo.node.loc.att.geoc.s,rv_smult(10,rv_normal(sim->cnodes[0]->currentinfo.node.loc.pos.geoc.s)));
         sim->Metric();
         if (summarize)
         {
@@ -1140,6 +1160,29 @@ int32_t parse_control(string args)
     {
         ++argcount;
         spacing = jargs["spacing"].number_value();
+    }
+    if (!jargs["pointing"].is_null())
+    {
+        ++argcount;
+        pointingfile = jargs["pointing"].string_value();
+        FILE *iff = fopen(pointingfile.c_str(), "r");
+        if (iff != nullptr)
+        {
+            do
+            {
+                vector<qatt> patt;
+                qatt catt;
+                fscanf(iff, "%lf", &catt.utc);
+                while(fscanf(iff, ",%lf,%lf,%lf,%lf", &catt.s.d.x, &catt.s.d.y, &catt.s.d.z, &catt.s.w) == 4)
+                {
+                    patt.push_back(catt);
+                }
+                if (patt.size())
+                {
+                    pschedule[decisec(catt.utc)] = patt;
+                }
+            } while (!feof(iff));
+        }
     }
 
     return argcount;

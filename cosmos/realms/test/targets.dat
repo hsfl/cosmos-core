@@ -33,3 +33,7 @@
 {"type":5,"longitude":-115.268600,"latitude":44.293285,"radius":89.4916}
 {"type":5,"longitude":-120.098167,"latitude":51.409807,"radius":65.9326}
 {"type":5,"longitude":-113.978188,"latitude":45.044388,"radius":64.1601}
+{"type":1,"name":"ksat_puertollano","rlatitude":0.67524,"rlongitude":0.07170},"minelto":0.174532925}
+{"type":1,"name":"ksat_awaruaksat_awarua","rlatitude":-0.81144,"rlongitude":2.9388,"minelto":0.174532925}
+{"type":1,"name":"ksat_puntaarenas","rlatitude":-0.92788,"rlongitude":-1.2376,"minelto":0.174532925}
+{"type":1,"name":"mc3_pearlharbor","rlatitude":0.37312,"rlongitude":-2.7571,"minelto":0.174532925}

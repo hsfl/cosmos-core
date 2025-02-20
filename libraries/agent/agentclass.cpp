@@ -136,11 +136,19 @@ Agent::Agent(string realm_name,
 
     if ((iretn=json_setup_node(node_name, cinfo)) != 0) {
         error_value = iretn;
-        debug_log.Printf("Failed to set up Namespace\n");
+        debug_log.Printf("Failed to set up Node %s\n", node_name.c_str());
         shutdown();
         return;
     }
-    debug_log.Printf("Set Up Namespace\n");
+    debug_log.Printf("Set Up Node %s\n", node_name.c_str());
+
+    if ((iretn=json_setup_realm(realm_name, cinfo)) < 0) {
+        error_value = iretn;
+        debug_log.Printf("Failed to set up Realm %s\n", realm_name.c_str());
+        shutdown();
+        return;
+    }
+    debug_log.Printf("Set Up Realm %s\n", realm_name.c_str());
 
     cinfo->agent0.client = 1;
     cinfo->node.utc = 0.;
@@ -1029,7 +1037,9 @@ void Agent::message_loop() {
             {
                 if (message_queue.size() < MESSAGE_RING_SIZE)
                 {
+                    ring_mutex.lock();
                     message_queue.push_back(mess);
+                    ring_mutex.unlock();
                 }
             }
         }
@@ -3861,13 +3871,21 @@ int32_t Agent::readring(messstruc &message, AgentMessage type, float waitsec, Wh
 {
     if (waitsec < 0.f) { waitsec = 0.; }
     if (cinfo == nullptr) { return AGENT_ERROR_NULL; }
-    if (where == Where::HEAD) { message_queue.clear(); }
+    if (where == Where::HEAD)
+    {
+        ring_mutex.lock();
+        message_queue.clear();
+        ring_mutex.unlock();
+    }
     ElapsedTime ep;
     ep.start();
     do {
-        while (message_queue.size()) {
+        while (message_queue.size())
+        {
+            ring_mutex.lock();
             message = message_queue.front();
             message_queue.pop_front();
+            ring_mutex.unlock();
             if (type == Agent::AgentMessage::ALL || type == static_cast<Agent::AgentMessage>(message.meta.type)) {
                 if (proc.empty() || !proc.compare(message.meta.beat.proc)) {
                     if (node.empty() || !node.compare(message.meta.beat.node)) {
@@ -3912,7 +3930,9 @@ int32_t Agent::readring(messstruc &message, string realm, string node, AgentMess
     }
     if (where == Where::HEAD)
     {
+        ring_mutex.lock();
         message_queue.clear();
+        ring_mutex.unlock();
     }
     ElapsedTime ep;
     ep.start();
@@ -3920,8 +3940,10 @@ int32_t Agent::readring(messstruc &message, string realm, string node, AgentMess
     {
         while (message_queue.size())
         {
+            ring_mutex.lock();
             message = message_queue.front();
             message_queue.pop_front();
+            ring_mutex.unlock();
             if ((type == Agent::AgentMessage::ALL || type == static_cast<Agent::AgentMessage>(message.meta.type)) && (realm.empty() || realm == message.meta.beat.realm) && (node.empty() || node == message.meta.beat.node))
             {
                 return (static_cast<int32_t>(message.meta.type));
@@ -3958,13 +3980,20 @@ int32_t Agent::readring(messstruc &message, vector<string> realm, AgentMessage t
 {
     if (waitsec < 0.f) { waitsec = 0.; }
     if (cinfo == nullptr) { return AGENT_ERROR_NULL; }
-    if (where == Where::HEAD) { message_queue.clear(); }
+    if (where == Where::HEAD)
+    {
+        ring_mutex.lock();
+        message_queue.clear();
+        ring_mutex.unlock();
+    }
     ElapsedTime ep;
     ep.start();
     do {
         while (message_queue.size()) {
+            ring_mutex.lock();
             message = message_queue.front();
             message_queue.pop_front();
+            ring_mutex.unlock();
             if (type == Agent::AgentMessage::ALL || type == static_cast<Agent::AgentMessage>(message.meta.type)) {
                 if (realm.empty() || std::find(realm.begin(), realm.end(), message.meta.beat.node) != realm.end()) {
                     return (static_cast<int32_t>(message.meta.type));
@@ -3990,7 +4019,12 @@ int32_t Agent::parsering(AgentMessage type, float waitsec, Where where, string p
     int32_t iretn = 0;
     messstruc message;
 
-    if (where == Where::HEAD) { message_queue.clear(); }
+    if (where == Where::HEAD)
+    {
+        ring_mutex.lock();
+        message_queue.clear();
+        ring_mutex.unlock();
+    }
     post(Agent::AgentMessage::REQUEST, "heartbeat");
     ElapsedTime et;
     do {

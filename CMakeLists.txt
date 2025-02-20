@@ -39,8 +39,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # comment
 #set(CMAKE_LEGACY_CYGWIN_WIN32 0) # Remove when CMake >= 2.8.4 is required
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.20)
 #cmake_minimum_required(VERSION 3.3) # if ( ... IN_LIST ...)
+find_program(CMAKE_C_COMPILER NAMES $ENV{CC} gcc PATHS ENV PATH NO_DEFAULT_PATH)
+find_program(CMAKE_CXX_COMPILER NAMES $ENV{CXX} g++ PATHS ENV PATH NO_DEFAULT_PATH)
 
 project(${PROJECT_NAME})
 
