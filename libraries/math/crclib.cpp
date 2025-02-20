@@ -12,6 +12,7 @@ CRC16::CRC16()
     types[string("hdlc")] = {true, 0x1021, 0xffff, 0xffff, 0x906e};
     types[string("kermit")] = {true, 0x1021, 0x0000, 0x0000, 0x2189};
     types[string("maxim")] = {true, 0x8005, 0x0000, 0xffff, 0x44c2};
+    types[string("ibm")] = {true, 0x8005, 0x0000, 0xffff, 0x44c2};
 
     set("ccitt-false");
 }
@@ -303,6 +304,38 @@ uint16_t calc_crc16ccitt(uint8_t *buf, int size, bool lsb)
             else
             {
                 crc = (crc << 1) ^ (((ch&0x80)^((crc&0x8000)>>8))?CRC16CCITTMSB:0);
+                ch <<= 1;
+            }
+        }
+    }
+    return (crc);
+}
+uint16_t calc_crc16ibm(uint8_t *buf, int size, bool lsb)
+{
+    uint16_t crc;
+    uint8_t ch;
+
+    if (lsb)
+    {
+        crc = CRC16IBMLSBINIT;
+    }
+    else
+    {
+        crc = CRC16IBMMSBINIT;
+    }
+    for (uint16_t i=0; i<size; i++)
+    {
+        ch = buf[i];
+        for (uint16_t j=0; j<8; j++)
+        {
+            if (lsb)
+            {
+                crc = (crc >> 1) ^ (((ch^crc)&0x01)?CRC16IBMLSB:0);
+                ch >>= 1;
+            }
+            else
+            {
+                crc = (crc << 1) ^ (((ch&0x80)^((crc&0x8000)>>8))?CRC16IBMMSB:0);
                 ch <<= 1;
             }
         }
