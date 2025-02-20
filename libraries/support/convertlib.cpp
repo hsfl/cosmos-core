@@ -207,6 +207,8 @@ int32_t pos_lvlh(locstruc &loc)
     quaternion qe_z = {{0., 0., 0.}, 1.}, qe_y = {{0., 0., 0.}, 1.};
     loc.pos.extra.e2l = {{0., 0., 0.}, 1.};
     loc.pos.extra.l2e = {{0., 0., 0.}, 1.};
+    loc.pos.extra.g2l = {{0., 0., 0.}, 1.};
+    loc.pos.extra.l2g = {{0., 0., 0.}, 1.};
     rvector lvlh_z = {0., 0., 1.}, lvlh_y = {0., 1., 0.}, planec_z = {0., 0., 0.}, planec_y = {0., 0., 0.};
 
     cartpos *ppos;
@@ -2145,10 +2147,6 @@ int32_t att_planec2lvlh(locstruc *loc)
 
 int32_t att_planec2lvlh(locstruc &loc)
 {
-    //            quaternion qe_z = {{0., 0., 0.}, 1.}, qe_y = {{0., 0., 0.}, 1.};
-    //            loc.pos.extra.e2l = {{0., 0., 0.}, 1.};
-    //            loc.pos.extra.l2e = {{0., 0., 0.}, 1.};
-    //            rvector lvlh_z = {0., 0., 1.}, lvlh_y = {0., 1., 0.}, geoc_z = {0., 0., 0.}, geoc_y = {0., 0., 0.}, alpha = {0., 0., 0.};
     qatt *patt;
     cartpos *ppos;
     double radius;
@@ -2193,9 +2191,9 @@ int32_t att_planec2lvlh(locstruc &loc)
     loc.att.lvlh.v = rv_sub(patt->v, alpha);
 
     // Transform ITRS into LVLH
-    loc.att.lvlh.s = q_fmult(loc.pos.extra.l2e, patt->s);
-    loc.att.lvlh.v = irotate(loc.pos.extra.e2l, loc.att.lvlh.v);
-    loc.att.lvlh.a = irotate(loc.pos.extra.e2l, patt->a);
+    loc.att.lvlh.s = q_fmult(loc.pos.extra.l2g, patt->s);
+    loc.att.lvlh.v = irotate(loc.pos.extra.g2l, loc.att.lvlh.v);
+    loc.att.lvlh.a = irotate(loc.pos.extra.g2l, patt->a);
 
     return 0;
 }
@@ -2249,9 +2247,9 @@ int32_t att_lvlh2planec(locstruc &loc)
     //    pos_lvlh(loc.att.lvlh.utc, loc);
 
     // Rotate LVLH frame into ITRS frame
-    patt->s = q_fmult(loc.pos.extra.e2l, loc.att.lvlh.s);
-    patt->v = irotate(loc.pos.extra.l2e, loc.att.lvlh.v);
-    patt->a = irotate(loc.pos.extra.l2e, loc.att.lvlh.a);
+    patt->s = q_fmult(loc.pos.extra.g2l, loc.att.lvlh.s);
+    patt->v = irotate(loc.pos.extra.l2g, loc.att.lvlh.v);
+    patt->a = irotate(loc.pos.extra.l2g, loc.att.lvlh.a);
 
     // Correct velocity for LVLH angular velocity wrt ITRS, expressed in ITRS
     rvector alpha = rv_smult(1. / (radius * radius), rv_cross(ppos->s, ppos->v));
@@ -3537,30 +3535,8 @@ int32_t pos_lvlh2origin(locstruc& loc)
         }
     }
 
-    //    double r = length_rv(loc.pos.geoc.s) +  loc.pos.lvlh.s.col[2];
-
-    //    lvlh_x = drotate(loc.pos.extra.e2l, rvector(1., 0., 0.));
-    //    lvlh_y = drotate(loc.pos.extra.e2l, rvector(0., 1., 0.));
-    //    lvlh_z = drotate(loc.pos.extra.e2l, rvector(0., 0., 1.));
-
-    //    // TODO: should this be ECI, not GEOC?
-    //    loc.pos.geoc.v -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.v);
-    //    loc.pos.geoc.a -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.a);
-    //    loc.pos.geoc.j -= drotate(loc.pos.extra.e2l, loc.pos.lvlh.j);
-
-    //    // Rotate around LVLH y axis by dx/r
-    //    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_y, loc.pos.lvlh.s.col[0] / r);
-
-    //    // Rotate backwards around LVLH x axis by -dy/r
-    //    loc.pos.geoc.s = rv_rotate(loc.pos.geoc.s, lvlh_x, -loc.pos.lvlh.s.col[1] / r);
-
-    //    // Scale by dz/z
-    //    loc.pos.geoc.s *= (r / (r - loc.pos.lvlh.s.col[2]));
-
     loc.pos.geoc.pass = std::max(loc.pos.eci.pass, loc.pos.geos.pass) + 1;
     pos_geoc(loc);
-
-    //    loc.pos.lvlh = cartpos();
 
     return 0;
 }
@@ -3585,9 +3561,9 @@ int32_t pos_lvlh2geoc(locstruc &base, locstruc &geoc)
     pos_geoc(base);
     pos_geoc(base);
     cartpos geoc_offset;
-    geoc_offset.s = irotate(base.pos.extra.e2l, geoc_offset.s);
-    geoc_offset.v = irotate(base.pos.extra.e2l, geoc_offset.v);
-    geoc_offset.a = irotate(base.pos.extra.e2l, geoc_offset.a);
+    geoc_offset.s = irotate(base.pos.extra.g2l, geoc_offset.s);
+    geoc_offset.v = irotate(base.pos.extra.g2l, geoc_offset.v);
+    geoc_offset.a = irotate(base.pos.extra.g2l, geoc_offset.a);
     geoc_offset.s = rv_add(base.pos.geoc.s, geoc_offset.s);
     geoc_offset.v = rv_add(base.pos.geoc.v, geoc_offset.v);
     geoc_offset.a = rv_add(base.pos.geoc.a, geoc_offset.a);
@@ -3624,12 +3600,9 @@ int32_t pos_geoc2lvlh(locstruc &geoc, locstruc &base)
     geoc_offset.s = rv_sub(geoc.pos.geoc.s, base.pos.geoc.s);
     geoc_offset.v = rv_sub(geoc.pos.geoc.v, base.pos.geoc.v);
     geoc_offset.a = rv_sub(geoc.pos.geoc.a, base.pos.geoc.a);
-    base.pos.lvlh.s = irotate(base.pos.extra.e2l, geoc_offset.s);
-    base.pos.lvlh.v = irotate(base.pos.extra.e2l, geoc_offset.v);
-    base.pos.lvlh.a = irotate(base.pos.extra.e2l, geoc_offset.a);
-
-    //    base.pos.geoc.pass = std::max(geoc.pos.eci.pass, geoc.pos.geos.pass) + 1;
-    //    pos_geoc(base);
+    base.pos.lvlh.s = irotate(base.pos.extra.g2l, geoc_offset.s);
+    base.pos.lvlh.v = irotate(base.pos.extra.g2l, geoc_offset.v);
+    base.pos.lvlh.a = irotate(base.pos.extra.g2l, geoc_offset.a);
 
     return 0;
 }
@@ -5820,6 +5793,8 @@ int stk2eci(double utc, stkstruc &stk, cartpos &eci)
         << a.dt2s << "\t"
         << a.l2e << "\t"
         << a.e2l << "\t"
+        << a.l2g << "\t"
+        << a.g2l << "\t"
         << a.sun2earth << "\t"
         << a.sun2moon << "\t"
         << a.closest;
@@ -5828,7 +5803,7 @@ int stk2eci(double utc, stkstruc &stk, cartpos &eci)
 
 ::std::istream &operator>>(::std::istream &in, extrapos &a)
 {
-    in >> a.utc >> a.tt >> a.ut >> a.tdb >> a.j2e >> a.dj2e >> a.ddj2e >> a.e2j >> a.de2j >> a.dde2j >> a.j2t >> a.j2s >> a.t2j >> a.s2j >> a.s2t >> a.ds2t >> a.t2s >> a.dt2s >> a.e2l >> a.l2e >> a.sun2earth >> a.sun2moon >> a.closest;
+    in >> a.utc >> a.tt >> a.ut >> a.tdb >> a.j2e >> a.dj2e >> a.ddj2e >> a.e2j >> a.de2j >> a.dde2j >> a.j2t >> a.j2s >> a.t2j >> a.s2j >> a.s2t >> a.ds2t >> a.t2s >> a.dt2s >> a.e2l >> a.l2e >> a.g2l >> a.l2g >> a.sun2earth >> a.sun2moon >> a.closest;
     return in;
 }
 

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.10)
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -23,6 +23,7 @@ foreach(file ${files})
 
 endforeach()
 
+target_link_libraries(attlvlh CosmosConvert CosmosPhysics)
 target_link_libraries(poslvlh CosmosConvert CosmosPhysics)
 target_link_libraries(geod2eci2geod CosmosTime CosmosMath CosmosConvert CosmosNamespace)
 target_link_libraries(test_coordinate_transformations CosmosTime CosmosMath CosmosConvert gtest)
