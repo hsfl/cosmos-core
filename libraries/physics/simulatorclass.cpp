@@ -824,10 +824,20 @@ int32_t Simulator::ParseTargetString(string line)
             targ.loc.pos.geod.s.lat = RADOF(data["latitude"].number_value());
         }
 
+        if (!data["rlatitude"].is_null())
+        {
+            targ.loc.pos.geod.s.lat = (data["rlatitude"].number_value());
+        }
+
         targ.loc.pos.geod.s.lon = 0.0;
         if (!data["longitude"].is_null())
         {
             targ.loc.pos.geod.s.lon = RADOF(data["longitude"].number_value());
+        }
+
+        if (!data["rlongitude"].is_null())
+        {
+            targ.loc.pos.geod.s.lon = (data["rlongitude"].number_value());
         }
 
         targ.loc.pos.geod.s.h = 0.;
@@ -846,6 +856,11 @@ int32_t Simulator::ParseTargetString(string line)
         {
             targ.area = 100. * data["radius"].number_value();
             targ.area = M_PI * targ.area * targ.area;
+        }
+
+        if (!data["minelfrom"].is_null())
+        {
+            targ.area = data["minelto"].number_value();
         }
 
         AddTarget(targ);
