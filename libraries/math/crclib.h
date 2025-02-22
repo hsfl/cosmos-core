@@ -25,6 +25,17 @@ using std::vector;
 //! CRC-16-CCITT Reversed Reciprocal
 #define CRC16CCITTRR 0x8810
 
+//! CRC-16-IBM Normal
+#define CRC16IBM 0x8005
+#define CRC16IBMMSB 0x8005
+#define CRC16IBMMSBINIT 0xffff
+//! CRC-16-IBM Reversed
+#define CRC16IBMR 0xa001
+#define CRC16IBMLSB 0xa001
+#define CRC16IBMLSBINIT 0x0000
+//! CRC-16-IBM Reversed Reciprocal
+#define CRC16IBMRR 0xc002
+
 uint16_t calc_crc16ccitt(uint8_t *buf, int size, bool lsb=true);
 uint16_t calc_crc16(uint8_t *buf, uint16_t size, uint16_t poly=CRC16CCITTMSB, uint16_t crc=CRC16CCITTMSBINIT, uint16_t xorout=0x0, bool lsbfirst=false);
 uint16_t calc_crc16(vector<uint8_t> buf, uint16_t poly=CRC16CCITTMSB, uint16_t crc=CRC16CCITTMSBINIT, uint16_t xorout=0x0, bool lsbfirst=false);
@@ -38,6 +49,8 @@ uint16_t calc_crc16ccitt_msb(vector<uint8_t> &buf, uint16_t initialcrc=CRC16CCIT
 uint16_t calc_crc16ccitt_msb(uint8_t *buf, uint16_t size, uint16_t initialcrc=CRC16CCITTMSBINIT);
 uint16_t calc_crc16_msb(uint8_t *buf, uint16_t size, uint16_t poly=CRC16CCITTMSB, uint16_t crc=CRC16CCITTMSBINIT, uint16_t xorout=0x0);
 uint16_t calc_crc16_msb(vector<uint8_t> &buf, uint16_t poly=CRC16CCITTMSB, uint16_t crc=CRC16CCITTMSBINIT, uint16_t xorout=0x0, uint16_t skip=0);
+
+uint16_t calc_crc16ibm(uint8_t *buf, int size, bool lsb=true);
 
 class CRC16
 {

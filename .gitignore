@@ -61,6 +61,7 @@ tags
 QtCreatorDeployment.txt
 
 CMakeLists\.txt\.user*
+CMakeLists.txt.in
 
 *.8-pre1
 
