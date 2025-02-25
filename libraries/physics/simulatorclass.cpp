@@ -1258,6 +1258,7 @@ int32_t Simulator::Target(map<uint32_t, vector<qatt> > &pschedule)
             for (uint16_t j=0; j<cnodes.size(); ++j)
             {
                 cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule.begin()->second[j];
+                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = cnodes[j]->currentinfo.node.loc.att.icrf.pass + 1;
                 att_lvlh(cnodes[j]->currentinfo.node.loc);
             }
         }
@@ -1266,6 +1267,7 @@ int32_t Simulator::Target(map<uint32_t, vector<qatt> > &pschedule)
             for (uint16_t j=0; j<cnodes.size(); ++j)
             {
                 cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule.rbegin()->second[j];
+                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = cnodes[j]->currentinfo.node.loc.att.icrf.pass + 1;
                 att_lvlh(cnodes[j]->currentinfo.node.loc);
             }
         }
@@ -1274,6 +1276,7 @@ int32_t Simulator::Target(map<uint32_t, vector<qatt> > &pschedule)
             for (uint16_t j=0; j<cnodes.size(); ++j)
             {
                 cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule[decisec(currentutc)][j];
+                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = cnodes[j]->currentinfo.node.loc.att.icrf.pass + 1;
                 att_lvlh(cnodes[j]->currentinfo.node.loc);
             }
         }
@@ -1298,7 +1301,7 @@ int32_t Simulator::Target()
 {
     int32_t iretn = 0;
     uint32_t mincount = -1;
-    for (uint16_t i=1; i<cnodes.size(); ++i)
+    for (uint16_t i=0; i<cnodes.size(); ++i)
     {
         update_target(&cnodes[i]->currentinfo);
         for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
@@ -1310,7 +1313,7 @@ int32_t Simulator::Target()
         }
     }
 
-    for (uint16_t i=1; i<cnodes.size(); ++i)
+    for (uint16_t i=0; i<cnodes.size(); ++i)
     {
         cnodes[i]->currentinfo.target_idx = -1;
         double targetrange = 1e9;
@@ -1323,7 +1326,7 @@ int32_t Simulator::Target()
                 {
                     taken = true;
                 }
-                if (!taken)
+                if (!taken && i > 0)
                 {
                     for (uint16_t ii=i-1; ii>0; --ii)
                     {
