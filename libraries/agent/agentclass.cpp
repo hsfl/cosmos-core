@@ -136,11 +136,19 @@ Agent::Agent(string realm_name,
 
     if ((iretn=json_setup_node(node_name, cinfo)) != 0) {
         error_value = iretn;
-        debug_log.Printf("Failed to set up Namespace\n");
+        debug_log.Printf("Failed to set up Node %s\n", node_name.c_str());
         shutdown();
         return;
     }
-    debug_log.Printf("Set Up Namespace\n");
+    debug_log.Printf("Set Up Node %s\n", node_name.c_str());
+
+    if ((iretn=json_setup_realm(realm_name, cinfo)) < 0) {
+        error_value = iretn;
+        debug_log.Printf("Failed to set up Realm %s\n", realm_name.c_str());
+        shutdown();
+        return;
+    }
+    debug_log.Printf("Set Up Realm %s\n", realm_name.c_str());
 
     cinfo->agent0.client = 1;
     cinfo->node.utc = 0.;
@@ -352,9 +360,9 @@ Agent::Agent(string realm_name,
                 "    SetOpsMode [modestring]\n"
                 "    EnableChannel [channelstring | channelnumber] {State}\n"
                 "    EpsCommunicate sbid:command:hexstring:response_size\n"
-                "    EpsSwitchStatus [0-1|vbattbus|5vbus|hdrm|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200|sif]\n"
+                "    EpsSwitchStatus [0-1|vbattbus|5vbus|hdrm|3v3bus|adcs|adcsalt|gps|sband|xband|cce|unibap|ext200|sif]\n"
                 "    EpsState {0|1|2|3}\n"
-                "    EpsSwitchName {vbattbus|5vbus|hdrm|3v3bus|adcs|adcsalt|gps|sband|xband|mcce|unibap|ext200|sif} [0|1|2]\n"
+                "    EpsSwitchName {vbattbus|5vbus|hdrm|3v3bus|adcs|adcsalt|gps|sband|xband|cce|unibap|ext200|sif} [0|1|2]\n"
                 "    EpsSwitchNumber boardid switchid [0|1]\n"
                 "    EpsSwitchNames {vbattbus ...} [0|1]\n"
                 "    AdcsOrbitParameters inc ecc raan ap bstar mm ma epoch\n"

@@ -171,6 +171,9 @@ namespace Cosmos {
             //! pass indicator: allows synchronization with other attitude and position values.
             uint32_t pass = 0;
 
+            cartpos() = default;
+            cartpos(double utc, rvector s, rvector v, rvector a, rvector j, uint32_t pass) : utc(utc), s(s), v(v), a(a), j(j), pass(pass) {}
+
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
         @return	A json11 JSON object containing every member variable within the class

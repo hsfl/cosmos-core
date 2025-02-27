@@ -2942,6 +2942,7 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
         cevent.dtime = 0.;
+        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_COLOR_CYAN;
         if (in_land)
         {
             cevent.flag |= EVENT_FLAG_LAND;
@@ -2971,6 +2972,7 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
         cevent.dtime = 0.;
+        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_COLOR_CYAN;
         if (in_land)
         {
             cevent.flag |= EVENT_FLAG_LAND;
@@ -3003,6 +3005,7 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
             cevent.utc = currentutc;
             cevent.utcexec = cevent.utc;
             cevent.dtime = 0.;
+            cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_COLOR_CYAN;
             if (in_land)
             {
                 cevent.flag |= EVENT_FLAG_LAND;
@@ -3041,6 +3044,7 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
             cevent.utc = currentutc;
             cevent.utcexec = cevent.utc;
             cevent.dtime = 0.;
+            cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_COLOR_CYAN;
             if (in_land)
             {
                 cevent.flag |= EVENT_FLAG_LAND;
@@ -3121,7 +3125,7 @@ int32_t OrbitalEventGenerator::check_land_event(bool force_end)
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
         cevent.dtime = 0.;
-        cevent.flag = EVENT_FLAG_PAIR | EVENT_FLAG_LAND;
+        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_LAND;
         if (in_land)
         {
             cevent.flag |= EVENT_FLAG_LAND;
@@ -3153,7 +3157,7 @@ int32_t OrbitalEventGenerator::check_land_event(bool force_end)
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
         cevent.dtime = cevent.utc - land_start;
-        cevent.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
+        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
         if (in_land)
         {
             cevent.flag |= EVENT_FLAG_LAND;
@@ -3193,7 +3197,7 @@ int32_t OrbitalEventGenerator::check_umbra_event(bool force_end)
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
         cevent.dtime = 0.;
-        cevent.flag = EVENT_FLAG_PAIR | EVENT_FLAG_UMBRA;
+        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_UMBRA;
         if (in_land)
         {
             cevent.flag |= EVENT_FLAG_LAND;
@@ -3225,7 +3229,7 @@ int32_t OrbitalEventGenerator::check_umbra_event(bool force_end)
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
         cevent.dtime = cevent.utc - umbra_start;
-        cevent.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
+        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
         if (in_land)
         {
             cevent.flag |= EVENT_FLAG_LAND;
@@ -3299,7 +3303,7 @@ int32_t OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool fo
             gs_aos_event.value = gsAOS[i].second;
             gs_aos_event.az = gs.azto;
             gs_aos_event.el = gs.elto;
-            gs_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_GS;
+            gs_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_GS | EVENT_FLAG_COLOR_GREEN;
             if (in_land)
             {
                 gs_aos_event.flag |= EVENT_FLAG_LAND;
@@ -3332,7 +3336,7 @@ int32_t OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool fo
             gs_aos_event.value = gsAOS[i].second;
             gs_aos_event.az = gs.azto;
             gs_aos_event.el = gs.elto;
-            gs_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
+            gs_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT | EVENT_FLAG_COLOR_GREEN;
             if (in_land)
             {
                 gs_aos_event.flag |= EVENT_FLAG_LAND;
@@ -3377,6 +3381,7 @@ int32_t OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool fo
         gs_aos_event.value = gsAOS[DEGMAX].second;
         gs_aos_event.az = gs.azto;
         gs_aos_event.el = gs.elto;
+        gs_aos_event.flag = EVENT_FLAG_COLOR_GREEN;
         if (in_land)
         {
             gs_aos_event.flag |= EVENT_FLAG_LAND;
@@ -3425,13 +3430,13 @@ int32_t OrbitalEventGenerator::check_target_event(const targetstruc& target, boo
         {
             // Add event to event list
             eventstruc target_event;
-            target_event.name = "TLOS_" + target.name;
+            target_event.name = "TARGLOS_" + target.name;
             target_event.type = EVENT_TYPE_TARGLOS;
             target_event.dtime = currentutc - target_AoS[target.name].utc;
             target_event.value = target_AoS[target.name].azto;
             target_event.az = target_AoS[target.name].azto;
             target_event.el = target_AoS[target.name].elto;
-            target_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
+            target_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT | EVENT_FLAG_COLOR_WHITE;
             currentinfo->event.push_back(target_event);
             // Reset this AoS event
             target_AoS[target.name].utc = 0.;
@@ -3457,7 +3462,7 @@ int32_t OrbitalEventGenerator::check_target_event(const targetstruc& target, boo
                     target_event.value = target_AoS[target.name].elto;
                     target_event.az = target_AoS[target.name].azto;
                     target_event.el = target_AoS[target.name].elto;
-                    target_event.flag = EVENT_FLAG_TARG;
+                    target_event.flag = EVENT_FLAG_TARG | EVENT_FLAG_COLOR_WHITE;
                     currentinfo->event.push_back(target_event);
                     target_AoS[target.name].elto = target.elto;
                     target_AoS[target.name].azto = target.azto;
@@ -3484,14 +3489,14 @@ int32_t OrbitalEventGenerator::check_target_event(const targetstruc& target, boo
     else if (target.elto > 0.)
     {
         eventstruc target_event;
-        target_event.name = "TAOS_" + target.name;
+        target_event.name = "TARGAOS_" + target.name;
         target_event.type = EVENT_TYPE_TARG;
         target_event.utc = target_AoS[target.name].utc;
         target_event.dtime = 0.;
         target_event.value = target_AoS[target.name].elto;
         target_event.az = target_AoS[target.name].azto;
         target_event.el = target_AoS[target.name].elto;
-        target_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_TARG;
+        target_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_TARG | EVENT_FLAG_COLOR_WHITE;
         currentinfo->event.push_back(target_event);
         target_AoS[target.name].utc = currentutc;
         target_AoS[target.name].elto = target.elto;

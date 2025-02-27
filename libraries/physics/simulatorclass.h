@@ -56,6 +56,7 @@ namespace Cosmos
             int32_t GetError();
             int32_t Propagate(double nextutc=0.);
             int32_t Propagate(vector<vector<cosmosstruc> > &results, uint32_t runcount);
+            int32_t Target(map<uint32_t, vector<qatt> > &pschedule);
             int32_t Target();
             int32_t Target(vector<vector<cosmosstruc> > &results);
             int32_t Metric();
@@ -72,7 +73,7 @@ namespace Cosmos
             int32_t GetNode(string name, Physics::State *&node);
             StateList::iterator GetNode(string name);
             StateList::const_iterator GetNode(string name) const;
-            StateList::iterator GetEnd();
+            StateList::const_iterator GetEnd() const;
             StateList GetNodes();
             int32_t NudgeNode(string name, cartpos pos=cartpos(), qatt att=qatt());
             int32_t UpdatePush(string name, Vector fpush);
