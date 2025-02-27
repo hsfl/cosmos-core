@@ -8478,6 +8478,86 @@ int32_t json_setup_node(string &node, cosmosstruc *cinfo)
     return 0;
 }
 
+int32_t json_setup_realm(string &realm, cosmosstruc *cinfo)
+{
+    if (cinfo == nullptr) { return (JSON_ERROR_NOJMAP); }
+
+    FILE *fp = nullptr;
+    string filename = get_realmdir(realm, true) + "/" + "targets.dat";
+    fp = fopen(filename.c_str(), "r");
+    if (fp == nullptr)
+    {
+        return COSMOS_GENERAL_ERROR_OPEN;
+    }
+
+    string line;
+    line.resize(510);
+    while (fgets((char *)line.data(), 500, fp) != nullptr)
+    {
+        targetstruc targ;
+        string estring;
+        json11::Json data = json11::Json::parse(line, estring);
+
+        // Check for any parsing errors
+        if (!estring.empty()) {
+            std::cerr << "Error parsing JSON: " << estring << std::endl;
+            return -1;
+        }
+
+        if (!data["name"].is_null())
+        {
+            targ.name = data["name"].string_value();
+        }
+        if (targ.name.empty())
+        {
+            targ.name = "target_" + to_unsigned(cinfo->target.size(), 3, true);
+        }
+
+        // Extract Type
+        targ.type = 0;
+        if (!data["type"].is_null())
+        {
+            targ.type = data["type"].number_value();
+        }
+
+        // Extract GEOD
+        targ.loc.pos.geod.s.lat = 0.0;
+        if (!data["latitude"].is_null())
+        {
+            targ.loc.pos.geod.s.lat = RADOF(data["latitude"].number_value());
+        }
+
+        targ.loc.pos.geod.s.lon = 0.0;
+        if (!data["longitude"].is_null())
+        {
+            targ.loc.pos.geod.s.lon = RADOF(data["longitude"].number_value());
+        }
+
+        targ.loc.pos.geod.s.h = 0.;
+        if (!data["altitude"].is_null())
+        {
+            targ.loc.pos.geod.s.h = data["altitude"].number_value();
+        }
+
+        targ.area = 1.;
+        if (!data["area"].is_null())
+        {
+            targ.area = data["area"].number_value();
+        }
+
+        if (!data["radius"].is_null())
+        {
+            targ.area = 100. * data["radius"].number_value();
+            targ.area = M_PI * targ.area * targ.area;
+        }
+
+        cinfo->target.push_back(targ);
+    }
+    fclose(fp);
+    return cinfo->target.size();
+}
+
+
 //! Setup one JSON Namespace using another JSON Namespace.
 
 int32_t json_clone_node(cosmosstruc *source, cosmosstruc *destination)

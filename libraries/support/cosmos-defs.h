@@ -148,6 +148,15 @@ enum NODE_FLAG : uint16_t
 #define EVENT_SCALE_PRIORITY 0x0010
 //! 16 bit flag, see ::EVENT_SCALE_COLOR.
 #define EVENT_FLAG_COLOR 0x000f
+#define EVENT_FLAG_COLOR_GRAY 0x0001
+#define EVENT_FLAG_COLOR_MAGENTA 0x0002
+#define EVENT_FLAG_COLOR_CYAN 0x0003
+#define EVENT_FLAG_COLOR_GREEN 0x0004
+#define EVENT_FLAG_COLOR_ORANGE 0x0005
+#define EVENT_FLAG_COLOR_YELLOW 0x0006
+#define EVENT_FLAG_COLOR_RED 0x0007
+#define EVENT_FLAG_COLOR_BROWN 0x0008
+#define EVENT_FLAG_COLOR_WHITE 0x0009
 //! Display color (1=gray, 2= magenta, 3= cyan, 4= green, 5=orange, 6= yellow, 7=red, 8=brown, 9=white)
 #define EVENT_SCALE_COLOR 0x0001
 
