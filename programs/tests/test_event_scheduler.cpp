@@ -144,5 +144,28 @@ int main() {
 
 
 
+	// NEW APPROACH
+
+	resource r1(213, "Battery", "Watts", 0, 100.5, 1, 100);
+	cout<<"r1 = "<<r1.to_json()<<endl;
+
+	resource_dictionary dict;
+
+    // Add some test resources
+    dict.add_resource({1, "power", "watts", 0.0, 500.0, 10, 490.5});
+    dict.add_resource({2, "fuel", "kilograms", 0.0, 1000.0, 1.1, 998.9});
+    dict.add_resource({3, "memory", "megabytes", 0.0, 16384.0, 1.2, 15000.2});
+
+    // Save to JSON file
+    dict.save_to_file("resources.json");
+
+    // Load from JSON file
+    resource_dictionary new_dict;
+    if (new_dict.load_from_file("resources.json")) {
+        std::cout << "Loaded resources:\n" << new_dict;
+    } else {
+        std::cerr << "Failed to load resources from file.\n";
+    }
+
 	return 0;
 }
