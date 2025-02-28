@@ -1679,11 +1679,177 @@ class sim_param	{
             }
         };
 
+        //! COSMOS Resource structure
+        /*! This is the struct that holds each resource and associated conditions.
+         */
+        class resource {
+        public:
+            int id;
+            std::string name;
+            std::string units;
+            double min_value;
+            double max_value;
+            double min_value_warning;
+            double max_value_warning;
+
+            resource(int id, std::string name, std::string units, double min_value, double max_value, double min_value_warning, double max_value_warning)
+                : id(id), name(std::move(name)), units(std::move(units)),
+                  min_value(min_value), max_value(max_value), min_value_warning(min_value_warning), max_value_warning(max_value_warning) {}
+
+            json11::Json to_json() const {
+                return json11::Json::object{
+                    {"id", id},
+                    {"name", name},
+                    {"units", units},
+                    {"min_value", min_value},
+                    {"max_value", max_value},
+                    {"min_value_warning", min_value_warning},
+                    {"max_value_warning", max_value_warning}
+                };
+            }
+
+            void from_json(const std::string& s) {
+                std::string error;
+                json11::Json parsed = json11::Json::parse(s, error);
+                if (error.empty()) {
+                    if (!parsed["id"].is_null())       { id = parsed["id"].int_value(); }
+                    if (!parsed["name"].is_null())     { name = parsed["name"].string_value(); }
+                    if (!parsed["units"].is_null())    { units = parsed["units"].string_value(); }
+                    if (!parsed["min_value"].is_null()){ min_value = parsed["min_value"].number_value(); }
+                    if (!parsed["max_value"].is_null()){ max_value = parsed["max_value"].number_value(); }
+                    if (!parsed["min_value_warning"].is_null()){ min_value_warning = parsed["min_value_warning"].number_value(); }
+                    if (!parsed["max_value_warning"].is_null()){ max_value_warning = parsed["max_value_warning"].number_value(); }
+                } else {
+                    std::cerr << "ERROR: <" << error << ">" << std::endl;
+                }
+            }
+
+            friend std::ostream& operator<<(std::ostream& os, const resource& res) {
+                os << "Resource ( ID: " << res.id
+                << ", Name: " << res.name
+                   << ", Units: " << res.units
+                << ", Min: " << res.min_value
+                   << ", Max: " << res.max_value
+                << ", Min Warning: " << res.min_value_warning
+                << ", Max Warning: " << res.max_value_warning
+                << " )";
+                return os;
+            }
+        };
+
+        //! COSMOS Resource Dictionary structure
+        /*! This is the struct that holds and manages collections of  resources.
+         */
+        class resource_dictionary {
+        private:
+            std::vector<resource> resources;
+            std::unordered_map<int, resource*> resource_by_id;
+            std::unordered_map<std::string, int> resource_by_name;
+
+        public:
+            void add_resource(const resource& res) {
+                resources.push_back(res);
+                resource_by_id[res.id] = &resources.back();
+                resource_by_name[res.name] = res.id;
+            }
+
+            bool del_resource(int id) {
+                auto it = resource_by_id.find(id);
+                if (it != resource_by_id.end()) {
+                    resource_by_id.erase(it);
+                    resource_by_name.erase(it->second->name);
+                    resources.erase(std::remove_if(resources.begin(), resources.end(),
+                          [id](const resource& res) { return res.id == id; }),
+                          resources.end());
+                    return true;
+                }
+                return false;
+            }
+
+            bool mod_resource(int id, const resource& new_resource) {
+                if (del_resource(id)) {
+                    add_resource(new_resource);
+                    return true;
+                }
+                return false;
+            }
+
+            resource* get_by_id(int id) {
+                auto it = resource_by_id.find(id);
+                return (it != resource_by_id.end()) ? it->second : nullptr;
+            }
+
+            resource* get_by_name(const std::string& name) {
+                auto it = resource_by_name.find(name);
+                return (it != resource_by_name.end()) ? get_by_id(it->second) : nullptr;
+            }
+
+            json11::Json to_json() const {
+                std::vector<json11::Json> json_resources;
+                for (const auto& res : resources) {
+                    json_resources.push_back(res.to_json());
+                }
+                return json11::Json::object{{"resource_dictionary", json_resources}};
+            }
+
+            bool from_json(const std::string& s) {
+                std::string error;
+                json11::Json parsed = json11::Json::parse(s, error);
+                if (!error.empty()) {
+                    std::cerr << "ERROR parsing resource dictionary JSON: <" << error << ">\n";
+                    return false;
+                }
+
+                if (!parsed["resource_dictionary"].is_array()) {
+                    std::cerr << "ERROR: 'resource_dictionary' key is missing or not an array.\n";
+                    return false;
+                }
+
+                resources.clear();
+                resource_by_id.clear();
+                resource_by_name.clear();
+
+                for (const auto& j : parsed["resource_dictionary"].array_items()) {
+                    add_resource(resource(
+                        j["id"].int_value(),
+                        j["name"].string_value(),
+                        j["units"].string_value(),
+                        j["min_value"].number_value(),
+                        j["max_value"].number_value(),
+                        j["min_value_warning"].number_value(),
+                        j["max_value_warning"].number_value()
+                    ));
+                }
+                return true;
+            }
+
+            bool save_to_file(const std::string& filename) const {
+                std::ofstream file(filename);
+                if (!file) return false;
+                //file << to_json().dump(); // this is an ugly print
+                file << to_json(); // this is a pretty print
+                return true;
+            }
+
+            bool load_from_file(const std::string& filename) {
+                std::ifstream file(filename);
+                if (!file) return false;
+                std::string json_str((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+                return from_json(json_str);
+            }
+
+            friend std::ostream& operator<<(std::ostream& os, const resource_dictionary& dict) {
+                for (const auto& res : dict.resources) {
+                    os << res << "\n";
+                }
+                return os;
+            }
+        };
 
         //! Full COSMOS Event structure
         /*! This is the struct that holds each Event, along with associated
- * resources and conditions.
- */
+         * resources and conditions.
+         */
         class eventstruc
         {
         public:
