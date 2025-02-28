@@ -1779,7 +1779,7 @@ class sim_param	{
                     { "dbytes"  , dbytes },
                     { "cbytes"  , cbytes },
                     { "el", el},
-                    {"az", az},
+                    { "az", az},
                     { "handle"  , handle },
                     { "data"	, data },
                     { "condition" , condition }
