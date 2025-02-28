@@ -45,6 +45,7 @@ uint8_t uint8to(const uint8_t *pointer, ByteOrder order=ByteOrder::LITTLEENDIAN)
 void uint8from(const vector<uint8_t> &src, vector<uint8_t> &dst, ByteOrder order=ByteOrder::LITTLEENDIAN);
 void uint8to(const vector<uint8_t> &src, vector<uint8_t> dst, ByteOrder order=ByteOrder::LITTLEENDIAN);
 uint16_t uint16from(uint8_t *pointer, ByteOrder order=ByteOrder::LITTLEENDIAN);
+uint16_t uint16from(const uint16_t &value, ByteOrder order=ByteOrder::LITTLEENDIAN);
 int16_t int16from(uint8_t *pointer, ByteOrder order=ByteOrder::LITTLEENDIAN);
 uint32_t uint32from(const uint8_t *pointer, ByteOrder order=ByteOrder::LITTLEENDIAN);
 int32_t int32from(uint8_t *pointer, ByteOrder order=ByteOrder::LITTLEENDIAN);
