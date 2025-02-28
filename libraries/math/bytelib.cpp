@@ -131,6 +131,17 @@ void uint8to(const vector<uint8_t> &src, vector<uint8_t> &dst, ByteOrder order)
     }
 }
 
+//! Value to 16 bit unsigned integer
+/*! Return the 16 bit unsigned integer equivalent of a value, corrected for the local byte order.
+    \param value 16 bit unsigned integer to be cast
+    \param order byte order of the data in memory. Taken from ::ByteOrder.
+    \return 16 bit unsigned integer
+*/
+
+uint16_t uint16from(const uint16_t &value, ByteOrder order)
+{
+    return uint16from((uint8_t *)&value, order);
+}
 
 //! Memory to 16 bit unsigned integer
 /*! Return the 16 bit unsigned integer equivalent of a location in memory, corrected for the local byte order.
