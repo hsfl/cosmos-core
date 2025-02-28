@@ -369,24 +369,54 @@ string to_hex_string(const vector<uint8_t> &buffer, bool ascii, uint16_t start)
 vector<uint8_t> from_hex_string(string hex)
 {
     vector<uint8_t> bytes;
-    for (uint16_t ib=0; ib<hex.length()/2; ++ib)
+    if (hex.length() < 2)
     {
-        if (from_hex(hex[ib*2]) < 16)
+        return bytes;
+    }
+    if ((hex[1] == 'x' || hex[1] == 'X'))
+    {
+        for (uint16_t ib=1; ib<hex.length()/2; ++ib)
         {
-            bytes.push_back(from_hex(hex[ib*2]));
-            if (from_hex(hex[ib*2+1]) < 16)
+            if (from_hex(hex[ib*2]) < 16)
             {
-                bytes[ib] *= 16;
-                bytes[ib] += from_hex(hex[ib*2+1]);
+                bytes.push_back(from_hex(hex[ib*2]));
+                if (from_hex(hex[ib*2+1]) < 16)
+                {
+                    bytes[ib-1] *= 16;
+                    bytes[ib-1] += from_hex(hex[ib*2+1]);
+                }
+                else
+                {
+                    return bytes;
+                }
             }
             else
             {
                 return bytes;
             }
         }
-        else
+    }
+    else
+    {
+        for (uint16_t ib=0; ib<hex.length()/2; ++ib)
         {
-            return bytes;
+            if (from_hex(hex[ib*2]) < 16)
+            {
+                bytes.push_back(from_hex(hex[ib*2]));
+                if (from_hex(hex[ib*2+1]) < 16)
+                {
+                    bytes[ib] *= 16;
+                    bytes[ib] += from_hex(hex[ib*2+1]);
+                }
+                else
+                {
+                    return bytes;
+                }
+            }
+            else
+            {
+                return bytes;
+            }
         }
     }
     return bytes;
