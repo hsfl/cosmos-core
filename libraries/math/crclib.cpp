@@ -12,7 +12,7 @@ CRC16::CRC16()
     types[string("hdlc")] = {true, 0x1021, 0xffff, 0xffff, 0x906e};
     types[string("kermit")] = {true, 0x1021, 0x0000, 0x0000, 0x2189};
     types[string("maxim")] = {true, 0x8005, 0x0000, 0xffff, 0x44c2};
-    types[string("ibm")] = {true, 0x8005, 0x0000, 0xffff, 0x44c2};
+    types[string("usb")] = {true, 0x8005, 0xffff, 0xffff, 0xb4c8};
 
     set("ccitt-false");
 }

@@ -78,9 +78,10 @@ public:
     uint16_t calc(uint8_t *message, uint16_t size);
     int32_t calc_file(string file_path);
 
+    uint16_t test;
+
 private:
     string type = "ccitt-false";
-    uint16_t test;
     uint16_t initial;
     uint16_t polynomial;
     uint16_t xorout;
