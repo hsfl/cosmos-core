@@ -1608,7 +1608,7 @@ Simulator::StateList::const_iterator Simulator::GetNode(string name) const
     return node;
 }
 
-Simulator::StateList::iterator Simulator::GetEnd()
+Simulator::StateList::const_iterator Simulator::GetEnd() const
 {
     return cnodes.end();
 }
