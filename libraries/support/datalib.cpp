@@ -2320,6 +2320,7 @@ bool data_isdir(string path, bool create_flag)
         return false;
     }
     path = rpath;
+    free(rpath);
 
     if (create_flag)
     {
@@ -2366,6 +2367,7 @@ bool data_ischardev(string path)
         return false;
     }
     path = rpath;
+    free(rpath);
 
     if (!stat(path.c_str(), &st) && S_ISCHR(st.st_mode))
     {
@@ -2393,6 +2395,7 @@ bool data_isblkdev(string path)
         return false;
     }
     path = rpath;
+    free(rpath);
 
     if (!stat(path.c_str(), &st) && S_ISBLK(st.st_mode))
     {
@@ -2448,6 +2451,7 @@ bool data_isfile(string path, off_t size)
         return false;
     }
     path = rpath;
+    free(rpath);
 
     if (!stat(path.c_str(), &st) && S_ISREG(st.st_mode) && (!size || (size == st.st_size)))
     {
