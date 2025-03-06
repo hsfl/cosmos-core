@@ -551,6 +551,117 @@ the CCP register and closing all sockets.
 
         }
 
+        //! Configure phx camera
+        /*! Setup the basic image parameters for a phx camera being used over GIGE.
+ * The camera must first be opened with a call to ::gige_open.
+ * \param handle Pointer to ::gige_handle returned by ::gige_open.
+ * \param xsize Number of pixels in x direction.
+ * \param ysize Number of pixels in y direction.
+ * \return Zero, or negative error.
+ */
+        int32_t phx_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t xbin, uint32_t ybin)
+        {
+            int32_t iretn = 0;
+
+            if((iretn=gige_readreg(handle,PHXReg::PHXSensorWidthReg)) < 0)
+            {
+                return iretn;
+            }
+            handle->maxwidth = iretn;
+            if((iretn=gige_readreg(handle,PHXReg::PHXSensorHeightReg)) < 0)
+            {
+                return iretn;
+            }
+            handle->maxheight = iretn;
+
+            if (handle->width > (handle->maxwidth))
+            {
+                handle->width = (handle->maxwidth);
+            }
+            else
+            {
+                handle->width = xsize;
+            }
+            if (handle->height > (handle->maxheight))
+            {
+                handle->height = (handle->maxheight);
+            }
+            else
+            {
+                handle->height = ysize;
+            }
+
+            if ((iretn=gige_writereg(handle,PHXReg::PHXWidthReg, handle->width)) < 0)
+            {
+                return iretn;
+            }
+            if ((iretn=gige_writereg(handle,PHXReg::PHXHeightReg, handle->height)) < 0)
+            {
+                return iretn;
+            }
+            if ((iretn=gige_writereg(handle,PHXReg::PHXPixelFormatReg, GigeFormat::RGB8)) < 0) return iretn;            // Set to 24 bit mode
+            handle->bpp = 3;
+
+            // Set shutter to manual
+            gige_writereg(handle, PHXReg::PHXAcquisitionModeReg, GigeAcquisitionMode::Continuous); // Set FFC to manual
+
+            handle->binwidth = xbin;
+            handle->binheight = ybin;
+
+            return 0;
+        }
+
+
+        int32_t phx_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize)
+        {
+            int32_t iretn = 0;
+            uint32_t tbytes;
+            uint32_t pbytes;
+            uint8_t *bufferin;
+            double mjd;
+
+            bufferin = (uint8_t *)malloc(bsize);
+            if (bufferin == nullptr)
+                return (-errno);
+
+            gige_writereg(handle,GIGE_REG_SCDA, gige_address_to_value(handle->stream.address));
+
+            iretn = gige_writereg(handle,GIGE_REG_SCP,handle->stream.cport);
+            if ((iretn=gige_writereg(handle,GIGE_REG_SCPS,bsize)) < 0)
+                return iretn;
+            if ((iretn=gige_writereg(handle,PHXReg::PHXAcquisitionStartReg,1)) < 0)
+                return iretn;
+            pbytes = gige_readreg(handle,PHXReg::PHXWidthReg) * gige_readreg(handle,PHXReg::PHXHeightReg) * frames * handle->bpp;
+
+            tbytes = 0;
+            uint32_t elapsed=0;
+            uint32_t tframes=500000 + 2 * 1e6 * pbytes / handle->streambps;
+            mjd = currentmjd(0.);
+            while (tbytes < pbytes && elapsed<tframes)
+            {
+                if ((iretn=recvfrom(handle->stream.cudp,(char *)bufferin,bsize,0,static_cast<struct sockaddr *>(nullptr),static_cast<socklen_t *>(nullptr))) > 0)
+                {
+                    switch (bufferin[4])
+                    {
+                    case 1:
+                        break;
+                    case 2:
+                        break;
+                    case 3:
+                        memcpy(&buffer[tbytes], &bufferin[8], iretn-8);
+                        tbytes += iretn-8;
+                        break;
+                    }
+                }
+                elapsed = (uint32_t)(1e6*86400.*(currentmjd(0.)-mjd)+.5);
+            }
+
+            iretn = gige_writereg(handle,PHXReg::PHXAcquisitionStopReg,1);
+            iretn = gige_writereg(handle,GIGE_REG_SCP,0);
+            free(bufferin);
+            return (tbytes);
+
+        }
 
         //! Configure pt1000 camera
         /*! Setup the basic image parameters for a pt1000 camera being used over GIGE.
@@ -601,10 +712,10 @@ the CCP register and closing all sockets.
                 return iretn;
             }
             //    if ((iretn=gige_writereg(handle,0xE984, 3)) < 0) return iretn;            // Set to 14 bit mode
-            if ((iretn=gige_writereg(handle,PT1000::PixelFormatReg, PT1000Format::Mono16)) < 0) return iretn;            // Set to 14 bit mode
+            if ((iretn=gige_writereg(handle,PT1000::PixelFormatReg, GigeFormat::Mono16)) < 0) return iretn;            // Set to 14 bit mode
 
             // Set shutter to manual
-            gige_writereg(handle, PT1000::AcquisitionModeReg, PT1000AcquisitionMode::Continuous); // Set FFC to manual
+            gige_writereg(handle, PT1000::AcquisitionModeReg, GigeAcquisitionMode::Continuous); // Set FFC to manual
 
             handle->binwidth = xbin;
             handle->binheight = ybin;
@@ -1228,6 +1339,88 @@ the CCP register and closing all sockets.
             handle->cack.data = uint32from((uint8_t *)&handle->cack.data,ByteOrder::BIGENDIAN);
 
             return (handle->cack.data);
+        }
+
+        double gige_read_float(gige_handle *handle, string name)
+        {
+            if (handle->xmlintregs.find(name) != handle->xmlintregs.end())
+            {
+                gige_readmem(handle, handle->xmlintregs[name].address, handle->xmlintregs[name].length);
+                if (handle->xmlintregs[name].issigned)
+                {
+                    return int32from(handle->cbyte, ByteOrder::BIGENDIAN);
+                }
+                else
+                {
+                    return uint32from(handle->cbyte, ByteOrder::BIGENDIAN);
+                }
+            }
+            else if(handle->xmlconverters.find(name) != handle->xmlconverters.end())
+            {
+                return 0.;
+            }
+            else
+            {
+                return NAN;
+            }
+        }
+
+        uint64_t gige_read_uint32(gige_handle *handle, string name)
+        {
+            if (handle->xmlintregs.find(name) != handle->xmlintregs.end())
+            {
+                gige_readmem(handle, handle->xmlintregs[name].address, handle->xmlintregs[name].length);
+                if (handle->xmlintregs[name].issigned)
+                {
+                    return int32from(handle->cbyte, ByteOrder::BIGENDIAN);
+                }
+                else
+                {
+                    return uint32from(handle->cbyte, ByteOrder::BIGENDIAN);
+                }
+            }
+            else if(handle->xmlconverters.find(name) != handle->xmlconverters.end())
+            {
+                return 0;
+            }
+            else
+            {
+                return NAN;
+            }
+        }
+
+        int64_t gige_read_int32(gige_handle *handle, string name)
+        {
+            if (handle->xmlintregs.find(name) != handle->xmlintregs.end())
+            {
+                gige_readmem(handle, handle->xmlintregs[name].address, handle->xmlintregs[name].length);
+                if (handle->xmlintregs[name].issigned)
+                {
+                    return int32from(handle->cbyte, ByteOrder::BIGENDIAN);
+                }
+                else
+                {
+                    return uint32from(handle->cbyte, ByteOrder::BIGENDIAN);
+                }
+            }
+            else if(handle->xmlconverters.find(name) != handle->xmlconverters.end())
+            {
+                return 0;
+            }
+        }
+
+        string gige_read_string(gige_handle *handle, string name)
+        {
+            if (handle->xmlstringregs.find(name) != handle->xmlstringregs.end())
+            {
+                string temp;
+                temp = reinterpret_cast<char *>(handle->cbyte);
+                return temp;
+            }
+            else
+            {
+                return string("");
+            }
         }
     }
 }

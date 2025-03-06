@@ -93,7 +93,7 @@ namespace Cosmos {
 #define GIGE_REG_CURRENT_IP_ADDRESS 0x0024
 #define GIGE_REG_CURRENT_IP_NETMASK 0x0034
 #define GIGE_REG_CURRENT_IP_GATEWAY 0x0044
-#define GIGE_REG_MANUFACTURER_NAME 0x0048
+#define GIGE_REG_VENDOR_NAME 0x0048
 #define GIGE_REG_MODEL_NAME 0x0068
 #define GIGE_REG_DEVICE_VERSION 0x0088
 #define GIGE_REG_MANUFACTURER_INFO 0x00a8
@@ -340,6 +340,41 @@ namespace Cosmos {
 
         typedef uint32_t gige_count;
 
+        struct XMLValue
+        {
+            uint8_t type;
+            string name;
+            string pvalue;
+        };
+
+
+        struct XMLIntReg
+        {
+            bool issigned;
+            ByteOrder order;
+            uint8_t length;
+            uint16_t type;
+            uint32_t address;
+            string name;
+        };
+
+
+        struct XMLStringReg
+        {
+            uint8_t length;
+            uint32_t address;
+            string name;
+        };
+
+        struct XMLConverter
+        {
+            uint8_t length;
+            uint32_t address;
+            string name;
+            string formulafrom;
+            string formulato;
+        };
+
         struct gige_handle
         {
             //! Command channel
@@ -383,7 +418,12 @@ namespace Cosmos {
             bool ptrun;
             mutex ptmutex;
             uint8_t privilege;
+            uint8_t bpp;
             uint32_t heartbeat_msec;
+            map <string, XMLConverter> xmlconverters;
+            map <string, XMLStringReg> xmlstringregs;
+            map <string, XMLIntReg> xmlintregs;
+            map <string, XMLValue> xmlvalues;
         };
 
         struct gige_data
@@ -405,10 +445,12 @@ namespace Cosmos {
         gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_msec, uint32_t socket_usec, uint32_t streambps);
         int gige_writereg(gige_handle *handle, uint32_t address, uint32_t data);
         uint32_t gige_readreg(gige_handle *handle, uint32_t address);
-        uint32_t gige_readmem(gige_handle *handle, uint32_t address, uint32_t nbytes);
+        uint32_t gige_readmem(gige_handle *handle, uint32_t address, uint32_t size);
         void gige_close(gige_handle *handle);
         uint32_t gige_address_to_value(char *address);
         char *gige_value_to_address(uint32_t value);
+        int lucid_config(gige_handle *handle, uint32_t format, uint32_t xbin, uint32_t ybin, uint32_t xsize, uint32_t ysize, uint32_t xoffset, uint32_t yoffset);
+        int lucid_image(gige_handle *handle, uint16_t emode, uint32_t exposure, uint32_t gain, uint8_t *buffer, uint16_t bsize);
         int prosilica_config(gige_handle *handle, uint32_t format, uint32_t xbin, uint32_t ybin, uint32_t xsize, uint32_t ysize, uint32_t xoffset, uint32_t yoffset);
         int prosilica_image(gige_handle *handle, uint16_t emode, uint32_t exposure, uint32_t gain, uint8_t *buffer, uint16_t bsize);
         int a35_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize);
@@ -520,7 +562,7 @@ namespace Cosmos {
             AcquisitionFrameCount = 0xD334
             };
 
-        enum PT1000AcquisitionMode
+        enum GigeAcquisitionMode
             {
             Continuous = 0,
             SingleFrame,
@@ -531,7 +573,7 @@ namespace Cosmos {
             SingleFrameReadout
             };
 
-        enum PT1000Format
+        enum GigeFormat
             {
             Mono8 = 17301505,
             Mono8Signed = 17301506,
@@ -564,12 +606,42 @@ namespace Cosmos {
             BayerRG16 = 17825839,
             BayerGB16 = 17825840,
             BayerBG16 = 17825841,
-            RGB8Packed = 35127316,
+            RGB8 = 35127316,
             BGR8Packed = 35127317,
             YUV411Packed = 34340894,
             YUV422Packed = 34603039,
             YUV444Packed = 35127328
             };
+
+        //! Lucid
+        //!
+        enum PHXReg
+        {
+            PHXDeviceResetReg = 0x10100028, // N49
+            PHXSensorWidthReg = 0x10400050, // N799
+            PHXSensorHeightReg = 0x10400054, // N800
+            PHXWidthReg = 0x104000DC, // N853
+            PHXHeightReg = 0x104000E0, // N854
+            PHXOffsetXReg = 0x104000E4, // N855
+            PHXOffsetYReg = 0x104000E8, // N856
+            PHXPixelFormatReg = 0x10400060, // N651
+            PHXTestImageSelectorReg = 0x10400090, // N951 (0-8)
+            PHXAcquisitionModeReg = 0x10300000, // N110
+            PHXAcquisitionStartReg = 0x10300004, // N115
+            PHXAcquisitionStopReg = 0x10300008, // N118
+            PHXAcquisitionFrameCount = 0x1030000C // N119
+        };
+
+        int32_t phx_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t xbin=1, uint32_t ybin=1);
+        int32_t phx_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize);
+
+        double gige_read_float(gige_handle *handle, string name);
+        uint64_t gige_read_uint32(gige_handle *handle, string name);
+        int64_t gige_read_int32(gige_handle *handle, string name);
+        string gige_read_string(gige_handle *handle, string name);
+
+
+        double gige_read_reg(string name);
     }
 }
 

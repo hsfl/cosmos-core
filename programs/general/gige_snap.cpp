@@ -157,7 +157,6 @@ int main(int argc, char *argv[])
 	iretn = gige_readreg(handle,GIGE_REG_PRIMARY_APPLICATION_IP_ADDRESS);
     printf("Read PRIMARY_APPLICATION_IP_ADDRESS %x\n",iretn);
 
-    /*
     iretn = gige_readmem(handle,GIGE_REG_FIRST_URL,512);
 	char *ptr = (char *)handle->cack_mem.data;
 	do
@@ -196,11 +195,9 @@ int main(int argc, char *argv[])
 	printf("Read GIGE_REG_XML %u %d\n",iretn,count);
 	fclose(fp);
 
-*/
-
 
 	// configure camera- moved up to reflect accurate data down below
-	iretn = gige_readmem(handle,GIGE_REG_MODEL_NAME,GIGE_MAX_MODEL_NAME);
+    iretn = gige_readmem(handle, GIGE_REG_MODEL_NAME, GIGE_MAX_MODEL_NAME);
     printf("Model: %s\n", (char *)handle->cack_mem.data);
 	bsize = handle->bestsize;
 	if( strncmp((char *)handle->cack_mem.data, "FLIR AX5", 8) == 0 )
@@ -262,6 +259,81 @@ int main(int argc, char *argv[])
 			printf("A35_TEMPERATURE: %u A35_TEMPERATUREFPA: %f\n", gige_readreg(handle, A35_TEMPERATURE), gige_readreg(handle, A35_TEMPERATUREFPA)/10.);
 		}
 	}
+    else if (strncmp((char *)handle->cack_mem.data, "PHX050S", 7) == 0 )
+    {
+        iretn = gige_readreg(handle,PHXReg::PHXPixelFormatReg);
+        printf("Read PHXPIXELFORMAT %d\n",iretn);
+
+        width = gige_readreg(handle,PHXReg::PHXWidthReg);
+        printf("Read PHX_WIDTH %d\n",width);
+
+        height = gige_readreg(handle,PHXReg::PHXHeightReg);
+        printf("Read PHX_HEIGHT %d\n",height);
+
+        iretn = phx_config(handle, width, height);
+        if (iretn < 0)
+        {
+            printf("Error configuring: %s\n", cosmos_error_string(iretn).c_str());
+        }
+        expbytes = width * height * exposure * handle->bpp;
+        tbytes =  phx_image(handle, exposure, image, bsize);
+
+        if (expbytes == tbytes)
+        {
+            FILE *fp;
+            fp = fopen("phx_test.img","wb");
+            fwrite((void *)image,tbytes,1,fp);
+            fclose(fp);
+
+            fp = fopen("phx_test", "w");
+            uint16_t *cube = (uint16_t *)image;
+            vector<vector<float>> mean;
+            mean.resize(width);
+            vector<float> high;
+            high.resize(width);
+            for (uint32_t icol=0; icol<width; ++icol)
+            {
+                high[icol]=0.;
+                mean[icol].resize(height);
+                for (uint32_t irow=0; irow<height; ++irow)
+                {
+                    mean[icol][irow] = 0.;
+                    for (uint32_t ilayer=0; ilayer<exposure; ++ilayer)
+                    {
+                        mean[icol][irow] += cube[ilayer*width*height+irow*width+icol];
+                    }
+                    mean[icol][irow] /= (float)exposure;
+                    if (mean[icol][irow] > high[icol])
+                    {
+                        high[icol] = mean[icol][irow];
+                        printf("[%d,%d] %f\r",icol,irow,high[icol]);
+                    }
+                }
+                printf("\n");
+            }
+
+            fclose(fp);
+        }
+
+        iretn = gige_readreg(handle,PHXReg::PHXAcquisitionModeReg);
+        printf("Read PHX_AcquisitionMode %d\n",iretn);
+
+        iretn = gige_readreg(handle,PHXReg::PHXPixelFormatReg);
+        printf("Read PHX_PixelFormat %d\n",iretn);
+
+        iretn = gige_readreg(handle,PHXReg::PHXSensorWidthReg);
+        printf("Read PHX_SensorWidth %d\n",iretn);
+
+        iretn = gige_readreg(handle,PHXReg::PHXSensorHeightReg);
+        printf("Read PHX_SensorHeight %d\n",iretn);
+
+        iretn = gige_readreg(handle,PHXReg::PHXWidthReg);
+        printf("Read PHX_Width %d\n",iretn);
+
+        iretn = gige_readreg(handle,PHXReg::PHXHeightReg);
+        printf("Read PHX_Height %d\n",iretn);
+
+    }
     else if (strncmp((char *)handle->cack_mem.data, "PT1000", 6) == 0 )
     {
         iretn = gige_readreg(handle,PT1000::PixelFormatReg);
@@ -269,11 +341,9 @@ int main(int argc, char *argv[])
 
         width = gige_readreg(handle,PT1000::WidthReg);
         printf("Read PT1000_WIDTH %d\n",width);
-//        width = 320;
 
         height = gige_readreg(handle,PT1000::HeightReg);
         printf("Read PT1000_HEIGHT %d\n",height);
-//        height = 240;
 
         iretn = pt1000_config(handle, width, height);
         if (iretn < 0)
