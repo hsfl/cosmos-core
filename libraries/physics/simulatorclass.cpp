@@ -1405,12 +1405,7 @@ int32_t Simulator::Target()
 
         if (cnodes[i]->currentinfo.target_idx < cnodes[i]->currentinfo.target.size())
         {
-            cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].cover[0].count++;
-            cnodes[i]->currentinfo.node.loc.att.geoc.s = q_drotate_between_rv(rv_unitz(), rv_sub(cnodes[i]->currentinfo.node.loc.pos.geoc.s, cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].loc.pos.geoc.s));
-            cnodes[i]->currentinfo.node.loc.att.geoc.v = rv_zero();
-            cnodes[i]->currentinfo.node.loc.att.geoc.a = rv_zero();
-            cnodes[i]->currentinfo.node.loc.att.geoc.pass++;
-            att_geoc(cnodes[i]->currentinfo.node.loc);
+            cnodes[i]->currentinfo.node.phys.ftorque = calc_control_torque(10., cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].loc.att.icrf, cnodes[i]->currentinfo.node.loc.att.icrf, cnodes[i]->currentinfo.node.phys.moi.to_rv());
         }
         else
         {

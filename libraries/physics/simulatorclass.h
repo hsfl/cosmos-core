@@ -5,6 +5,7 @@
 #include "support/jsondef.h"
 #include "support/convertlib.h"
 #include "physics/physicsclass.h"
+#include "physics/controllib.h"
 
 #define SIMULATOR_PORT_OUT 10030
 #define CLIENT_PORT_OUT 10031
