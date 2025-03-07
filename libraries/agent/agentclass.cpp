@@ -142,7 +142,7 @@ Agent::Agent(string realm_name,
     }
     debug_log.Printf("Set Up Node %s\n", node_name.c_str());
 
-    if ((iretn=json_setup_realm(realm_name, cinfo)) < 0) {
+    if ((iretn=json_setup_realm(realm_name, cinfo)) < 0 && iretn != COSMOS_GENERAL_ERROR_OPEN) {
         error_value = iretn;
         debug_log.Printf("Failed to set up Realm %s\n", realm_name.c_str());
         shutdown();

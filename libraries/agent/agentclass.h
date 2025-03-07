@@ -529,7 +529,7 @@ namespace Cosmos
             //! Handle for message thread
             thread mthread;
             //! Last error
-            int32_t error_value;
+            int32_t error_value = 0;
             //! mutex to protect process_request
             mutex process_mutex;
             //! mutex to protect ring
