@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
         expbytes = width * height * exposure * handle->bpp;
         tbytes =  phx_image(handle, exposure, image, bsize);
 
-        if (expbytes == tbytes)
+        if (expbytes <= tbytes)
         {
             FILE *fp;
             fp = fopen("phx_test.img","wb");
