@@ -2880,6 +2880,10 @@ int32_t MetricGenerator::Propagate(double nextutc)
                     {
                         currentinfo->target[it].cover[id].percent = 1.;
                     }
+                    if (currentinfo->target[it].cover[id].percent > 0.)
+                    {
+                        ++currentinfo->target[it].cover[id].count;
+                    }
                 }
             }
         }

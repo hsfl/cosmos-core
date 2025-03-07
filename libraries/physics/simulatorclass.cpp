@@ -1313,10 +1313,64 @@ int32_t Simulator::Target()
         }
     }
 
+    // for (uint16_t i=0; i<cnodes.size(); ++i)
+    // {
+    //     cnodes[i]->currentinfo.target_idx = -1;
+    //     double targetrange = 1e9;
+    //     for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
+    //     {
+    //         if (cnodes[i]->currentinfo.target[j].elto > 0.087)
+    //         {
+    //             bool taken = false;
+    //             if (cnodes[i]->currentinfo.target[j].cover[0].count > mincount)
+    //             {
+    //                 taken = true;
+    //             }
+    //             if (!taken && i > 0)
+    //             {
+    //                 for (uint16_t ii=i-1; ii>0; --ii)
+    //                 {
+    //                     if (cnodes[ii]->currentinfo.target_idx == j)
+    //                     {
+    //                         taken = true;
+    //                     }
+    //                 }
+    //             }
+    //             if (!taken && cnodes[i]->currentinfo.target[j].range < targetrange)
+    //             {
+    //                 if (targetrange == 1e9)
+    //                 {
+    //                     ++iretn;
+    //                 }
+    //                 targetrange = cnodes[i]->currentinfo.target[j].range;
+    //                 cnodes[i]->currentinfo.target_idx = j;
+    //             }
+    //         }
+    //     }
+    //     if (cnodes[i]->currentinfo.target_idx < cnodes[i]->currentinfo.target.size())
+    //     {
+    //         cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].cover[0].count++;
+    //         cnodes[i]->currentinfo.node.loc.att.geoc.s = q_drotate_between_rv(rv_unitz(), rv_sub(cnodes[i]->currentinfo.node.loc.pos.geoc.s, cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].loc.pos.geoc.s));
+    //         cnodes[i]->currentinfo.node.loc.att.geoc.v = rv_zero();
+    //         cnodes[i]->currentinfo.node.loc.att.geoc.a = rv_zero();
+    //         cnodes[i]->currentinfo.node.loc.att.geoc.pass++;
+    //         att_geoc(cnodes[i]->currentinfo.node.loc);
+    //     }
+    //     else
+    //     {
+    //         cnodes[i]->currentinfo.node.loc.att.lvlh.s = q_eye();
+    //         cnodes[i]->currentinfo.node.loc.att.lvlh.v = rv_zero();
+    //         cnodes[i]->currentinfo.node.loc.att.lvlh.a = rv_zero();
+    //         cnodes[i]->currentinfo.node.loc.att.lvlh.utc = currentutc;
+    //         cnodes[i]->currentinfo.node.loc.att.lvlh.pass++;
+    //         att_lvlh(cnodes[i]->currentinfo.node.loc);
+    //     }
+    // }
+
     for (uint16_t i=0; i<cnodes.size(); ++i)
     {
         cnodes[i]->currentinfo.target_idx = -1;
-        double targetrange = 1e9;
+        double targetangle = D2PI;
         for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
         {
             if (cnodes[i]->currentinfo.target[j].elto > 0.087)
@@ -1336,17 +1390,19 @@ int32_t Simulator::Target()
                         }
                     }
                 }
-                if (!taken && cnodes[i]->currentinfo.target[j].range < targetrange)
+                double slewangle = sep_q(cnodes[i]->currentinfo.target[j].loc.att.lvlh.s, cnodes[i]->currentinfo.node.loc.att.lvlh.s);
+                if (!taken && slewangle < targetangle)
                 {
-                    if (targetrange == 1e9)
+                    if (targetangle == D2PI)
                     {
                         ++iretn;
                     }
-                    targetrange = cnodes[i]->currentinfo.target[j].range;
+                    targetangle = slewangle;
                     cnodes[i]->currentinfo.target_idx = j;
                 }
             }
         }
+
         if (cnodes[i]->currentinfo.target_idx < cnodes[i]->currentinfo.target.size())
         {
             cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].cover[0].count++;
@@ -1366,6 +1422,7 @@ int32_t Simulator::Target()
             att_lvlh(cnodes[i]->currentinfo.node.loc);
         }
     }
+
     return iretn;
 }
 
