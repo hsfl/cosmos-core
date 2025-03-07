@@ -19,7 +19,7 @@ rvector calc_control_torque(double lag, Convert::qatt tatt, Convert::qatt catt, 
     rvector distance;
     quaternion dsq2;
 
-    if ((dt=(tatt.utc-catt.utc)*86400.) > 0.)
+    if (lag > 0.)
     {
 
         // Calculate adjustment for ICRF distance
