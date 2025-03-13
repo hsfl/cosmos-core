@@ -21,6 +21,7 @@ rvector calc_control_torque(double lag, Convert::qatt tatt, Convert::qatt catt, 
 
     if (lag > 0.)
     {
+        // rvector mtorque  = -1. * tv.cross(Vector(rv_mmult(mom, tv.to_rv())) + physics.hmomentum);
 
         // Calculate adjustment for ICRF distance
 

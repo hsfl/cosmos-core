@@ -14073,6 +14073,17 @@ int32_t update_target(Convert::locstruc source, targetstruc &target)
     // Closing speed is length of ds in 1 second minus length of ds now.
     target.close = length_rv(rv_sub(ds,dv)) - length_rv(ds);
     target.utc = targetloc.utc;
+
+    // Attitude the satellite has to have to look at the target
+    rvector targ_z = (rv_sub(target.loc.pos.eci.s, source.pos.eci.s));
+    // targ_z = source.pos.geoc.s * -0.1;
+
+    target.loc.att.icrf.s = q_irotate_for(rv_normal(targ_z), rv_normal(rv_cross(rv_normal(targ_z), source.pos.eci.v)), rv_unitz(), rv_unity());
+    // rvector targ_y = rv_normal(rv_cross(targ_z, source.pos.geoc.v));
+    // quaternion qe_z = q_conjugate(q_drotate_between_rv(targ_z, rv_unitz()));
+    // targ_y = irotate(qe_z, targ_y);
+    // quaternion qe_y = q_conjugate(q_drotate_between_rv(targ_y, rv_unity()));
+    // target.loc.att.geoc.s = q_fmult(qe_z, qe_y);
     return 0;
 }
 
