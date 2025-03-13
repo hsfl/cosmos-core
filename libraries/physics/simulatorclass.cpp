@@ -1369,10 +1369,12 @@ int32_t Simulator::Target()
     //     }
     // }
 
+    double targetangle;
+    double slewangle;
     for (uint16_t i=0; i<cnodes.size(); ++i)
     {
         cnodes[i]->currentinfo.target_idx = -1;
-        double targetangle = D2PI;
+        targetangle = D2PI;
         for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
         {
             if (cnodes[i]->currentinfo.target[j].elto > 0.087)
@@ -1392,7 +1394,7 @@ int32_t Simulator::Target()
                         }
                     }
                 }
-                double slewangle = sep_q(cnodes[i]->currentinfo.target[j].loc.att.lvlh.s, cnodes[i]->currentinfo.node.loc.att.lvlh.s);
+                slewangle = sep_q(cnodes[i]->currentinfo.target[j].loc.att.geoc.s, cnodes[i]->currentinfo.node.loc.att.geoc.s);
                 if (!taken && slewangle < targetangle)
                 {
                     if (targetangle == D2PI)
@@ -1405,19 +1407,12 @@ int32_t Simulator::Target()
             }
         }
 
+        Vector torque;
         if (cnodes[i]->currentinfo.target_idx < cnodes[i]->currentinfo.target.size())
         {
-            cnodes[i]->currentinfo.node.phys.ftorque = calc_control_torque(cnodes[i]->currentinfo.node.phys.maxtorque, cnodes[i]->currentinfo.node.phys.moi, cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].loc.att.icrf, cnodes[i]->currentinfo.node.loc.att.icrf);
+            torque = calc_control_torque(1., cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].loc.att.icrf, cnodes[i]->currentinfo.node.loc.att.icrf, cnodes[i]->currentinfo.node.phys.moi.to_rv());
         }
-        else
-        {
-            cnodes[i]->currentinfo.node.loc.att.lvlh.s = q_eye();
-            cnodes[i]->currentinfo.node.loc.att.lvlh.v = rv_zero();
-            cnodes[i]->currentinfo.node.loc.att.lvlh.a = rv_zero();
-            cnodes[i]->currentinfo.node.loc.att.lvlh.utc = currentutc;
-            cnodes[i]->currentinfo.node.loc.att.lvlh.pass++;
-            att_lvlh(cnodes[i]->currentinfo.node.loc);
-        }
+        UpdateTorque(cnodes[i]->currentinfo.node.name, torque);
     }
 
     return iretn;

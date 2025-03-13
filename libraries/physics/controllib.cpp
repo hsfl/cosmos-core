@@ -20,6 +20,7 @@ rvector calc_control_torque(double maxtorque, Vector moi, Convert::qatt tatt, Co
     quaternion dsq2;
 
     {
+        // rvector mtorque  = -1. * tv.cross(Vector(rv_mmult(mom, tv.to_rv())) + physics.hmomentum);
 
         // Calculate adjustment for ICRF distance
 

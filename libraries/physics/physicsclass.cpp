@@ -2242,6 +2242,19 @@ int32_t State::Reset(double nextutc)
 
 int32_t InertialAttitudePropagator::Init()
 {
+    currentinfo->node.loc_req.att.lvlh.utc = currentutc;
+    currentinfo->node.loc_req.att.lvlh.s = q_eye();
+    currentinfo->node.loc_req.att.lvlh.v = rv_zero();
+    currentinfo->node.loc_req.att.lvlh.a = rv_zero();
+    initialloc.att = currentinfo->node.loc_req.att;
+    currentinfo->node.loc.att.lvlh.utc = currentutc;
+    currentinfo->node.loc.att.lvlh.s = currentinfo->node.loc_req.att.lvlh.s;
+    currentinfo->node.loc.att.lvlh.v = currentinfo->node.loc_req.att.lvlh.v;
+    currentinfo->node.loc.att.lvlh.a = currentinfo->node.loc_req.att.lvlh.a;
+    ++currentinfo->node.loc.att.lvlh.pass;
+    att_lvlh2icrf(currentinfo->node.loc);
+    AttAccel(currentinfo->node.loc, currentinfo->node.phys);
+    att_icrf(currentinfo->node.loc);
 
     return  0;
 }
@@ -2302,6 +2315,17 @@ int32_t GeoAttitudePropagator::Propagate(double nextutc)
 
 int32_t IterativeAttitudePropagator::Init()
 {
+    currentinfo->node.loc_req.att.lvlh.utc = currentutc;
+    currentinfo->node.loc_req.att.lvlh.s = q_eye();
+    currentinfo->node.loc_req.att.lvlh.v = rv_zero();
+    currentinfo->node.loc_req.att.lvlh.a = rv_zero();
+    initialloc.att = currentinfo->node.loc_req.att;
+    currentinfo->node.loc.att.lvlh.utc = currentutc;
+    currentinfo->node.loc.att.lvlh.s = currentinfo->node.loc_req.att.lvlh.s;
+    currentinfo->node.loc.att.lvlh.v = currentinfo->node.loc_req.att.lvlh.v;
+    currentinfo->node.loc.att.lvlh.a = currentinfo->node.loc_req.att.lvlh.a;
+    ++currentinfo->node.loc.att.lvlh.pass;
+    att_lvlh2icrf(currentinfo->node.loc);
     AttAccel(currentinfo->node.loc, currentinfo->node.phys);
 
     return  0;
@@ -2327,7 +2351,11 @@ int32_t IterativeAttitudePropagator::Propagate(double nextutc)
     while ((nextutc - currentutc) > dtj / 2.)
     {
         currentutc += dtj;
-        q1 = q_axis2quaternion_rv(rv_smult(dt, currentinfo->node.loc.att.icrf.v));
+        // Calculate new a from ftorque
+        currentinfo->node.phys.ctorque = currentinfo->node.phys.ftorque;
+        AttAccel(currentinfo->node.loc, currentinfo->node.phys);
+        // Calculate new s from v and a
+        q1 = q_axis2quaternion_rv(rv_smult(dt, currentinfo->node.loc.att.icrf.v + currentinfo->node.loc.att.icrf.a * (dt/2.)));
         currentinfo->node.loc.att.icrf.s = q_fmult(q1, currentinfo->node.loc.att.icrf.s);
         normalize_q(&currentinfo->node.loc.att.icrf.s);
         // Calculate new v from da
