@@ -559,7 +559,7 @@ the CCP register and closing all sockets.
  * \param ysize Number of pixels in y direction.
  * \return Zero, or negative error.
  */
-        int32_t phx_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t xbin, uint32_t ybin)
+        int32_t phx_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t xbin, uint32_t ybin, uint32_t test_pattern)
         {
             int32_t iretn = 0;
 
@@ -600,6 +600,7 @@ the CCP register and closing all sockets.
                 return iretn;
             }
             if ((iretn=gige_writereg(handle,PHXReg::PHXPixelFormatReg, GigeFormat::RGB8)) < 0) return iretn;            // Set to 24 bit mode
+            if ((iretn=gige_writereg(handle,PHXReg::PHXTestImageSelectorReg, test_pattern)) < 0) return iretn;            // Set to 24 bit mode
             handle->bpp = 3;
 
             // Set shutter to manual
@@ -607,6 +608,9 @@ the CCP register and closing all sockets.
 
             handle->binwidth = xbin;
             handle->binheight = ybin;
+
+            // Limit speed
+            if ((iretn=gige_writereg(handle,PHXDeviceLinkThroughputLimit,handle->streambps)) < 0) return iretn;
 
             return 0;
         }

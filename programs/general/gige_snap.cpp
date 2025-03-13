@@ -27,15 +27,17 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+#include "support/configCosmos.h"
 #include "device/general/gige_lib.h"
 #include "agent/agentclass.h"
 #include "support/datalib.h"
 #include "time.h"
+#include "support/envi.h"
 
 #define A35COUNT 1
 
-
-uint8_t image[110000000];
+string makeFilename(string argument);
+vector <uint8_t> image;
 
 int main(int argc, char *argv[])
 {
@@ -124,7 +126,7 @@ int main(int argc, char *argv[])
 
 
 
-	if ((handle=gige_open(ipaddress,0x02,40000,5000,7500000)) == NULL)
+    if ((handle=gige_open(ipaddress,0x02,40000,5000,75000000)) == NULL)
 	{
 		if((handle = gige_open(gige_value_to_address(gige_list[0].address),0x02,40000,5000,7500000)) == NULL)
 		{
@@ -213,14 +215,15 @@ int main(int argc, char *argv[])
 
         iretn = a35_config(handle, width, height, A35_SENSORVIDEOSTANDARD_30HZ);
 		expbytes = width * height * exposure * 2;
-		tbytes = a35_image(handle, exposure, image, bsize);
+        image.resize(expbytes);
+        tbytes = a35_image(handle, exposure, image.data(), bsize);
 
 		if (expbytes == tbytes)
 		{
             fringename = data_type_path("hiakasat", "temp", "gige", currentmjd(0.), "imgfringe", extra);
 			FILE *fp = fopen(fringename.c_str(), "w");
 			fprintf(fp, "Fringes\n");
-			uint16_t *cube = (uint16_t *)image;
+            uint16_t *cube = (uint16_t *)image.data();
 			float mean[336][256];
 			float high[336];
 			float fringe[256];
@@ -229,15 +232,15 @@ int main(int argc, char *argv[])
 				high[icol]=0.;
 				for (uint32_t irow=0; irow<256; ++irow)
 				{
-					mean[icol][irow] = 0.;
+                    mean[irow][icol] = 0.;
 					for (uint32_t ilayer=0; ilayer<exposure; ++ilayer)
 					{
-						mean[icol][irow] += cube[ilayer*336*256+irow*336+icol];
+                        mean[irow][icol] += cube[ilayer*336*256+irow*336+icol];
 					}
-					mean[icol][irow] /= (float)exposure;
-					if (mean[icol][irow] > high[icol])
+                    mean[irow][icol] /= (float)exposure;
+                    if (mean[irow][icol] > high[icol])
 					{
-						high[icol] = mean[icol][irow];
+                        high[icol] = mean[irow][icol];
 						printf("[%d,%d] %f\r",icol,irow,high[icol]);
 					}
 				}
@@ -249,7 +252,7 @@ int main(int argc, char *argv[])
 				fringe[irow] = 0.;
 				for (uint32_t icol=0; icol<336; ++icol)
 				{
-					fringe[irow] += mean[icol][irow] / mean[icol][0];
+                    fringe[irow] += mean[irow][icol] / mean[icol][0];
 				}
 				fringe[irow] /= 336.;
 				fprintf(fp,"%.4g\n",fringe[irow]);
@@ -261,6 +264,9 @@ int main(int argc, char *argv[])
 	}
     else if (strncmp((char *)handle->cack_mem.data, "PHX050S", 7) == 0 )
     {
+        iretn = gige_readreg(handle,PHXReg::PHXTestImageSelectorReg);
+        printf("Read PHXTESTIMAGESELECTOR %d\n",iretn);
+
         iretn = gige_readreg(handle,PHXReg::PHXPixelFormatReg);
         printf("Read PHXPIXELFORMAT %d\n",iretn);
 
@@ -270,53 +276,87 @@ int main(int argc, char *argv[])
         height = gige_readreg(handle,PHXReg::PHXHeightReg);
         printf("Read PHX_HEIGHT %d\n",height);
 
-        iretn = phx_config(handle, width, height);
+        iretn = phx_config(handle, width, height, 1, 1, 1);
         if (iretn < 0)
         {
             printf("Error configuring: %s\n", cosmos_error_string(iretn).c_str());
         }
-        expbytes = width * height * exposure * handle->bpp;
-        tbytes =  phx_image(handle, exposure, image, bsize);
+        expbytes = width * height * exposure * handle->bpp + 4;
+        image.resize(expbytes);
+        tbytes =  phx_image(handle, exposure, image.data(), bsize);
 
         if (expbytes <= tbytes)
         {
             FILE *fp;
-            fp = fopen("phx_test.img","wb");
-            fwrite((void *)image,tbytes,1,fp);
+            string fname = makeFilename("data");
+            fp = fopen(fname.c_str(),"w");
+            fwrite((void *)image.data(),tbytes,1,fp);
             fclose(fp);
 
-            fp = fopen("phx_test", "w");
-            uint16_t *cube = (uint16_t *)image;
-            vector<vector<float>> mean;
-            mean.resize(width);
-            vector<float> high;
-            high.resize(width);
-            for (uint32_t icol=0; icol<width; ++icol)
+            envi_hdr ehdr;
+            ehdr.planes = exposure;
+            ehdr.columns = width;
+            ehdr.rows = height;
+            ehdr.offset = 0;
+            //ehdr.endian;
+            ehdr.datatype = DT_BYTE;
+            ehdr.interleave = BIP;
+            ehdr.byteorder = BO_INTEL;
+            ehdr.basename = fname;
+            write_envi_hdr(ehdr);
+
+            fname = makeFilename("stats");
+            fp = fopen(fname.c_str(),"w");
+            if (fp == nullptr)
             {
-                high[icol]=0.;
-                mean[icol].resize(height);
+                perror("Error opening stats file");
+                exit (1);
+            }
+            vector<vector<float>> mean[3];
+            vector<float> high[3];
+            for (uint16_t bin=0; bin<3; ++bin)
+            {
+                mean[bin].resize(height);
+                high[bin].resize(height);
                 for (uint32_t irow=0; irow<height; ++irow)
                 {
-                    mean[icol][irow] = 0.;
-                    for (uint32_t ilayer=0; ilayer<exposure; ++ilayer)
+                    high[bin][irow]=0.;
+                    mean[bin][irow].resize(width);
+                    for (uint32_t icol=0; icol<width; ++icol)
                     {
-                        mean[icol][irow] += cube[ilayer*width*height+irow*width+icol];
+                        mean[bin][irow][icol] = 0.;
+                        for (uint32_t ilayer=0; ilayer<exposure; ++ilayer)
+                        {
+                            mean[bin][irow][icol] += image[3*(ilayer*width*height+irow*width+icol)+bin];
+                        }
+                        mean[bin][irow][icol] /= (float)exposure;
+                        if (mean[bin][irow][icol] > high[bin][irow])
+                        {
+                            high[bin][irow] = mean[bin][irow][icol];
+                        }
                     }
-                    mean[icol][irow] /= (float)exposure;
-                    if (mean[icol][irow] > high[icol])
-                    {
-                        high[icol] = mean[icol][irow];
-                        printf("[%d,%d] %f\r",icol,irow,high[icol]);
-                    }
+                    fwrite((void *)mean[bin][irow].data(),width,4,fp);
                 }
-                printf("\n");
             }
-
             fclose(fp);
+
+            ehdr.planes = exposure;
+            ehdr.columns = width;
+            ehdr.rows = height;
+            ehdr.offset = 0;
+            //ehdr.endian;
+            ehdr.datatype = DT_FLOAT;
+            ehdr.interleave = BSQ;
+            ehdr.byteorder = BO_INTEL;
+            ehdr.basename = fname;
+            write_envi_hdr(ehdr);
         }
 
         iretn = gige_readreg(handle,PHXReg::PHXAcquisitionModeReg);
         printf("Read PHX_AcquisitionMode %d\n",iretn);
+
+        iretn = gige_readreg(handle,PHXReg::PHXTestImageSelectorReg);
+        printf("Read PHXTESTIMAGESELECTOR %d\n",iretn);
 
         iretn = gige_readreg(handle,PHXReg::PHXPixelFormatReg);
         printf("Read PHX_PixelFormat %d\n",iretn);
@@ -351,17 +391,18 @@ int main(int argc, char *argv[])
             printf("Error configuring: %s\n", cosmos_error_string(iretn).c_str());
         }
         expbytes = width * height * exposure * 2;
-        tbytes = pt1000_image(handle, exposure, image, bsize);
+        image.resize(expbytes);
+        tbytes = pt1000_image(handle, exposure, image.data(), bsize);
 
         if (expbytes == tbytes)
         {
             FILE *fp;
             fp = fopen("pt1000_test.img","wb");
-            fwrite((void *)image,tbytes,1,fp);
+            fwrite((void *)image.data(),tbytes,1,fp);
             fclose(fp);
 
             fp = fopen("pt1000_test", "w");
-            uint16_t *cube = (uint16_t *)image;
+            uint16_t *cube = (uint16_t *)image.data();
             vector<vector<float>> mean;
             mean.resize(width);
             vector<float> high;
@@ -372,15 +413,15 @@ int main(int argc, char *argv[])
                 mean[icol].resize(height);
                 for (uint32_t irow=0; irow<height; ++irow)
                 {
-                    mean[icol][irow] = 0.;
+                    mean[irow][icol] = 0.;
                     for (uint32_t ilayer=0; ilayer<exposure; ++ilayer)
                     {
-                        mean[icol][irow] += cube[ilayer*width*height+irow*width+icol];
+                        mean[irow][icol] += cube[ilayer*width*height+irow*width+icol];
                     }
-                    mean[icol][irow] /= (float)exposure;
-                    if (mean[icol][irow] > high[icol])
+                    mean[irow][icol] /= (float)exposure;
+                    if (mean[irow][icol] > high[icol])
                     {
-                        high[icol] = mean[icol][irow];
+                        high[icol] = mean[irow][icol];
                         printf("[%d,%d] %f\r",icol,irow,high[icol]);
                     }
                 }
@@ -460,7 +501,8 @@ int main(int argc, char *argv[])
 		height = gige_readreg(handle,PROSILICA_SensorHeight);
 
 		expbytes = width * height * 2;
-		tbytes = prosilica_image(handle, (exposure==0?PROSILICA_ExposureMode_Auto:PROSILICA_ExposureMode_AutoOff), exposure, gain, image, bsize);
+        image.resize(expbytes);
+        tbytes = prosilica_image(handle, (exposure==0?PROSILICA_ExposureMode_Auto:PROSILICA_ExposureMode_AutoOff), exposure, gain, image.data(), bsize);
 
 		used_exposure = gige_readreg(handle,PROSILICA_ExposureValue);
 		printf("Read PROSILICA_ExposureValue %d\n",used_exposure);
@@ -473,12 +515,19 @@ int main(int argc, char *argv[])
 
 	}
 
-	if (expbytes == tbytes)
+    if (expbytes <= tbytes)
 	{
-		//sudo histogram
+        // write image:
+
+        imagename = data_type_path("lab", "temp", "gige", currentmjd(0.), "imgdata", extra);
+        fp = fopen(imagename.c_str(),"wb");
+        fwrite((void *)image.data(),tbytes,1,fp);
+        fclose(fp);
+
+        //sudo histogram
 		printf("\nRead: %d bytes ",tbytes);
 		uint32_t counts[4]={0,0,0,0};
-		uint16_t *array=(uint16_t *)image;
+        uint16_t *array=(uint16_t *)image.data();
 		double mean=0.;
 		double std=0.;
 		double snr=0.;
@@ -523,39 +572,32 @@ int main(int argc, char *argv[])
 
 		gige_close(handle);
 
-		// write image:
-
-        imagename = data_type_path("lab", "temp", "gige", currentmjd(0.), "imgdata", extra);
-		fp = fopen(imagename.c_str(),"wb");
-		fwrite((void *)image,tbytes,1,fp);
-		fclose(fp);
-
 		// write metadata file:
 
 
-        metafilename = data_type_path("hiakasat", "temp", "gige", currentmjd(0.), "imgmeta", extra);
-		FILE *f = fopen(metafilename.c_str(), "wb");
-		if (f == NULL)
-		{
-			printf("Error opening file!\n");
-			exit(1);
-		}
+//        metafilename = data_type_path("hiakasat", "temp", "gige", currentmjd(0.), "imgmeta", extra);
+//		FILE *f = fopen(metafilename.c_str(), "wb");
+//		if (f == NULL)
+//		{
+//			printf("Error opening file!\n");
+//			exit(1);
+//		}
 
-		/* print image metrics to file */
-		fprintf(f, "Image Name    = %s\n",imagename.c_str());
-		fprintf(f, "IP Address    = %s\n",ipaddress);
-		fprintf(f, "Acq Timestamp    = %f\n",currentmjd(0.));
-		fprintf(f, "Acq Date    = %s",c_time_string);
-		fprintf(f, "Exposure    = %d\n",used_exposure);
-		fprintf(f, "Pixel Binning    = %d\n",binning);
-		fprintf(f, "Image Width    = %d\n",used_imagewidth);
-		fprintf(f, "Image Height    = %d\n",used_imageheight);
-		fprintf(f, "Mean Image Value    = %f\n",mean);
-		fprintf(f, "Standard Deviation  = %f\n",std);
-		fprintf(f, "SNR                 = %f\n",snr);
-		fprintf(f, "Min/Max             = %d, %d \n",min_value, max_value);
+//		/* print image metrics to file */
+//		fprintf(f, "Image Name    = %s\n",imagename.c_str());
+//		fprintf(f, "IP Address    = %s\n",ipaddress);
+//		fprintf(f, "Acq Timestamp    = %f\n",currentmjd(0.));
+//		fprintf(f, "Acq Date    = %s",c_time_string);
+//		fprintf(f, "Exposure    = %d\n",used_exposure);
+//		fprintf(f, "Pixel Binning    = %d\n",binning);
+//		fprintf(f, "Image Width    = %d\n",used_imagewidth);
+//		fprintf(f, "Image Height    = %d\n",used_imageheight);
+//		fprintf(f, "Mean Image Value    = %f\n",mean);
+//		fprintf(f, "Standard Deviation  = %f\n",std);
+//		fprintf(f, "SNR                 = %f\n",snr);
+//		fprintf(f, "Min/Max             = %d, %d \n",min_value, max_value);
 
-		fclose(f);
+//		fclose(f);
 	}
 	else
 	{
@@ -565,3 +607,21 @@ int main(int argc, char *argv[])
 
 	exit(0);
 }
+
+string makeFilename(string argument)
+{
+    string fname;
+    char DateTimeStamp[16];
+    time_t t = time(nullptr);
+    struct tm tm = *localtime(&t);
+
+    sprintf(DateTimeStamp, "%4d%02d%02d%02d%02d%02d", tm.tm_year-100+2000, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    fname = "image_";
+    fname.append(DateTimeStamp);
+    fname.append("_");
+    fname.append(argument);
+    fname.append(".bip");
+
+    return fname;
+}
+
