@@ -11,7 +11,7 @@
     \param catt Current ICRF attitude quaternion.
     \moi Principle moments of inertia.
 */
-rvector calc_control_torque(double lag, Convert::qatt tatt, Convert::qatt catt, rvector moi)
+rvector calc_control_torque(double maxtorque, Vector moi, Convert::qatt tatt, Convert::qatt catt)
 {
     rmatrix mom, rm;
     double dalp, domg, dt;
@@ -19,7 +19,6 @@ rvector calc_control_torque(double lag, Convert::qatt tatt, Convert::qatt catt, 
     rvector distance;
     quaternion dsq2;
 
-    if (lag > 0.)
     {
 
         // Calculate adjustment for ICRF distance
@@ -27,15 +26,13 @@ rvector calc_control_torque(double lag, Convert::qatt tatt, Convert::qatt catt, 
         if (length_q(tatt.s))
         {
             dsq2 = q_mult(tatt.s,q_conjugate(catt.s));
-            distance = rv_quaternion2axis(dsq2);
-            domg = length_rv(distance);
+            omega = rv_quaternion2axis(dsq2);
+            domg = length_rv(omega);
             if (domg > DPI)
             {
                 dsq2 = q_smult(-1.,dsq2);
-                distance = rv_quaternion2axis(dsq2);
+                omega = rv_quaternion2axis(dsq2);
             }
-
-            omega = rv_smult(1./lag,distance);
         }
         // If Target quaternion is zero, adjust only for velocity
         else
@@ -44,24 +41,26 @@ rvector calc_control_torque(double lag, Convert::qatt tatt, Convert::qatt catt, 
         }
 
         // Match velocity
-        omega = rv_add(omega,tatt.v);
+        omega += tatt.v;
         alpha = rv_sub(omega,catt.v);
-        dalp = length_rv(alpha) / lag;
+        alpha = omega - catt.v;
+        dalp = length_rv(alpha);
         alpha = rv_smult(dalp,rv_normal(alpha));
 
         // Conversion from ICRF to Body
         rm = rm_quaternion2dcm(catt.s);
         // Moment of Inertia in Body
-        mom = rm_diag(moi);
+        mom = rm_diag(moi.to_rv());
         // Moment of Inertia in ICRF
         mom = rm_mmult(rm_transpose(rm),rm_mmult(mom,rm));
         torque = rv_mmult(mom,alpha);
+        double dtorque = length_rv(torque);
+        if (dtorque > maxtorque)
+        {
+            torque = rv_normal(torque) * dtorque;
+        }
 
         return (torque);
-    }
-    else
-    {
-        return (rv_zero());
     }
 }
 

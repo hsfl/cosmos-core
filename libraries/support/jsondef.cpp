@@ -1799,6 +1799,8 @@ namespace Cosmos
             add_name("node.phys.com.y", &node.phys.com.y, "double");
             add_name("node.phys.com.z", &node.phys.com.z, "double");
             add_name("node.phys.com.w", &node.phys.com.w, "double");
+            add_name("node.phys.maxthrust", &node.phys.maxthrust, "double");
+            add_name("node.phys.maxtorque", &node.phys.maxtorque, "double");
 
             // vector<facestruc> faces
             add_name("faces", &node.phys.faces, "vector<facestruc>");
@@ -2479,6 +2481,7 @@ namespace Cosmos
                     }
                     add_name(basename+".mxomg", &devspec.rw[didx].mxomg, "float");
                     add_name(basename+".mxalp", &devspec.rw[didx].mxalp, "float");
+                    add_name(basename+".mxtrq", &devspec.rw[didx].mxtrq, "float");
                     add_name(basename+".tc", &devspec.rw[didx].tc, "float");
                     add_name(basename+".omg", &devspec.rw[didx].omg, "float");
                     add_name(basename+".alp", &devspec.rw[didx].alp, "float");

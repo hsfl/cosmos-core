@@ -3159,6 +3159,8 @@ union as a ::devicestruc.
             float mxomg = 0.f;
             //! Maximum alpha in radians/second/second.
             float mxalp = 0.f;
+            //! Maximum tau in newton-meters.
+            float mxtrq = 0.f;
             //! Acceleration Time Constant
             float tc = 0.f;
             //! Current angular velocity
@@ -3180,6 +3182,7 @@ union as a ::devicestruc.
                     { "mom"   , mom },
                     { "mxomg" , mxomg },
                     { "mxalp" , mxalp },
+                    { "mxtrq" , mxtrq },
                     { "tc"	, tc },
                     { "omg"   , omg },
                     { "alp"   , alp },
@@ -3200,7 +3203,8 @@ union as a ::devicestruc.
                     if(!parsed["align"].is_null()) { align.from_json(parsed["align"].dump()); }
                     if(!parsed["mom"].is_null()) { mom.from_json(parsed["mom"].dump()); }
                     if(!parsed["mxomg"].is_null()) { mxomg = parsed["mxomg"].number_value(); }
-                    if(!parsed["bdmxalpot"].is_null()) { mxalp = parsed["mxalp"].number_value(); }
+                    if(!parsed["mxalp"].is_null()) { mxalp = parsed["mxalp"].number_value(); }
+                    if(!parsed["mxtrq"].is_null()) { mxtrq = parsed["mxtrq"].number_value(); }
                     if(!parsed["tc"].is_null()) { tc = parsed["tc"].number_value(); }
                     if(!parsed["omg"].is_null()) { omg = parsed["omg"].number_value(); }
                     if(!parsed["alp"].is_null()) { alp = parsed["alp"].number_value(); }
@@ -4846,6 +4850,8 @@ union as a ::devicestruc.
             Vector fpush;
             Vector moi = Vector(1.,1.,1.);
             Vector com;
+            double maxthrust;
+            double maxtorque;
 
             //! Vector of all structures in node.
             vector <strucstruc> strucs;
@@ -4903,6 +4909,8 @@ union as a ::devicestruc.
                     { "thrust" , thrust },
                     { "moi" , moi },
                     { "com" , com },
+                    { "maxthrust" , maxthrust },
+                    { "maxtorque" , maxtorque },
                     { "vertex_cnt" , vertex_cnt },
 //                    { "normal_cnt" , normal_cnt },
                     { "triangle_cnt" , triangle_cnt },
@@ -4953,6 +4961,8 @@ union as a ::devicestruc.
                     if(!parsed["thrust"].is_null())	{ thrust.from_json(parsed["thrust"].dump()); }
                     if(!parsed["moi"].is_null())	{ moi.from_json(parsed["moi"].dump()); }
                     if(!parsed["com"].is_null())	{ com.from_json(parsed["com"].dump()); }
+                    if(!parsed["maxthrust"].is_null())	{ maxthrust = parsed["maxthrust"].number_value(); }
+                    if(!parsed["maxtorque"].is_null())	{ maxtorque = parsed["maxtorque"].number_value(); }
                     if(!parsed["vertex_cnt"].is_null())	{ vertex_cnt = parsed["vertex_cnt"].long_value(); }
                     if(!parsed["triangle_cnt"].is_null())	{ triangle_cnt = parsed["triangle_cnt"].long_value(); }
                     if(!parsed["face_cnt"].is_null())	{ face_cnt = parsed["face_cnt"].long_value(); }

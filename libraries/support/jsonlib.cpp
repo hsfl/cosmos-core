@@ -9000,6 +9000,8 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("physics_area", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,area), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_AREA);
     json_addentry("physics_moi", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,moi), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_MOI);
     json_addentry("physics_com", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,com), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_LENGTH);
+    json_addentry("physics_maxthrust", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,maxthrust), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_FORCE);
+    json_addentry("physics_maxtorque", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,maxtorque), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_TORQUE);
     json_addentry("physics_mass", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,mass), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_MASS);
     json_addentry("physics_heat", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,heat), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PHYSICS, cinfo);
 
@@ -9930,6 +9932,7 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
         json_addentry("device_rw_mom",didx, UINT16_MAX, (uint8_t *)&device->mom, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
         json_addentry("device_rw_mxomg",didx, UINT16_MAX, (uint8_t *)&device->mxomg, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_rw_mxalp",didx, UINT16_MAX, (uint8_t *)&device->mxalp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_rw_mxtrq",didx, UINT16_MAX, (uint8_t *)&device->mxtrq, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_rw_tc",didx, UINT16_MAX, (uint8_t *)&device->tc, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_rw_omg",didx, UINT16_MAX, (uint8_t *)&device->omg, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGULAR_RATE);
         json_addentry("device_rw_alp",didx, UINT16_MAX, (uint8_t *)&device->alp, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGULAR_RATE);
@@ -10313,6 +10316,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_rw_mom",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rw_mxomg",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rw_mxalp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_rw_mxtrq",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rw_tc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rw_omg",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rw_alp",didx, UINT16_MAX, cinfo, state);
@@ -12540,6 +12544,8 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                     // json_out_character(jstring, '\n');
                     json_out_1d(jstring, "device_rw_mxalp",j, cinfo);
                     // json_out_character(jstring, '\n');
+                    json_out_1d(jstring, "device_rw_mxtrq",j, cinfo);
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring, "device_rw_mxomg",j, cinfo);
                     // json_out_character(jstring, '\n');
                     json_out_1d(jstring, "device_rw_tc",j, cinfo);
@@ -13448,7 +13454,7 @@ void create_databases(cosmosstruc *cinfo)
     {
         rwstruc rws = cinfo->devspec.rw[i];
         //        devicestruc d = cinfo->devspec.rw[i]];
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\n",i,rws.cidx,rws.align.d.x,rws.align.d.y,rws.align.d.z,rws.align.w,rws.mom.col[0],rws.mom.col[1],rws.mom.col[2],rws.mxomg,rws.mxalp);
+        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\n",i,rws.cidx,rws.align.d.x,rws.align.d.y,rws.align.d.z,rws.align.w,rws.mom.col[0],rws.mom.col[1],rws.mom.col[2],rws.mxomg,rws.mxalp,rws.mxtrq);
     }
     fclose(op);
 

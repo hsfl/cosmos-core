@@ -441,7 +441,7 @@ int32_t Simulator::ParseSatString(string args)
     int32_t iretn;
     double eventtick = 60.;
     double maxthrust = 0.;
-    double maxalpha = 0.;
+    double maxtorque = 0.;
     double maxomega = 0.;
     double maxmoment = 0.;
     uint16_t argcount = 0;
@@ -490,10 +490,10 @@ int32_t Simulator::ParseSatString(string args)
         ++argcount;
         maxthrust = jargs["maxthrust"].number_value();
     }
-    if (!jargs["maxalpha"].is_null())
+    if (!jargs["maxtorque"].is_null())
     {
         ++argcount;
-        maxalpha = jargs["maxalpha"].number_value();
+        maxtorque = jargs["maxtorque"].number_value();
     }
     if (!jargs["maxomega"].is_null())
     {
@@ -623,20 +623,22 @@ int32_t Simulator::ParseSatString(string args)
     iretn = json_createpiece(&(*sit)->currentinfo, "adcs_thrust", DeviceType::THST);
     (*sit)->currentinfo.devspec.thst[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].maxthrust = maxthrust;
     (*sit)->currentinfo.devspec.thst[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unitz(-1.), rv_unitx());
+    (*sit)->currentinfo.node.phys.maxthrust = maxthrust;
 
     // Reaction wheels
     iretn = json_createpiece(&(*sit)->currentinfo, "adcs_rw_x", DeviceType::RW);
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxalp = maxalpha;
+    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxtrq = maxtorque;
     (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxomg = maxomega;
     (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
     iretn = json_createpiece(&(*sit)->currentinfo, "adcs_rw_y", DeviceType::RW);
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxalp = maxalpha;
+    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxtrq = maxtorque;
     (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxomg = maxomega;
     (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
     iretn = json_createpiece(&(*sit)->currentinfo, "adcs_rw_z", DeviceType::RW);
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxalp = maxalpha;
+    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxtrq = maxtorque;
     (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxomg = maxomega;
     (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+    (*sit)->currentinfo.node.phys.maxtorque = maxtorque;
 
     // Torque rods
     iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mtr_x", DeviceType::MTR);
@@ -1405,7 +1407,7 @@ int32_t Simulator::Target()
 
         if (cnodes[i]->currentinfo.target_idx < cnodes[i]->currentinfo.target.size())
         {
-            cnodes[i]->currentinfo.node.phys.ftorque = calc_control_torque(10., cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].loc.att.icrf, cnodes[i]->currentinfo.node.loc.att.icrf, cnodes[i]->currentinfo.node.phys.moi.to_rv());
+            cnodes[i]->currentinfo.node.phys.ftorque = calc_control_torque(cnodes[i]->currentinfo.node.phys.maxtorque, cnodes[i]->currentinfo.node.phys.moi, cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].loc.att.icrf, cnodes[i]->currentinfo.node.loc.att.icrf);
         }
         else
         {
