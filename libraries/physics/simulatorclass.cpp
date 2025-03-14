@@ -1410,7 +1410,7 @@ int32_t Simulator::Target()
         Vector torque;
         if (cnodes[i]->currentinfo.target_idx < cnodes[i]->currentinfo.target.size())
         {
-            torque = calc_control_torque(1., cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].loc.att.icrf, cnodes[i]->currentinfo.node.loc.att.icrf, cnodes[i]->currentinfo.node.phys.moi.to_rv());
+            torque = calc_control_torque(cnodes[i]->currentinfo.node.phys.maxtorque, cnodes[i]->currentinfo.node.phys.moi, cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].loc.att.icrf, cnodes[i]->currentinfo.node.loc.att.icrf);
         }
         UpdateTorque(cnodes[i]->currentinfo.node.name, torque);
     }

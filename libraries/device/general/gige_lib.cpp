@@ -158,15 +158,18 @@ namespace Cosmos {
             }
 
             uint32_t bsize;
-            for (bsize=512; bsize<GIGE_MAX_PACKET; bsize+=100)
-            {
-                if (bsize > GIGE_MAX_PACKET) bsize = GIGE_MAX_PACKET;
-                iretn = gige_writereg(handle,GIGE_REG_SCPS,0xc0000000+bsize);
-                iretn = gige_readreg(handle,GIGE_REG_SCPS)%65536;
-                nbytes=recvfrom(handle->stream.cudp,(char *)bufferin,GIGE_MAX_PACKET,0,static_cast<struct sockaddr *>(nullptr),static_cast<socklen_t *>(nullptr));
-                if (nbytes < 0) break;
-            }
+//            for (bsize=512; bsize<GIGE_MAX_PACKET; bsize+=100)
+//            {
+//                if (bsize > GIGE_MAX_PACKET) bsize = GIGE_MAX_PACKET;
+//                iretn = gige_writereg(handle,GIGE_REG_SCPS,bsize);
+//                iretn = gige_readreg(handle,GIGE_REG_SCPS);
+//                iretn = gige_writereg(handle,GIGE_REG_SCPS,0xc0000000+bsize);
+//                iretn = gige_readreg(handle,GIGE_REG_SCPS)%65536;
+//                nbytes=recvfrom(handle->stream.cudp,(char *)bufferin,GIGE_MAX_PACKET,0,static_cast<struct sockaddr *>(nullptr),static_cast<socklen_t *>(nullptr));
+//                if (nbytes < 0) break;
+//            }
             handle->bestsize = bsize - 100;
+            handle->bestsize = gige_readreg(handle,GIGE_REG_SCPS);
 
             if ((iretn=gige_writereg(handle,GIGE_REG_SCPS,(uint32_t)handle->bestsize)) < 0)
             {
