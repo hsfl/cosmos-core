@@ -1158,8 +1158,8 @@ int32_t Structure::add_hex(double width, double height, ExternalPanelType type)
         top.push_back(Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.));
         bottom.push_back(Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.));
     }
-    add_panel("top", top);
-    add_panel("bottom", bottom);
+    add_panel("external+z", top);
+    add_panel("external-z", bottom);
 
     for (uint16_t i=0; i<6; ++i)
     {
@@ -1207,8 +1207,8 @@ int32_t Structure::add_oct(double width, double height, ExternalPanelType type)
         for (float angle=0.; angle<D2PI; angle+=D2PI/8.)
         {
             add_panel("external"+to_unsigned(DEGOF(angle), 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.));
-            add_panel("top", top);
-            add_panel("bottom", bottom);
+            add_panel("external+z", top);
+            add_panel("external-z", bottom);
             //            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
             //            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
         }
