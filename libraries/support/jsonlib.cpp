@@ -8543,12 +8543,14 @@ int32_t json_setup_realm(string &realm, cosmosstruc *cinfo)
         if (!data["area"].is_null())
         {
             targ.area = data["area"].number_value();
+            targ.size = gvector(sqrt(targ.area/M_PI), sqrt(targ.area/M_PI), 0.);
         }
 
         if (!data["radius"].is_null())
         {
-            targ.area = 100. * data["radius"].number_value();
-            targ.area = M_PI * targ.area * targ.area;
+            targ.area = data["radius"].number_value();
+            targ.size = gvector(targ.area/REARTHM, targ.area/REARTHM, 0.);
+            targ.area *= M_PI * targ.area;
         }
 
         cinfo->target.push_back(targ);
@@ -11422,7 +11424,7 @@ string json_list_of_soh(cosmosstruc *cinfo)
     string result;
     char tempstring[200];
 
-    result = "{\"node_utc\",\"node_name\",\"node_lastevent\",\"node_lasteventutc\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_powmode\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
+    result = "{\"node_utc\",\"node_name\",\"node_lastevent\",\"node_lasteventutc\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_powmode\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\",\"node_target_idx\"";
 
     for (uint16_t i=0; i<cinfo->devspec.telem_cnt; ++i)
     {
@@ -11430,36 +11432,6 @@ string json_list_of_soh(cosmosstruc *cinfo)
         result += ",\"device_telem_type_" + to_unsigned(i, 3, true) + "\"";
         result += ",\"device_telem_name_" + to_unsigned(i, 3, true) + "\"";
         result += ",\"device_telem_" + TelemTypeName[cinfo->devspec.telem[i].type] + "_" + to_unsigned(i, 3, true) + "\"";
-        //        switch (cinfo->devspec.telem[i]].type)
-        //        {
-        //        case 0:
-        //            result += ",\"device_telem_vuint8_" + to_unsigned(i, 3, true) + "\"";
-        //            break;
-        //        case 1:
-        //            result += ",\"device_telem_vint8_" + to_unsigned(i, 3, true) + "\"";
-        //            break;
-        //        case 2:
-        //            result += ",\"device_telem_vuint16_" + to_unsigned(i, 3, true) + "\"";
-        //            break;
-        //        case 3:
-        //            result += ",\"device_telem_vint16_" + to_unsigned(i, 3, true) + "\"";
-        //            break;
-        //        case 4:
-        //            result += ",\"device_telem_vuint32_" + to_unsigned(i, 3, true) + "\"";
-        //            break;
-        //        case 5:
-        //            result += ",\"device_telem_vint32_" + to_unsigned(i, 3, true) + "\"";
-        //            break;
-        //        case 6:
-        //            result += ",\"device_telem_vfloat_" + to_unsigned(i, 3, true) + "\"";
-        //            break;
-        //        case 7:
-        //            result += ",\"device_telem_vdouble_" + to_unsigned(i, 3, true) + "\"";
-        //            break;
-        //        case 8:
-        //            result += ",\"device_telem_vstring_" + to_unsigned(i, 3, true) + "\"";
-        //            break;
-        //        }
     }
 
     for (uint16_t i=0; i<cinfo->devspec.pload_cnt; ++i)
@@ -14085,11 +14057,6 @@ int32_t update_target(Convert::locstruc source, targetstruc &target)
     // targ_z = source.pos.geoc.s * -0.1;
 
     target.loc.att.icrf.s = q_irotate_for(rv_normal(targ_z), rv_normal(rv_cross(rv_normal(targ_z), source.pos.eci.v)), rv_unitz(), rv_unity());
-    // rvector targ_y = rv_normal(rv_cross(targ_z, source.pos.geoc.v));
-    // quaternion qe_z = q_conjugate(q_drotate_between_rv(targ_z, rv_unitz()));
-    // targ_y = irotate(qe_z, targ_y);
-    // quaternion qe_y = q_conjugate(q_drotate_between_rv(targ_y, rv_unity()));
-    // target.loc.att.geoc.s = q_fmult(qe_z, qe_y);
     return 0;
 }
 
