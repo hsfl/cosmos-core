@@ -3884,6 +3884,7 @@ Convert::cartpos eci2hill(const Convert::cartpos& tgteci, const Convert::cartpos
     inthill.v.col[1] = magrtgt * (lambdadotint - lambdadottgt); // vhill(2) = magrtgt * (lambdadotint - lambdadottgt);
     inthill.v.col[2] = magrtgt * phidotint;                     // vhill(3) = magrtgt * phidotint;
 
+    inthill.utc = inteci.utc;
     return inthill;
 }
 
@@ -3971,6 +3972,7 @@ Convert::cartpos hill2eci (const Convert::cartpos& tgteci, const Convert::cartpo
     intrsw.s.col[1] = cosphiint * magrint * sinlambdaint;    // rintrsw(2) = cosphiint * magrint * sinlambdaint;
     intrsw.s.col[2] = sinphiint * magrint;                   // rintrsw(3) = sinphiint * magrint;
     inteci.s = rv_mmult(rotRSW2ECI, intrsw.s);               // rinteci    = rotECI2RSW' * rintrsw';
+    inteci.utc = tgteci.utc;
     return inteci;
 }
 
