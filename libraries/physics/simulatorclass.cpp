@@ -1254,7 +1254,7 @@ int32_t Simulator::Propagate(vector<vector<cosmosstruc> > &results, uint32_t run
 
 int32_t Simulator::Target(map<uint32_t, vector<qatt> > &pschedule)
 {
-    if (pschedule.size() > 1 && pschedule.begin()->second.size() == cnodes.size())
+    if (pschedule.size() > 1 && pschedule.begin()->second.size() >= cnodes.size())
     {
         qatt catt;
         if (currentutc < pschedule.begin()->second[0].utc)
