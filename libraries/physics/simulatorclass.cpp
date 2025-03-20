@@ -1262,7 +1262,7 @@ int32_t Simulator::Target(map<uint32_t, vector<qatt> > &pschedule)
             for (uint16_t j=0; j<cnodes.size(); ++j)
             {
                 cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule.begin()->second[j];
-                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = cnodes[j]->currentinfo.node.loc.att.icrf.pass + 1;
+                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = std::max(cnodes[j]->currentinfo.node.loc.att.icrf.pass, cnodes[j]->currentinfo.node.loc.att.geoc.pass) + 1;
                 att_lvlh(cnodes[j]->currentinfo.node.loc);
             }
         }
@@ -1271,7 +1271,7 @@ int32_t Simulator::Target(map<uint32_t, vector<qatt> > &pschedule)
             for (uint16_t j=0; j<cnodes.size(); ++j)
             {
                 cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule.rbegin()->second[j];
-                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = cnodes[j]->currentinfo.node.loc.att.icrf.pass + 1;
+                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = std::max(cnodes[j]->currentinfo.node.loc.att.icrf.pass, cnodes[j]->currentinfo.node.loc.att.geoc.pass) + 1;
                 att_lvlh(cnodes[j]->currentinfo.node.loc);
             }
         }
@@ -1280,7 +1280,7 @@ int32_t Simulator::Target(map<uint32_t, vector<qatt> > &pschedule)
             for (uint16_t j=0; j<cnodes.size(); ++j)
             {
                 cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule[decisec(currentutc)][j];
-                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = cnodes[j]->currentinfo.node.loc.att.icrf.pass + 1;
+                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = std::max(cnodes[j]->currentinfo.node.loc.att.icrf.pass, cnodes[j]->currentinfo.node.loc.att.geoc.pass) + 1;
                 att_lvlh(cnodes[j]->currentinfo.node.loc);
             }
         }
