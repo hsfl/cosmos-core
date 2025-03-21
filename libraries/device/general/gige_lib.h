@@ -617,6 +617,9 @@ namespace Cosmos {
         //!
         enum PHXReg
         {
+            PHXIspBayerPattern = 0x10400084, // N785
+            PHXPixelColorFilter = 0x10400080, // N784
+            PHXADCBitDepth = 0x104000D4, // N813
             PHXDeviceLinkThroughputLimit = 0x101001f4, // N27
             PHXDeviceResetReg = 0x10100028, // N49
             PHXSensorWidthReg = 0x10400050, // N799
@@ -634,7 +637,7 @@ namespace Cosmos {
         };
 
         int32_t phx_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t xbin=1, uint32_t ybin=1, uint32_t test_pattern=0);
-        int32_t phx_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize);
+        int32_t phx_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize, uint16_t test=0);
 
         double gige_read_float(gige_handle *handle, string name);
         uint64_t gige_read_uint32(gige_handle *handle, string name);

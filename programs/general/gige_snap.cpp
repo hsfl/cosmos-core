@@ -55,15 +55,18 @@ int main(int argc, char *argv[])
     uint32_t exposure=1;
 	uint32_t gain=1;
 	uint32_t binning=1;
+    uint32_t test = 0;
 	char ipaddress[20];
 
 	switch (argc)
 	{
-	case 6:
-		binning=atol(argv[5]);
-	case 5:
-		gain = atol(argv[4]);
-	case 4:
+    case 7:
+        binning=atol(argv[6]);
+    case 6:
+        gain = atol(argv[5]);
+    case 5:
+        test = atol(argv[4]);
+    case 4:
 		exposure = atol(argv[3]);
 	case 3:
 		extra = argv[2];
@@ -126,9 +129,9 @@ int main(int argc, char *argv[])
 
 
 
-    if ((handle=gige_open(ipaddress,0x02,40000,5000,75000000)) == NULL)
+    if ((handle=gige_open(ipaddress,0x02,40000,5000,80000000)) == NULL)
 	{
-		if((handle = gige_open(gige_value_to_address(gige_list[0].address),0x02,40000,5000,7500000)) == NULL)
+        if((handle = gige_open(gige_value_to_address(gige_list[0].address),0x02,40000,5000,8000000)) == NULL)
 		{
 			printf("Couldn't open camera\n");
 			exit(1);
@@ -156,7 +159,7 @@ int main(int argc, char *argv[])
 	iretn = gige_readreg(handle,GIGE_REG_GVCP_HEARTBEAT_TIMEOUT);
     printf("Read GVCP_HEARTBEAT_TIMEOUT %u\n",iretn);
 
-	iretn = gige_readreg(handle,GIGE_REG_PRIMARY_APPLICATION_IP_ADDRESS);
+    iretn = gige_readreg(handle,GIGE_REG_PRIMARY_APPLICATION_IP_ADDRESS);
     printf("Read PRIMARY_APPLICATION_IP_ADDRESS %x\n",iretn);
 
     iretn = gige_readmem(handle,GIGE_REG_FIRST_URL,512);
@@ -264,24 +267,15 @@ int main(int argc, char *argv[])
 	}
     else if (strncmp((char *)handle->cack_mem.data, "PHX050S", 7) == 0 )
     {
-        iretn = gige_readreg(handle,PHXReg::PHXTestImageSelectorReg);
-        printf("Read PHXTESTIMAGESELECTOR %d\n",iretn);
-
-        iretn = gige_readreg(handle,PHXReg::PHXPixelFormatReg);
-        printf("Read PHXPIXELFORMAT %d\n",iretn);
-
         width = gige_readreg(handle,PHXReg::PHXWidthReg);
-        printf("Read PHX_WIDTH %d\n",width);
-
         height = gige_readreg(handle,PHXReg::PHXHeightReg);
-        printf("Read PHX_HEIGHT %d\n",height);
 
         iretn = phx_config(handle, width, height, 1, 1, 1);
         if (iretn < 0)
         {
             printf("Error configuring: %s\n", cosmos_error_string(iretn).c_str());
         }
-        expbytes = width * height * exposure * handle->bpp + 4;
+        expbytes = width * height * exposure * handle->bpp;
         image.resize(expbytes);
         tbytes =  phx_image(handle, exposure, image.data(), bsize);
 
@@ -289,6 +283,10 @@ int main(int argc, char *argv[])
         {
             FILE *fp;
             string fname = makeFilename("data");
+            if (!extra.empty())
+            {
+                fname += "_" + extra;
+            }
             fp = fopen(fname.c_str(),"w");
             fwrite((void *)image.data(),tbytes,1,fp);
             fclose(fp);
@@ -299,64 +297,88 @@ int main(int argc, char *argv[])
             ehdr.rows = height;
             ehdr.offset = 0;
             //ehdr.endian;
-            ehdr.datatype = DT_BYTE;
-            ehdr.interleave = BIP;
+            ehdr.datatype = DT_U_INT;
+            ehdr.interleave = BSQ;
             ehdr.byteorder = BO_INTEL;
             ehdr.basename = fname;
             write_envi_hdr(ehdr);
 
             fname = makeFilename("stats");
+            if (!extra.empty())
+            {
+                fname += "_" + extra;
+            }
             fp = fopen(fname.c_str(),"w");
             if (fp == nullptr)
             {
                 perror("Error opening stats file");
                 exit (1);
             }
+            uint16_t *array = (uint16_t *)image.data();
             vector<vector<float>> mean[3];
-            vector<float> high[3];
             for (uint16_t bin=0; bin<3; ++bin)
             {
-                mean[bin].resize(height);
-                high[bin].resize(height);
-                for (uint32_t irow=0; irow<height; ++irow)
+                mean[0].resize(height/2-1);
+                mean[1].resize(height/2-1);
+                mean[2].resize(height/2-1);
+                for (uint32_t irow=0; irow<height/2-1; ++irow)
                 {
-                    high[bin][irow]=0.;
-                    mean[bin][irow].resize(width);
-                    for (uint32_t icol=0; icol<width; ++icol)
+                    mean[0][irow].resize(width/2-1);
+                    mean[1][irow].resize(width/2-1);
+                    mean[2][irow].resize(width/2-1);
+                    for (uint32_t icol=0; icol<width/2-1; ++icol)
                     {
-                        mean[bin][irow][icol] = 0.;
+                        mean[0][irow][icol] = 0.;
+                        mean[1][irow][icol] = 0.;
+                        mean[2][irow][icol] = 0.;
                         for (uint32_t ilayer=0; ilayer<exposure; ++ilayer)
                         {
-                            mean[bin][irow][icol] += image[3*(ilayer*width*height+irow*width+icol)+bin];
+                            float rvalue = array[(ilayer*width*height+2*irow*width+2*icol)];
+                            mean[0][irow][icol] += rvalue;
+                            float gvalue = array[(ilayer*width*height+2*irow*width+2*icol+1)];
+                            gvalue += array[(ilayer*width*height+(2*irow+1)*width+2*icol)];
+                            mean[1][irow][icol] += gvalue / 2.;
+                            float bvalue = array[(ilayer*width*height+(2*irow+1)*width+2*icol+1)];
+                            mean[2][irow][icol] += bvalue;
                         }
                         mean[bin][irow][icol] /= (float)exposure;
-                        if (mean[bin][irow][icol] > high[bin][irow])
-                        {
-                            high[bin][irow] = mean[bin][irow][icol];
-                        }
                     }
-                    fwrite((void *)mean[bin][irow].data(),width,4,fp);
+                    fwrite((void *)mean[0][irow].data(),width/2-1,4,fp);
+                    fwrite((void *)mean[1][irow].data(),width/2-1,4,fp);
+                    fwrite((void *)mean[2][irow].data(),width/2-1,4,fp);
                 }
             }
             fclose(fp);
 
-            ehdr.planes = exposure;
-            ehdr.columns = width;
-            ehdr.rows = height;
+            ehdr.planes = 3;
+            ehdr.columns = width/2-1;
+            ehdr.rows = height/2-1;
             ehdr.offset = 0;
             //ehdr.endian;
             ehdr.datatype = DT_FLOAT;
-            ehdr.interleave = BSQ;
+            ehdr.interleave = BIL;
             ehdr.byteorder = BO_INTEL;
             ehdr.basename = fname;
             write_envi_hdr(ehdr);
         }
+
+        iretn = gige_readreg(handle,PHXDeviceLinkThroughputLimit);
+        printf("Read DeviceLinkThroughput %u\n",iretn);
 
         iretn = gige_readreg(handle,PHXReg::PHXAcquisitionModeReg);
         printf("Read PHX_AcquisitionMode %d\n",iretn);
 
         iretn = gige_readreg(handle,PHXReg::PHXTestImageSelectorReg);
         printf("Read PHXTESTIMAGESELECTOR %d\n",iretn);
+
+        iretn = gige_readreg(handle,PHXReg::PHXPixelColorFilter);
+        printf("Read PHX_PixelColorFilter %d\n",iretn);
+
+        iretn = gige_readreg(handle,PHXReg::PHXIspBayerPattern);
+        printf("Read PHX_IspBayerPattern %d\n",iretn);
+
+        iretn = gige_readreg(handle,PHXReg::PHXADCBitDepth);
+        printf("Read PHX_ADCBitDepth %d\n",iretn);
 
         iretn = gige_readreg(handle,PHXReg::PHXPixelFormatReg);
         printf("Read PHX_PixelFormat %d\n",iretn);
@@ -526,34 +548,39 @@ int main(int argc, char *argv[])
 
         //sudo histogram
 		printf("\nRead: %d bytes ",tbytes);
-		uint32_t counts[4]={0,0,0,0};
-        uint16_t *array=(uint16_t *)image.data();
-		double mean=0.;
-		double std=0.;
-		double snr=0.;
-		int16_t min_value=4095.;
-		int16_t max_value=0.;
+        uint32_t counts[3][4]={0,0,0,0};
+        double mean[3]={0.,0.,0.};
+        double std[3]={0.,0.,0.};
+        double snr[3]={0.,0.,0.};
+        int16_t min_value[3]={255, 255, 255};
+        int16_t max_value[3]={0,0,0};
 
 
 
-		for (int32_t i=0; i<tbytes/2; ++i)
-		{
-			mean += array[i];
-			std += (array[i]*array[i]);
-			++counts[array[i]/1024];
+        for (int32_t i=0; i<tbytes/3; ++i)
+        {
+            for (uint16_t bin=0; bin<3; ++bin)
+            {
+                mean[bin] += image[i*3+bin];
+                std[bin] += (1.*image[i*3+bin]*image[i*3+bin]);
+                ++counts[bin][image[i*3+bin]/64];
 
-			if (array[i]<min_value){
-				min_value=array[i];
-			}
+                if (image[i*3+bin]<min_value[bin]){
+                    min_value[bin]=image[i*3+bin];
+                }
 
-			if (array[i]>max_value)
-			{
-				max_value=array[i];
-			}
-		}
-		std = sqrt((std-(mean*mean/(tbytes/2)))/(tbytes/2)-1);
-		mean /= (tbytes/2);
-		snr = (mean/std);
+                if (image[i*3+bin]>max_value[bin])
+                {
+                    max_value[bin]=image[i*3+bin];
+                }
+            }
+        }
+        for (uint16_t bin=0; bin<3; ++bin)
+        {
+            std[bin] = sqrt((std[bin]-(mean[bin]*mean[bin]/(tbytes/3)))/(tbytes/3)-1);
+            mean[bin] /= (tbytes/3);
+            snr[bin] = (mean[bin]/std[bin]);
+        }
 
 		printf("%u %u %u %u %f %f %f\n\n",counts[0],counts[1],counts[2],counts[3],mean,std, snr);
 		iretn = gige_readreg(handle,GIGE_REG_SCPS);
@@ -564,10 +591,10 @@ int main(int argc, char *argv[])
 
 		// Separate and print out some of the image quality metrics:
 		printf("___________________________ \n\n");
-		printf("Mean Image Value    = %f\n",mean);
-		printf("Standard Deviation  = %f\n",std);
-		printf("SNR                 = %f\n",snr);
-		printf("Min/Max             = %d, %d \n",min_value, max_value);
+        printf("Mean Image Values    = %f %f %f\n",mean[0], mean[1], mean[2]);
+        printf("Standard Deviations  = %f %f %f\n",std[0], std[1], std[2]);
+        printf("SNRs                 = %f %f %f\n",snr[0], snr[1], snr[2]);
+        printf("Min/Maxs             = %u %u %u, %u %u %u \n",min_value[0], min_value[1], min_value[2], max_value[0],  max_value[1],  max_value[2]);
 
 
 		gige_close(handle);
@@ -575,29 +602,6 @@ int main(int argc, char *argv[])
 		// write metadata file:
 
 
-//        metafilename = data_type_path("hiakasat", "temp", "gige", currentmjd(0.), "imgmeta", extra);
-//		FILE *f = fopen(metafilename.c_str(), "wb");
-//		if (f == NULL)
-//		{
-//			printf("Error opening file!\n");
-//			exit(1);
-//		}
-
-//		/* print image metrics to file */
-//		fprintf(f, "Image Name    = %s\n",imagename.c_str());
-//		fprintf(f, "IP Address    = %s\n",ipaddress);
-//		fprintf(f, "Acq Timestamp    = %f\n",currentmjd(0.));
-//		fprintf(f, "Acq Date    = %s",c_time_string);
-//		fprintf(f, "Exposure    = %d\n",used_exposure);
-//		fprintf(f, "Pixel Binning    = %d\n",binning);
-//		fprintf(f, "Image Width    = %d\n",used_imagewidth);
-//		fprintf(f, "Image Height    = %d\n",used_imageheight);
-//		fprintf(f, "Mean Image Value    = %f\n",mean);
-//		fprintf(f, "Standard Deviation  = %f\n",std);
-//		fprintf(f, "SNR                 = %f\n",snr);
-//		fprintf(f, "Min/Max             = %d, %d \n",min_value, max_value);
-
-//		fclose(f);
 	}
 	else
 	{

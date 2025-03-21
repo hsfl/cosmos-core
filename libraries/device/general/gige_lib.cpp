@@ -602,9 +602,9 @@ the CCP register and closing all sockets.
             {
                 return iretn;
             }
-            if ((iretn=gige_writereg(handle,PHXReg::PHXPixelFormatReg, GigeFormat::RGB8)) < 0) return iretn;            // Set to 24 bit mode
+            if ((iretn=gige_writereg(handle,PHXReg::PHXPixelFormatReg, GigeFormat::BayerRG12)) < 0) return iretn;            // Set to 24 bit mode
             if ((iretn=gige_writereg(handle,PHXReg::PHXTestImageSelectorReg, test_pattern)) < 0) return iretn;            // Set to 24 bit mode
-            handle->bpp = 3;
+            handle->bpp = 2;
 
             // Set shutter to manual
             gige_writereg(handle, PHXReg::PHXAcquisitionModeReg, GigeAcquisitionMode::Continuous); // Set FFC to manual
@@ -619,7 +619,7 @@ the CCP register and closing all sockets.
         }
 
 
-        int32_t phx_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize)
+        int32_t phx_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize, uint16_t test)
         {
             int32_t iretn = 0;
             uint32_t tbytes;
@@ -631,6 +631,7 @@ the CCP register and closing all sockets.
             if (bufferin == nullptr)
                 return (-errno);
 
+            gige_writereg(handle, PHXReg::PHXTestImageSelectorReg, test);
             gige_writereg(handle,GIGE_REG_SCDA, gige_address_to_value(handle->stream.address));
 
             iretn = gige_writereg(handle,GIGE_REG_SCP,handle->stream.cport);
