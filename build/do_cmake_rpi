@@ -1,0 +1,4 @@
+#!/bin/bash
+mkdir rpi_$1
+cd rpi_$1
+cmake  -DCMAKE_BUILD_TYPE=$1 -DCMAKE_TOOLCHAIN_FILE=../../cmake/toolchain_rpi_linux.cmake -DCROSS_TYPE=rpi ../..
