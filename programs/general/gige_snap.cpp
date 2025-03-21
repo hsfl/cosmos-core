@@ -36,7 +36,7 @@
 
 #define A35COUNT 1
 
-string makeFilename(string argument);
+string makeFilename(string argument, string extra="");
 vector <uint8_t> image;
 
 int main(int argc, char *argv[])
@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
         if (expbytes <= tbytes)
         {
             FILE *fp;
-            string fname = makeFilename("data");
+            string fname = makeFilename("data", extra);
             if (!extra.empty())
             {
                 fname += "_" + extra;
@@ -303,7 +303,7 @@ int main(int argc, char *argv[])
             ehdr.basename = fname;
             write_envi_hdr(ehdr);
 
-            fname = makeFilename("stats");
+            fname = makeFilename("stats", extra);
             if (!extra.empty())
             {
                 fname += "_" + extra;
@@ -612,7 +612,7 @@ int main(int argc, char *argv[])
 	exit(0);
 }
 
-string makeFilename(string argument)
+string makeFilename(string argument, string extra)
 {
     string fname;
     char DateTimeStamp[16];
@@ -622,6 +622,11 @@ string makeFilename(string argument)
     sprintf(DateTimeStamp, "%4d%02d%02d%02d%02d%02d", tm.tm_year-100+2000, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
     fname = "image_";
     fname.append(DateTimeStamp);
+    if (extra.size())
+    {
+        fname.append("_");
+        fname.append(extra);
+    }
     fname.append("_");
     fname.append(argument);
     fname.append(".bip");
