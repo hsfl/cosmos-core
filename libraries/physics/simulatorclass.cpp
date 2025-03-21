@@ -879,12 +879,14 @@ int32_t Simulator::ParseTargetString(string line)
         if (!data["area"].is_null())
         {
             targ.area = data["area"].number_value();
+            targ.size = gvector(sqrt(targ.area/M_PI), sqrt(targ.area/M_PI), 0.);
         }
 
         if (!data["radius"].is_null())
         {
-            targ.area = 100. * data["radius"].number_value();
-            targ.area = M_PI * targ.area * targ.area;
+            targ.area = data["radius"].number_value();
+            targ.size = gvector(targ.area/REARTHM, targ.area/REARTHM, 0.);
+            targ.area *= M_PI * targ.area;
         }
 
         if (!data["minelfrom"].is_null())
@@ -1252,7 +1254,7 @@ int32_t Simulator::Propagate(vector<vector<cosmosstruc> > &results, uint32_t run
 
 int32_t Simulator::Target(map<uint32_t, vector<qatt> > &pschedule)
 {
-    if (pschedule.size() > 1 && pschedule.begin()->second.size() == cnodes.size())
+    if (pschedule.size() > 1 && pschedule.begin()->second.size() >= cnodes.size())
     {
         qatt catt;
         if (currentutc < pschedule.begin()->second[0].utc)
@@ -1260,7 +1262,7 @@ int32_t Simulator::Target(map<uint32_t, vector<qatt> > &pschedule)
             for (uint16_t j=0; j<cnodes.size(); ++j)
             {
                 cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule.begin()->second[j];
-                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = cnodes[j]->currentinfo.node.loc.att.icrf.pass + 1;
+                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = std::max(cnodes[j]->currentinfo.node.loc.att.icrf.pass, cnodes[j]->currentinfo.node.loc.att.geoc.pass) + 1;
                 att_lvlh(cnodes[j]->currentinfo.node.loc);
             }
         }
@@ -1269,7 +1271,7 @@ int32_t Simulator::Target(map<uint32_t, vector<qatt> > &pschedule)
             for (uint16_t j=0; j<cnodes.size(); ++j)
             {
                 cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule.rbegin()->second[j];
-                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = cnodes[j]->currentinfo.node.loc.att.icrf.pass + 1;
+                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = std::max(cnodes[j]->currentinfo.node.loc.att.icrf.pass, cnodes[j]->currentinfo.node.loc.att.geoc.pass) + 1;
                 att_lvlh(cnodes[j]->currentinfo.node.loc);
             }
         }
@@ -1278,7 +1280,7 @@ int32_t Simulator::Target(map<uint32_t, vector<qatt> > &pschedule)
             for (uint16_t j=0; j<cnodes.size(); ++j)
             {
                 cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule[decisec(currentutc)][j];
-                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = cnodes[j]->currentinfo.node.loc.att.icrf.pass + 1;
+                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = std::max(cnodes[j]->currentinfo.node.loc.att.icrf.pass, cnodes[j]->currentinfo.node.loc.att.geoc.pass) + 1;
                 att_lvlh(cnodes[j]->currentinfo.node.loc);
             }
         }
@@ -1315,66 +1317,11 @@ int32_t Simulator::Target()
         }
     }
 
-    // for (uint16_t i=0; i<cnodes.size(); ++i)
-    // {
-    //     cnodes[i]->currentinfo.target_idx = -1;
-    //     double targetrange = 1e9;
-    //     for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
-    //     {
-    //         if (cnodes[i]->currentinfo.target[j].elto > 0.087)
-    //         {
-    //             bool taken = false;
-    //             if (cnodes[i]->currentinfo.target[j].cover[0].count > mincount)
-    //             {
-    //                 taken = true;
-    //             }
-    //             if (!taken && i > 0)
-    //             {
-    //                 for (uint16_t ii=i-1; ii>0; --ii)
-    //                 {
-    //                     if (cnodes[ii]->currentinfo.target_idx == j)
-    //                     {
-    //                         taken = true;
-    //                     }
-    //                 }
-    //             }
-    //             if (!taken && cnodes[i]->currentinfo.target[j].range < targetrange)
-    //             {
-    //                 if (targetrange == 1e9)
-    //                 {
-    //                     ++iretn;
-    //                 }
-    //                 targetrange = cnodes[i]->currentinfo.target[j].range;
-    //                 cnodes[i]->currentinfo.target_idx = j;
-    //             }
-    //         }
-    //     }
-    //     if (cnodes[i]->currentinfo.target_idx < cnodes[i]->currentinfo.target.size())
-    //     {
-    //         cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].cover[0].count++;
-    //         cnodes[i]->currentinfo.node.loc.att.geoc.s = q_drotate_between_rv(rv_unitz(), rv_sub(cnodes[i]->currentinfo.node.loc.pos.geoc.s, cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].loc.pos.geoc.s));
-    //         cnodes[i]->currentinfo.node.loc.att.geoc.v = rv_zero();
-    //         cnodes[i]->currentinfo.node.loc.att.geoc.a = rv_zero();
-    //         cnodes[i]->currentinfo.node.loc.att.geoc.pass++;
-    //         att_geoc(cnodes[i]->currentinfo.node.loc);
-    //     }
-    //     else
-    //     {
-    //         cnodes[i]->currentinfo.node.loc.att.lvlh.s = q_eye();
-    //         cnodes[i]->currentinfo.node.loc.att.lvlh.v = rv_zero();
-    //         cnodes[i]->currentinfo.node.loc.att.lvlh.a = rv_zero();
-    //         cnodes[i]->currentinfo.node.loc.att.lvlh.utc = currentutc;
-    //         cnodes[i]->currentinfo.node.loc.att.lvlh.pass++;
-    //         att_lvlh(cnodes[i]->currentinfo.node.loc);
-    //     }
-    // }
-
-    double targetangle;
-    double slewangle;
+    double targetrange;
     for (uint16_t i=0; i<cnodes.size(); ++i)
     {
         cnodes[i]->currentinfo.target_idx = -1;
-        targetangle = D2PI;
+        targetrange = REARTHM;
         for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
         {
             if (cnodes[i]->currentinfo.target[j].elto > 0.087)
@@ -1394,14 +1341,9 @@ int32_t Simulator::Target()
                         }
                     }
                 }
-                slewangle = sep_q(cnodes[i]->currentinfo.target[j].loc.att.geoc.s, cnodes[i]->currentinfo.node.loc.att.geoc.s);
-                if (!taken && slewangle < targetangle)
+                if (!taken && cnodes[i]->currentinfo.target[j].range < targetrange)
                 {
-                    if (targetangle == D2PI)
-                    {
-                        ++iretn;
-                    }
-                    targetangle = slewangle;
+                    targetrange = cnodes[i]->currentinfo.target[j].range;
                     cnodes[i]->currentinfo.target_idx = j;
                 }
             }
@@ -1410,7 +1352,8 @@ int32_t Simulator::Target()
         Vector torque;
         if (cnodes[i]->currentinfo.target_idx < cnodes[i]->currentinfo.target.size())
         {
-            torque = calc_control_torque(cnodes[i]->currentinfo.node.phys.maxtorque, cnodes[i]->currentinfo.node.phys.moi, cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].loc.att.icrf, cnodes[i]->currentinfo.node.loc.att.icrf);
+            // torque = calc_control_torque(cnodes[i]->currentinfo.node.phys.maxtorque, cnodes[i]->currentinfo.node.phys.moi, cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].loc.att.icrf, cnodes[i]->currentinfo.node.loc.att.icrf);
+            cnodes[i]->currentinfo.node.loc.att.icrf = cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].loc.att.icrf;
         }
         UpdateTorque(cnodes[i]->currentinfo.node.name, torque);
     }

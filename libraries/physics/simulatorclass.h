@@ -31,6 +31,7 @@ namespace Cosmos
                 Running
                 };
 
+            //! Vector holding all objects to be propagated by the simulator
             typedef vector<Physics::State*> StateList;
 
             int32_t Init(double idt=1., string realm="propagate", double iutc=0.);

@@ -58,7 +58,7 @@ rvector calc_control_torque(double maxtorque, Vector moi, Convert::qatt tatt, Co
         double dtorque = length_rv(torque);
         if (dtorque > maxtorque)
         {
-            torque = rv_normal(torque) * dtorque;
+            torque = rv_normal(torque) * maxtorque;
         }
 
         return (torque);
