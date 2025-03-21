@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 
 
 
-    if ((handle=gige_open(ipaddress,0x02,40000,5000,80000000)) == NULL)
+    if ((handle=gige_open(ipaddress,0x02,40000,5000,40000000)) == NULL)
 	{
         if((handle = gige_open(gige_value_to_address(gige_list[0].address),0x02,40000,5000,8000000)) == NULL)
 		{
@@ -283,10 +283,6 @@ int main(int argc, char *argv[])
         {
             FILE *fp;
             string fname = makeFilename("data", extra);
-            if (!extra.empty())
-            {
-                fname += "_" + extra;
-            }
             fp = fopen(fname.c_str(),"w");
             fwrite((void *)image.data(),tbytes,1,fp);
             fclose(fp);
@@ -304,10 +300,6 @@ int main(int argc, char *argv[])
             write_envi_hdr(ehdr);
 
             fname = makeFilename("stats", extra);
-            if (!extra.empty())
-            {
-                fname += "_" + extra;
-            }
             fp = fopen(fname.c_str(),"w");
             if (fp == nullptr)
             {
