@@ -32,7 +32,7 @@ jobs:
       run: cmake -B ${{github.workspace}}/build/linux -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCROSS_TYPE=${{env.CROSS_TYPE}}
 
     - name: Build
-      run: cmake --build ${{github.workspace}}/build/linux --config ${{env.BUILD_TYPE}}
+      run: cmake --build ${{github.workspace}}/build/linux --config ${{env.BUILD_TYPE}} -j3
 
     - name: Run CTest
       working-directory: ${{github.workspace}}/build/linux
