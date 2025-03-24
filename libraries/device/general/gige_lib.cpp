@@ -613,6 +613,7 @@ the CCP register and closing all sockets.
             handle->binheight = ybin;
 
             // Limit speed
+            if ((iretn=gige_writereg(handle,PHXDeviceLinkThroughputLimitMode, 1)) < 0) return iretn;
             if ((iretn=gige_writereg(handle,PHXDeviceLinkThroughputLimit,handle->streambps)) < 0) return iretn;
 
             return 0;
