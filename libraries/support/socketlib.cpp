@@ -579,6 +579,11 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
     strncpy(channel.address,address,17);
     channel.type = ntype;
     channel.addrlen = sizeof(struct sockaddr_in);
+    struct ifreq ifr;
+    if (ioctl(channel.cudp, SIOCGIFFLAGS, &ifr) == 0)
+    {
+        channel.mtu = ifr.ifr_mtu;
+    }
 
     return 0;
 }
