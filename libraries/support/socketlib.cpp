@@ -237,6 +237,7 @@ int32_t socket_publish(socket_bus& bus, uint16_t port)
         }
 
         bus[(bus.size() - 1)].flags = ifra->ifr_flags;
+        bus[(bus.size() - 1)].mtu = ifra->ifr_mtu;
 
         if ((bus[(bus.size() - 1)].flags & IFF_POINTOPOINT) || (bus[(bus.size() - 1)].flags & IFF_UP) == 0)
         {
@@ -987,6 +988,7 @@ vector<socket_channel> socket_find_addresses(NetworkType ntype, uint16_t port)
                 continue;
             }
             tiface.flags = ifra->ifr_flags;
+            tiface.mtu = ifra->ifr_mtu;
 
             //                if ((ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || ((ifra->ifr_flags & (IFF_BROADCAST)) == 0 && (ifra->ifr_flags & (IFF_POINTOPOINT)) == 0))
             if ((ifra->ifr_flags & IFF_POINTOPOINT) || (ifra->ifr_flags & IFF_UP) == 0)

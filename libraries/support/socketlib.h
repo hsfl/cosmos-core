@@ -138,6 +138,8 @@ struct socket_channel
     char name[COSMOS_MAX_NAME+1] = {0};
     // Interface flags
     int16_t flags;
+    // Packet Size
+    uint16_t mtu = 0;
     // Time out
     double timeout;
 };
