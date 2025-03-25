@@ -245,9 +245,15 @@ the CCP register and closing all sockets.
             handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ByteOrder::BIGENDIAN);
             handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ByteOrder::BIGENDIAN);
 
-            if (nbytes != 12) return (GIGE_ERROR_NACK);
+            if (nbytes != 12)
+            {
+                return (GIGE_ERROR_NACK);
+            }
 
-            if (handle->cack.ack_id != handle->req_id) return (GIGE_ERROR_NACK);
+            if (handle->cack.ack_id != handle->req_id)
+            {
+                return (GIGE_ERROR_NACK);
+            }
 
             return 0;
         }
