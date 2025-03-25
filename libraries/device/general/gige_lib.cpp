@@ -100,6 +100,16 @@ namespace Cosmos {
             }
             handle->privilege = privilege;
 
+            // Set packet size
+            iretn = gige_writereg(handle, GIGE_REG_STREAM_CHANNEL_PACKET_SIZE, handle->command.mtu-8);
+            if (iretn < 0)
+            {
+                close(handle->command.cudp);
+                delete(handle);
+                return nullptr;
+            }
+            handle->packet_size = handle->command.mtu-8;
+
             // Set Heartbeat Timeout
             if ((iretn = gige_writereg(handle,GIGE_REG_GVCP_HEARTBEAT_TIMEOUT,heartbeat_msec)) < 0)
             {
@@ -116,8 +126,8 @@ namespace Cosmos {
             if ((iretn=socket_open(&handle->stream, NetworkType::UDP, "", 0, SOCKET_LISTEN,true,socket_usec)) < 0)
             {
                 close(handle->command.cudp);
-                return nullptr;
                 delete(handle);
+                return nullptr;
             }
 
             uint32_t n=134217728;
@@ -643,10 +653,10 @@ the CCP register and closing all sockets.
             pbytes = gige_readreg(handle,PHXReg::PHXWidthReg) * gige_readreg(handle,PHXReg::PHXHeightReg) * frames * handle->bpp;
 
             tbytes = 0;
-            uint32_t elapsed=0;
-            uint32_t tframes=500000 + 2 * 1e6 * pbytes / handle->streambps;
+            ElapsedTime et;
+            double tseconds=500000 + 2. * 1e6 * pbytes / handle->streambps;
             mjd = currentmjd(0.);
-            while (tbytes < pbytes && elapsed<tframes)
+            while (tbytes < pbytes && et.split()<tseconds)
             {
                 if ((iretn=recvfrom(handle->stream.cudp,(char *)bufferin,bsize,0,static_cast<struct sockaddr *>(nullptr),static_cast<socklen_t *>(nullptr))) > 0)
                 {
@@ -662,8 +672,8 @@ the CCP register and closing all sockets.
                         break;
                     }
                 }
-                elapsed = (uint32_t)(1e6*86400.*(currentmjd(0.)-mjd)+.5);
             }
+            printf("Finished: %u/%u bytes, %.1f/%.1f seconds\n", tbytes, pbytes, et.split(), tseconds);
 
             iretn = gige_writereg(handle,PHXReg::PHXAcquisitionStopReg,1);
             iretn = gige_writereg(handle,GIGE_REG_SCP,0);

@@ -159,46 +159,46 @@ int main(int argc, char *argv[])
 	iretn = gige_readreg(handle,GIGE_REG_GVCP_HEARTBEAT_TIMEOUT);
     printf("Read GVCP_HEARTBEAT_TIMEOUT %u\n",iretn);
 
-    iretn = gige_readreg(handle,GIGE_REG_PRIMARY_APPLICATION_IP_ADDRESS);
-    printf("Read PRIMARY_APPLICATION_IP_ADDRESS %x\n",iretn);
+//    iretn = gige_readreg(handle,GIGE_REG_PRIMARY_APPLICATION_IP_ADDRESS);
+//    printf("Read PRIMARY_APPLICATION_IP_ADDRESS %x\n",iretn);
 
-    iretn = gige_readmem(handle,GIGE_REG_FIRST_URL,512);
-	char *ptr = (char *)handle->cack_mem.data;
-	do
-	{
-		ptr++;
-	} while (*ptr != ':');
-	char *ptr1 = ++ptr;
+//    iretn = gige_readmem(handle,GIGE_REG_FIRST_URL,512);
+//	char *ptr = (char *)handle->cack_mem.data;
+//	do
+//	{
+//		ptr++;
+//	} while (*ptr != ':');
+//	char *ptr1 = ++ptr;
 
-	do
-	{
-		ptr++;
-	} while (*ptr != ';');
+//	do
+//	{
+//		ptr++;
+//	} while (*ptr != ';');
 
-	char fname[100];
-	strncpy(fname,ptr1,ptr-ptr1);
-	fname[ptr-ptr1] = 0;
-	uint32_t faddress, fsize;
-	sscanf((char *)ptr,";%x;%x",&faddress,&fsize);
-	printf("Read GIGE_REG_FIRST_URL %u %s;%u;%u\n",iretn,fname,faddress,fsize);
+//	char fname[100];
+//	strncpy(fname,ptr1,ptr-ptr1);
+//	fname[ptr-ptr1] = 0;
+//	uint32_t faddress, fsize;
+//	sscanf((char *)ptr,";%x;%x",&faddress,&fsize);
+//	printf("Read GIGE_REG_FIRST_URL %u %s;%u;%u\n",iretn,fname,faddress,fsize);
 
-	iretn = gige_readmem(handle,GIGE_REG_SECOND_URL,512);
-	printf("Read GIGE_REG_FIRST_SECOND %u %s\n",iretn,handle->cack_mem.data);
+//	iretn = gige_readmem(handle,GIGE_REG_SECOND_URL,512);
+//	printf("Read GIGE_REG_FIRST_SECOND %u %s\n",iretn,handle->cack_mem.data);
 
-	fp = fopen(fname,"w");
-	uint32_t count=0;
-	for (uint32_t i=0; i<fsize/536; ++i)
-	{
-		iretn = gige_readmem(handle,faddress+count,536);
-		fwrite((void *)handle->cack_mem.data,iretn,1,fp);
-		count += iretn;
-		printf("Read GIGE_REG_XML %u %d\r",iretn,count);
-	}
-	iretn = gige_readmem(handle,faddress+count,fsize-count);
-	fwrite((void *)handle->cack_mem.data,iretn,1,fp);
-	count += iretn;
-	printf("Read GIGE_REG_XML %u %d\n",iretn,count);
-	fclose(fp);
+//	fp = fopen(fname,"w");
+//	uint32_t count=0;
+//	for (uint32_t i=0; i<fsize/536; ++i)
+//	{
+//		iretn = gige_readmem(handle,faddress+count,536);
+//		fwrite((void *)handle->cack_mem.data,iretn,1,fp);
+//		count += iretn;
+//		printf("Read GIGE_REG_XML %u %d\r",iretn,count);
+//	}
+//	iretn = gige_readmem(handle,faddress+count,fsize-count);
+//	fwrite((void *)handle->cack_mem.data,iretn,1,fp);
+//	count += iretn;
+//	printf("Read GIGE_REG_XML %u %d\n",iretn,count);
+//	fclose(fp);
 
 
 	// configure camera- moved up to reflect accurate data down below
@@ -207,6 +207,7 @@ int main(int argc, char *argv[])
 	bsize = handle->bestsize;
 	if( strncmp((char *)handle->cack_mem.data, "FLIR AX5", 8) == 0 )
 	{
+        printf("Using FLIR AX5\n");
 		iretn = gige_readreg(handle,A35_PIXELFORMAT);
 		//		printf("Read A35_PIXELFORMAT %d\n",iretn);
 
@@ -267,6 +268,7 @@ int main(int argc, char *argv[])
 	}
     else if (strncmp((char *)handle->cack_mem.data, "PHX050S", 7) == 0 )
     {
+        printf("Using PHX050S\n");
         width = gige_readreg(handle,PHXReg::PHXWidthReg);
         height = gige_readreg(handle,PHXReg::PHXHeightReg);
 
@@ -390,6 +392,7 @@ int main(int argc, char *argv[])
     }
     else if (strncmp((char *)handle->cack_mem.data, "PT1000", 6) == 0 )
     {
+        printf("Using PT1000\n");
         iretn = gige_readreg(handle,PT1000::PixelFormatReg);
         printf("Read PT1000PIXELFORMAT %d\n",iretn);
 
@@ -466,6 +469,7 @@ int main(int argc, char *argv[])
     }
 	else
 	{
+        printf("Using PROSILICA\n");
 
 
 		iretn = prosilica_config(handle, PROSILICA_PixelFormat_BayerRG12, binning, binning, 2448, 2050, 0, 0);

@@ -395,6 +395,8 @@ namespace Cosmos {
             uint8_t sbuf[600]={0};
             //! Request ID
             uint16_t req_id;
+            //! Packet Size
+            uint16_t packet_size;
             //! Flow rate
             uint32_t streambps;
             //! Best packet size
@@ -424,6 +426,7 @@ namespace Cosmos {
             map <string, XMLStringReg> xmlstringregs;
             map <string, XMLIntReg> xmlintregs;
             map <string, XMLValue> xmlvalues;
+            int32_t error;
         };
 
         struct gige_data
@@ -442,7 +445,7 @@ namespace Cosmos {
         //! @{
 
         vector<gige_acknowledge_ack> gige_discover();
-        gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_msec, uint32_t socket_usec, uint32_t streambps);
+        gige_handle *gige_open(char address[18], uint8_t privilege, uint32_t heartbeat_msec, uint32_t socket_usec, uint32_t streambps);
         int gige_writereg(gige_handle *handle, uint32_t address, uint32_t data);
         uint32_t gige_readreg(gige_handle *handle, uint32_t address);
         uint32_t gige_readmem(gige_handle *handle, uint32_t address, uint32_t size);
