@@ -599,17 +599,6 @@ int32_t socket_open(socket_bus& bus, uint16_t port, uint32_t usectimeout)
     {
         return COSMOS_AGENT_ERROR_DISCOVERY;
     }
-    //    for (size_t i=0; i<bus.size(); ++i)
-    //    {
-    //        socket_channel tchan;
-    //        if ((socket_open(&tchan, NetworkType::UDP, ifaces[i].baddress, 3956, SOCKET_TALK, true, 100000)) < 0) return (gige_list);
-
-    //        if ((setsockopt(tchan.cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
-    //        {
-    //            close(tchan.cudp);
-    //            continue;
-    //        }
-    //    }
     return 0;
 }
 
