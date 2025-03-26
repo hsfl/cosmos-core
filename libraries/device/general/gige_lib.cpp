@@ -64,7 +64,7 @@ namespace Cosmos {
     \return A handle to the camera to be used for all subsequent
     calls.
 */
-        gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_msec, uint32_t socket_usec, uint32_t streambps)
+        gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_msec, uint32_t socket_usec, uint32_t streambps, uint16_t packet_size)
         {
             int32_t iretn = 0;
             int32_t nbytes;
@@ -101,14 +101,14 @@ namespace Cosmos {
             handle->privilege = privilege;
 
             // Set packet size
-            iretn = gige_writereg(handle, GIGE_REG_STREAM_CHANNEL_PACKET_SIZE, handle->command.mtu-8);
+            iretn = gige_writereg(handle, GIGE_REG_STREAM_CHANNEL_PACKET_SIZE, packet_size-8);
             if (iretn < 0)
             {
                 close(handle->command.cudp);
                 delete(handle);
                 return nullptr;
             }
-            handle->packet_size = handle->command.mtu-8;
+            handle->packet_size = packet_size-8;
 
             // Set Heartbeat Timeout
             if ((iretn = gige_writereg(handle,GIGE_REG_GVCP_HEARTBEAT_TIMEOUT,heartbeat_msec)) < 0)
