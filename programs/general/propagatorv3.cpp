@@ -330,10 +330,10 @@ int main(int argc, char *argv[])
         {
             sim->Target();
         }
-        sim->cnodes[0]->currentinfo.node.loc.att.lvlh.pass++;
-        att_lvlh(&sim->cnodes[0]->currentinfo.node.loc);
-        rvector vvec = transform_q(sim->cnodes[0]->currentinfo.node.loc.att.geoc.s,rv_smult(10,rv_normal(sim->cnodes[0]->currentinfo.node.loc.pos.geoc.v)));
-        rvector svec = transform_q(sim->cnodes[0]->currentinfo.node.loc.att.geoc.s,rv_smult(10,rv_normal(sim->cnodes[0]->currentinfo.node.loc.pos.geoc.s)));
+        // sim->cnodes[0]->currentinfo.node.loc.att.lvlh.pass++;
+        // att_lvlh(&sim->cnodes[0]->currentinfo.node.loc);
+        // rvector vvec = transform_q(sim->cnodes[0]->currentinfo.node.loc.att.geoc.s,rv_smult(10,rv_normal(sim->cnodes[0]->currentinfo.node.loc.pos.geoc.v)));
+        // rvector svec = transform_q(sim->cnodes[0]->currentinfo.node.loc.att.geoc.s,rv_smult(10,rv_normal(sim->cnodes[0]->currentinfo.node.loc.pos.geoc.s)));
         sim->Metric();
         if (summarize)
         {
@@ -469,47 +469,49 @@ int main(int argc, char *argv[])
     }
     if (summarize)
     {
+        string basename = satfile.substr(0,satfile.length()-4);
+        FILE *tfp = fopen((basename+"_target.txt").c_str(), "w");
         // Heading
-        printf("file\ttype\tnode");
+        fprintf(tfp, "file\ttype\tnode");
         for (uint16_t j=0; j<sim->targets.size(); ++j)
         {
-            printf("\tT%02u", j);
+            fprintf(tfp, "\tT%02u", j);
         }
-        printf("\n");
+        fprintf(tfp, "\n");
 
         // Count
         for (uint16_t i=1; i<sim->cnodes.size(); ++i)
         {
-            printf("%s\tcount", satfile.c_str());
-            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            fprintf(tfp, "%s\tcount", basename.c_str());
+            fprintf(tfp, "\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
-                printf("\t%u", summaries[i][j].count);
+                fprintf(tfp, "\t%u", summaries[i][j].count);
             }
-            printf("\n");
+            fprintf(tfp, "\n");
         }
 
         // Area
         for (uint16_t i=1; i<sim->cnodes.size(); ++i)
         {
-            printf("%s\tarea", satfile.c_str());
-            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            fprintf(tfp, "%s\tarea", basename.c_str());
+            fprintf(tfp, "\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
                 if (summaries[i][j].count > 1)
                 {
                     summaries[i][j].area /= summaries[i][j].count;
                 }
-                printf("\t%0.0f", summaries[i][j].area);
+                fprintf(tfp, "\t%0.0f", summaries[i][j].area);
             }
-            printf("\n");
+            fprintf(tfp, "\n");
         }
 
         // Percent
         for (uint16_t i=1; i<sim->cnodes.size(); ++i)
         {
-            printf("%s\tpercent", satfile.c_str());
-            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            fprintf(tfp, "%s\tpercent", basename.c_str());
+            fprintf(tfp, "\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
                 summaries[i][j].percent *= 100.;
@@ -517,16 +519,16 @@ int main(int argc, char *argv[])
                 {
                     summaries[i][j].percent /= summaries[i][j].count;
                 }
-                printf("\t%0.2f", summaries[i][j].percent);
+                fprintf(tfp, "\t%0.2f", summaries[i][j].percent);
             }
-            printf("\n");
+            fprintf(tfp, "\n");
         }
 
         // Mean Resolution
         for (uint16_t i=1; i<sim->cnodes.size(); ++i)
         {
-            printf("%s\tresmean", satfile.c_str());
-            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            fprintf(tfp, "%s\tresmean", basename.c_str());
+            fprintf(tfp, "\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
                 if (summaries[i][j].count > 1)
@@ -534,28 +536,28 @@ int main(int argc, char *argv[])
                     summaries[i][j].resstd = sqrt((summaries[i][j].resstd - summaries[i][j].resolution * summaries[i][j].resolution / summaries[i][j].count) / (summaries[i][j].count - 1));
                     summaries[i][j].resolution /= summaries[i][j].count;
                 }
-                printf("\t%0.2f", summaries[i][j].resolution);
+                fprintf(tfp, "\t%0.2f", summaries[i][j].resolution);
             }
-            printf("\n");
+            fprintf(tfp, "\n");
         }
 
         // StDev Resolution
         for (uint16_t i=1; i<sim->cnodes.size(); ++i)
         {
-            printf("%s\tresstd", satfile.c_str());
-            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            fprintf(tfp, "%s\tresstd", basename.c_str());
+            fprintf(tfp, "\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
-                printf("\t%0.2f", summaries[i][j].resstd);
+                fprintf(tfp, "\t%0.2f", summaries[i][j].resstd);
             }
-            printf("\n");
+            fprintf(tfp, "\n");
         }
 
         // Mean Azimuth
         for (uint16_t i=1; i<sim->cnodes.size(); ++i)
         {
-            printf("%s\tazmean", satfile.c_str());
-            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            fprintf(tfp, "%s\tazmean", basename.c_str());
+            fprintf(tfp, "\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
                 if (summaries[i][j].count > 1)
@@ -563,28 +565,28 @@ int main(int argc, char *argv[])
                     summaries[i][j].azstd = sqrt((summaries[i][j].azstd - summaries[i][j].azimuth * summaries[i][j].azimuth / summaries[i][j].count) / (summaries[i][j].count - 1));
                     summaries[i][j].azimuth /= summaries[i][j].count;
                 }
-                printf("\t%0.2f", summaries[i][j].azimuth);
+                fprintf(tfp, "\t%0.2f", summaries[i][j].azimuth);
             }
-            printf("\n");
+            fprintf(tfp, "\n");
         }
 
         // StDev Azimuth
         for (uint16_t i=1; i<sim->cnodes.size(); ++i)
         {
-            printf("%s\tazstd", satfile.c_str());
-            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            fprintf(tfp, "%s\tazstd", basename.c_str());
+            fprintf(tfp, "\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
-                printf("\t%0.2f", summaries[i][j].azstd);
+                fprintf(tfp, "\t%0.2f", summaries[i][j].azstd);
             }
-            printf("\n");
+            fprintf(tfp, "\n");
         }
 
         // Mean Elevation
         for (uint16_t i=1; i<sim->cnodes.size(); ++i)
         {
-            printf("%s\telmean", satfile.c_str());
-            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            fprintf(tfp, "%s\telmean", basename.c_str());
+            fprintf(tfp, "\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
                 if (summaries[i][j].count > 1)
@@ -592,31 +594,33 @@ int main(int argc, char *argv[])
                     summaries[i][j].elstd = sqrt((summaries[i][j].elstd - summaries[i][j].elevation * summaries[i][j].elevation / summaries[i][j].count) / (summaries[i][j].count - 1));
                     summaries[i][j].elevation /= summaries[i][j].count;
                 }
-                printf("\t%0.2f", summaries[i][j].elevation);
+                fprintf(tfp, "\t%0.2f", summaries[i][j].elevation);
             }
-            printf("\n");
+            fprintf(tfp, "\n");
         }
 
         // StDev Elevation
         for (uint16_t i=1; i<sim->cnodes.size(); ++i)
         {
-            printf("%s\telstd", satfile.c_str());
-            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            fprintf(tfp, "%s\telstd", basename.c_str());
+            fprintf(tfp, "\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
-                printf("\t%0.2f", summaries[i][j].elstd);
+                fprintf(tfp, "\t%0.2f", summaries[i][j].elstd);
             }
-            printf("\n");
+            fprintf(tfp, "\n");
         }
-        printf("\n");
+        fprintf(tfp, "\n");
+        fclose(tfp);
 
+        FILE *sfp = fopen((basename+"_summary.txt").c_str(), "w");
         // Heading
-        printf("file\ttype");
+        fprintf(sfp, "file\ttype");
         for (uint16_t j=0; j<11; ++j)
         {
-            printf("\tBin%02u", j);
+            fprintf(sfp, "\tBin%02u", j);
         }
-        printf("\n");
+        fprintf(sfp, "\n");
 
         vector<double> histbin(11, 0.);
         vector<uint32_t> histcnt(11, 0);
@@ -657,18 +661,18 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        printf("%s\tcount_bin", satfile.c_str());
+        fprintf(sfp, "%s\tcount_bin", basename.c_str());
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%0.2f", histbin[i]);
+            fprintf(sfp, "\t%0.2f", histbin[i]);
         }
-        printf("\n");
-        printf("%s\tcount_value", satfile.c_str());
+        fprintf(sfp, "\n");
+        fprintf(sfp, "%s\tcount_value", basename.c_str());
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%u", histcnt[i]);
+            fprintf(sfp, "\t%u", histcnt[i]);
         }
-        printf("\n");
+        fprintf(sfp, "\n");
 
         // Area
         binmax = 0.;
@@ -705,18 +709,18 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        printf("%s\tarea_bin", satfile.c_str());
+        fprintf(sfp, "%s\tarea_bin", basename.c_str());
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%0.2f", histbin[i]);
+            fprintf(sfp, "\t%0.2f", histbin[i]);
         }
-        printf("\n");
-        printf("%s\tarea_value", satfile.c_str());
+        fprintf(sfp, "\n");
+        fprintf(sfp, "%s\tarea_value", basename.c_str());
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%u", histcnt[i]);
+            fprintf(sfp, "\t%u", histcnt[i]);
         }
-        printf("\n");
+        fprintf(sfp, "\n");
 
         // Percent
         binmax = 0.;
@@ -753,18 +757,18 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        printf("%s\tpercent_bin", satfile.c_str());
+        fprintf(sfp, "%s\tpercent_bin", basename.c_str());
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%0.2f", histbin[i]);
+            fprintf(sfp, "\t%0.2f", histbin[i]);
         }
-        printf("\n");
-        printf("%s\tpercent_value", satfile.c_str());
+        fprintf(sfp, "\n");
+        fprintf(sfp, "%s\tpercent_value", basename.c_str());
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%u", histcnt[i]);
+            fprintf(sfp, "\t%u", histcnt[i]);
         }
-        printf("\n");
+        fprintf(sfp, "\n");
 
         // Mean Resolution
         binmax = 0.;
@@ -801,18 +805,18 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        printf("%s\tresolution_bin", satfile.c_str());
+        fprintf(sfp, "%s\tresolution_bin", basename.c_str());
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%0.2f", histbin[i]);
+            fprintf(sfp, "\t%0.2f", histbin[i]);
         }
-        printf("\n");
-        printf("%s\tresolution_value", satfile.c_str());
+        fprintf(sfp, "\n");
+        fprintf(sfp, "%s\tresolution_value", basename.c_str());
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%u", histcnt[i]);
+            fprintf(sfp, "\t%u", histcnt[i]);
         }
-        printf("\n");
+        fprintf(sfp, "\n");
 
         // Stdev Resolution
         binmax = 0.;
@@ -849,18 +853,18 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        printf("%s\tresstd_bin", satfile.c_str());
+        fprintf(sfp, "%s\tresstd_bin", basename.c_str());
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%0.2f", histbin[i]);
+            fprintf(sfp, "\t%0.2f", histbin[i]);
         }
-        printf("\n");
-        printf("%s\tresstd_value", satfile.c_str());
+        fprintf(sfp, "\n");
+        fprintf(sfp, "%s\tresstd_value", basename.c_str());
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%u", histcnt[i]);
+            fprintf(sfp, "\t%u", histcnt[i]);
         }
-        printf("\n");
+        fprintf(sfp, "\n");
 
         // Mean Azimuth
         binmax = 0.;
@@ -897,18 +901,18 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        printf("%s\tazimuth_bin", satfile.c_str());
+        fprintf(sfp, "%s\tazimuth_bin", basename.c_str());
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%0.2f", histbin[i]);
+            fprintf(sfp, "\t%0.2f", histbin[i]);
         }
-        printf("\n");
-        printf("%s\tazimuth_value", satfile.c_str());
+        fprintf(sfp, "\n");
+        fprintf(sfp, "%s\tazimuth_value", basename.c_str());
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%u", histcnt[i]);
+            fprintf(sfp, "\t%u", histcnt[i]);
         }
-        printf("\n");
+        fprintf(sfp, "\n");
 
         // Stdev Azimuth
         binmax = 0.;
@@ -945,18 +949,18 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        printf("%s\tazstd_bin", satfile.c_str());
+        fprintf(sfp, "%s\tazstd_bin", basename.c_str());
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%0.2f", histbin[i]);
+            fprintf(sfp, "\t%0.2f", histbin[i]);
         }
-        printf("\n");
-        printf("%s\tazstd_value", satfile.c_str());
+        fprintf(sfp, "\n");
+        fprintf(sfp, "%s\tazstd_value", basename.c_str());
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%u", histcnt[i]);
+            fprintf(sfp, "\t%u", histcnt[i]);
         }
-        printf("\n");
+        fprintf(sfp, "\n");
 
         // Mean Elevation
         binmax = 0.;
@@ -993,18 +997,18 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        printf("%s\televation_bin", satfile.c_str());
+        fprintf(sfp, "%s\televation_bin", basename.c_str());
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%0.2f", histbin[i]);
+            fprintf(sfp, "\t%0.2f", histbin[i]);
         }
-        printf("\n");
-        printf("%s\televation_value", satfile.c_str());
+        fprintf(sfp, "\n");
+        fprintf(sfp, "%s\televation_value", basename.c_str());
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%u", histcnt[i]);
+            fprintf(sfp, "\t%u", histcnt[i]);
         }
-        printf("\n");
+        fprintf(sfp, "\n");
 
         // Stdev Elevation
         binmax = 0.;
@@ -1041,18 +1045,19 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        printf("%s\telstd_bin", satfile.c_str());
+        fprintf(sfp, "%s\telstd_bin", basename.c_str());
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%0.2f", histbin[i]);
+            fprintf(sfp, "\t%0.2f", histbin[i]);
         }
-        printf("\n");
-        printf("%s\telstd_value", satfile.c_str());
+        fprintf(sfp, "\n");
+        fprintf(sfp, "%s\telstd_value", basename.c_str());
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%u", histcnt[i]);
+            fprintf(sfp, "\t%u", histcnt[i]);
         }
-        printf("\n");
+        fprintf(sfp, "\n");
+        fclose(sfp);
 
     }
 }

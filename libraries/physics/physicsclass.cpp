@@ -2863,10 +2863,11 @@ int32_t MetricGenerator::Propagate(double nextutc)
     {
         double h = currentinfo->node.loc.pos.geod.s.h;
         double nadirradius = h * currentinfo->devspec.cam[id].fov / 2.;
-        cartpos cpointing;
-        sat2geoc(currentinfo->devspec.cam[id].los, currentinfo->node.loc, cpointing.s);
-        geoidpos gpointing;
-        geoc2geod(cpointing, gpointing);
+        rvector boresight = transform_q(q_conjugate(currentinfo->node.loc.att.icrf.s),currentinfo->devspec.cam[id].los);
+        // cartpos cpointing;
+        // sat2geoc(currentinfo->devspec.cam[id].los, currentinfo->node.loc, cpointing.s);
+        // geoidpos gpointing;
+        // geoc2geod(cpointing, gpointing);
         for (uint16_t it=0; it<currentinfo->target.size(); ++it)
         {
             // Must be at least 5 degrees
@@ -2879,7 +2880,8 @@ int32_t MetricGenerator::Propagate(double nextutc)
                 double dr = nadirradius / sin(currentinfo->target[it].elto);
                 double dr2 = dr * dr;
                 double sep;
-                geod2sep(gpointing.s, currentinfo->target[it].loc.pos.geod.s, sep);
+                sep = acos(dot_rv(rv_normal(boresight), -rv_normal(currentinfo->node.loc.pos.eci.s)));
+                // geod2sep(gpointing.s, currentinfo->target[it].loc.pos.geod.s, sep);
                 double sep2 = sep * sep;
                 double tr = sqrt(currentinfo->target[it].area / DPI);
                 double tr2 = tr * tr;

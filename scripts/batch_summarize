@@ -1,0 +1,25 @@
+#!/bin/tcsh
+echo `date` sats_1km_v_formation_vis
+~/cosmos/bin/propagatorv3 '{"realmname":"sttr","printevent":0,"realtime":0,"runcount":1000,"summarize":1,"satfile":"sats_1km_v_formation_vis.dat"}'
+echo `date` sats_10km_v_formation_vis
+~/cosmos/bin/propagatorv3 '{"realmname":"sttr","printevent":0,"realtime":0,"runcount":1000,"summarize":1,"satfile":"sats_10km_v_formation_vis.dat"}'
+echo `date` sats_100km_v_formation_vis
+~/cosmos/bin/propagatorv3 '{"realmname":"sttr","printevent":0,"realtime":0,"runcount":1000,"summarize":1,"satfile":"sats_100km_v_formation_vis.dat"}'
+echo `date` sats_1km_string_of_pearls_vis
+~/cosmos/bin/propagatorv3 '{"realmname":"sttr","printevent":0,"realtime":0,"runcount":1000,"summarize":1,"satfile":"sats_1km_string_of_pearls_vis.dat"}'
+echo `date` sats_10km_string_of_pearls_vis
+~/cosmos/bin/propagatorv3 '{"realmname":"sttr","printevent":0,"realtime":0,"runcount":1000,"summarize":1,"satfile":"sats_10km_string_of_pearls_vis.dat"}'
+echo `date` sats_100km_string_of_pearls_vis
+~/cosmos/bin/propagatorv3 '{"realmname":"sttr","printevent":0,"realtime":0,"runcount":1000,"summarize":1,"satfile":"sats_100km_string_of_pearls_vis.dat"}'
+echo `date` sats_1km_v_formation_mwir
+~/cosmos/bin/propagatorv3 '{"realmname":"sttr","printevent":0,"realtime":0,"runcount":1000,"summarize":1,"satfile":"sats_1km_v_formation_mwir.dat"}'
+echo `date` sats_10km_v_formation_mwir
+~/cosmos/bin/propagatorv3 '{"realmname":"sttr","printevent":0,"realtime":0,"runcount":1000,"summarize":1,"satfile":"sats_10km_v_formation_mwir.dat"}'
+echo `date` sats_100km_v_formation_mwir
+~/cosmos/bin/propagatorv3 '{"realmname":"sttr","printevent":0,"realtime":0,"runcount":1000,"summarize":1,"satfile":"sats_100km_v_formation_mwir.dat"}'
+echo `date` sats_1km_string_of_pearls_mwir
+~/cosmos/bin/propagatorv3 '{"realmname":"sttr","printevent":0,"realtime":0,"runcount":1000,"summarize":1,"satfile":"sats_1km_string_of_pearls_mwir.dat"}'
+echo `date` sats_10km_string_of_pearls_mwir
+~/cosmos/bin/propagatorv3 '{"realmname":"sttr","printevent":0,"realtime":0,"runcount":1000,"summarize":1,"satfile":"sats_10km_string_of_pearls_mwir.dat"}'
+echo `date` sats_100km_string_of_pearls_mwir
+~/cosmos/bin/propagatorv3 '{"realmname":"sttr","printevent":0,"realtime":0,"runcount":1000,"summarize":1,"satfile":"sats_100km_string_of_pearls_mwir.dat"}'

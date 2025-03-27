@@ -1304,51 +1304,54 @@ int32_t Simulator::Target(map<uint32_t, vector<qatt> > &pschedule)
 int32_t Simulator::Target()
 {
     int32_t iretn = 0;
-    uint32_t mincount = -1;
+    uint32_t minlevel = -1;
     for (uint16_t i=0; i<cnodes.size(); ++i)
     {
         update_target(&cnodes[i]->currentinfo);
         for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
         {
-            if (cnodes[i]->currentinfo.target[j].elto > 0.087 && cnodes[i]->currentinfo.target[j].cover[0].count < mincount)
+            if (cnodes[i]->currentinfo.target[j].elto > 0.087 && cnodes[i]->currentinfo.target[j].cover[0].count/10 < minlevel)
             {
-                mincount = cnodes[i]->currentinfo.target[j].cover[0].count;
+                minlevel = cnodes[i]->currentinfo.target[j].cover[0].count / 10;
             }
         }
     }
 
-    double targetrange;
-    for (uint16_t i=0; i<cnodes.size(); ++i)
+    for (double targetel=DPI2; targetel>0.; targetel-=DPI8)
     {
-        cnodes[i]->currentinfo.target_idx = -1;
-        targetrange = REARTHM;
-        for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
+        for (uint16_t i=0; i<cnodes.size(); ++i)
         {
-            if (cnodes[i]->currentinfo.target[j].elto > 0.087)
+            cnodes[i]->currentinfo.target_idx = -1;
+            for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
             {
-                bool taken = false;
-                if (cnodes[i]->currentinfo.target[j].cover[0].count > mincount)
+                if (cnodes[i]->currentinfo.target[j].elto > targetel && cnodes[i]->currentinfo.target[j].elto <= targetel + DPI8)
                 {
-                    taken = true;
-                }
-                if (!taken && i > 0)
-                {
-                    for (uint16_t ii=i-1; ii>0; --ii)
+                    bool taken = false;
+                    if (cnodes[i]->currentinfo.target[j].cover[0].count/10 > minlevel)
                     {
-                        if (cnodes[ii]->currentinfo.target_idx == j)
+                        taken = true;
+                    }
+                    if (!taken && i > 0)
+                    {
+                        for (uint16_t ii=i-1; ii<cnodes.size(); --ii)
                         {
-                            taken = true;
+                            if (cnodes[ii]->currentinfo.target_idx == j)
+                            {
+                                taken = true;
+                            }
                         }
                     }
-                }
-                if (!taken && cnodes[i]->currentinfo.target[j].range < targetrange)
-                {
-                    targetrange = cnodes[i]->currentinfo.target[j].range;
-                    cnodes[i]->currentinfo.target_idx = j;
+                    if (!taken)
+                    {
+                        cnodes[i]->currentinfo.target_idx = j;
+                    }
                 }
             }
         }
+    }
 
+    for (uint16_t i=0; i<cnodes.size(); ++i)
+    {
         Vector torque;
         if (cnodes[i]->currentinfo.target_idx < cnodes[i]->currentinfo.target.size())
         {
@@ -1357,14 +1360,13 @@ int32_t Simulator::Target()
         }
         UpdateTorque(cnodes[i]->currentinfo.node.name, torque);
     }
-
     return iretn;
 }
 
 int32_t Simulator::Target(vector<vector<cosmosstruc> > &results)
 {
     int32_t iretn = 0;
-    uint32_t mincount = -1;
+    uint32_t minlevel = -1;
     for (uint32_t tstep=0; tstep<results.size(); ++tstep)
     {
         for (uint16_t i=0; i<results[tstep].size(); ++i)
@@ -1372,9 +1374,9 @@ int32_t Simulator::Target(vector<vector<cosmosstruc> > &results)
             update_target(&results[tstep][i]);
             for (uint16_t j=0; j<results[tstep][i].target.size(); ++j)
             {
-                if (results[tstep][i].target[j].elto > 0.087 && results[tstep][i].target[j].cover[0].count < mincount)
+                if (results[tstep][i].target[j].elto > 0.087 && results[tstep][i].target[j].cover[0].count/10 < minlevel)
                 {
-                    mincount = results[tstep][i].target[j].cover[0].count;
+                    minlevel = results[tstep][i].target[j].cover[0].count / 10;
                 }
             }
         }
@@ -1394,7 +1396,7 @@ int32_t Simulator::Target(vector<vector<cosmosstruc> > &results)
                     bool taken = false;
                     for (uint16_t ii=i-1; ii<results[tstep].size(); --ii)
                     {
-                        if (results[tstep][ii].target_idx == j || results[tstep][i].target[j].cover[0].count > mincount)
+                        if (results[tstep][ii].target_idx == j || results[tstep][i].target[j].cover[0].count/10 > minlevel)
                         {
                             taken = true;
                         }

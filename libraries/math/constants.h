@@ -14,6 +14,10 @@ const double DPI=3.1415926535897932384626433832795028841971693993751;
 const double D2PI=6.2831853071795864769252867665590057683943387987502;
 //! Double precision PI/2
 const double DPI2=1.5707963267948966192313216916397514420985846996876;
+//! Double precision PI/4
+const double DPI4=0.25*DPI;
+//! Double precision PI/8
+const double DPI8=0.125*DPI;
 //! Double precision 3*PI/2
 const double D3PI2=1.5*DPI;
 //! Multiplicand for Seconds of Time to Radians
