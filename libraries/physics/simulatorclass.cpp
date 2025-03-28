@@ -1252,25 +1252,26 @@ int32_t Simulator::Propagate(vector<vector<cosmosstruc> > &results, uint32_t run
     return results.size();
 }
 
-int32_t Simulator::Target(map<uint32_t, vector<qatt> > &pschedule)
+int32_t Simulator::Target(map<uint32_t, vector<pointing_info> > &pschedule)
 {
     if (pschedule.size() > 1 && pschedule.begin()->second.size() >= cnodes.size())
     {
-        qatt catt;
-        if (currentutc < pschedule.begin()->second[0].utc)
+        if (currentutc < pschedule.begin()->second[0].pointing.utc)
         {
             for (uint16_t j=0; j<cnodes.size(); ++j)
             {
-                cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule.begin()->second[j];
+                cnodes[j]->currentinfo.target_idx = pschedule.begin()->second[j].target_idx;
+                cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule.begin()->second[j].pointing;
                 cnodes[j]->currentinfo.node.loc.att.lvlh.pass = std::max(cnodes[j]->currentinfo.node.loc.att.icrf.pass, cnodes[j]->currentinfo.node.loc.att.geoc.pass) + 1;
                 att_lvlh(cnodes[j]->currentinfo.node.loc);
             }
         }
-        else if (currentutc > pschedule.rbegin()->second[0].utc)
+        else if (currentutc > pschedule.rbegin()->second[0].pointing.utc)
         {
             for (uint16_t j=0; j<cnodes.size(); ++j)
             {
-                cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule.rbegin()->second[j];
+                cnodes[j]->currentinfo.target_idx = pschedule.rbegin()->second[j].target_idx;
+                cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule.rbegin()->second[j].pointing;
                 cnodes[j]->currentinfo.node.loc.att.lvlh.pass = std::max(cnodes[j]->currentinfo.node.loc.att.icrf.pass, cnodes[j]->currentinfo.node.loc.att.geoc.pass) + 1;
                 att_lvlh(cnodes[j]->currentinfo.node.loc);
             }
@@ -1279,7 +1280,8 @@ int32_t Simulator::Target(map<uint32_t, vector<qatt> > &pschedule)
         {
             for (uint16_t j=0; j<cnodes.size(); ++j)
             {
-                cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule[decisec(currentutc)][j];
+                cnodes[j]->currentinfo.target_idx = pschedule[decisec(currentutc)][j].target_idx;
+                cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule[decisec(currentutc)][j].pointing;
                 cnodes[j]->currentinfo.node.loc.att.lvlh.pass = std::max(cnodes[j]->currentinfo.node.loc.att.icrf.pass, cnodes[j]->currentinfo.node.loc.att.geoc.pass) + 1;
                 att_lvlh(cnodes[j]->currentinfo.node.loc);
             }
@@ -1298,6 +1300,10 @@ int32_t Simulator::Target(map<uint32_t, vector<qatt> > &pschedule)
             att_lvlh(cnodes[j]->currentinfo.node.loc);
         }
         return 0;
+    }
+    for (uint16_t i=0; i<cnodes.size(); ++i)
+    {
+        update_target(&cnodes[i]->currentinfo);
     }
 }
 
