@@ -508,7 +508,7 @@ namespace Cosmos
             //! Checks for groundstation AoS/LoS events
             //! \param gs Reference to groundstation to check
             //! \param final If true, forces end of event if active
-            int32_t check_gs_aos_event(const targetstruc& gs, bool force_end);
+            int32_t check_gs_event(const targetstruc& gs, bool force_end);
             //! Checks for target AoS/LoS events
             //! \param target Reference to target to check
             //! \param final If true, forces end of event if active

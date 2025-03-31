@@ -551,7 +551,7 @@ int32_t Simulator::ParseSatString(string args)
         eci2tle2(satloc.pos.eci, satloc.tle);
     }
     if (!jargs["eci"].is_null())
-	{
+    {
         json11::Json::object values = jargs["eci"].object_items();
         satloc.pos.eci.utc = (values["utc"].number_value());
         satloc.pos.eci.s.col[0] = (values["x"].number_value());
@@ -1304,49 +1304,63 @@ int32_t Simulator::Target(map<uint32_t, vector<qatt> > &pschedule)
 int32_t Simulator::Target()
 {
     int32_t iretn = 0;
-    uint32_t minlevel = -1;
+    // uint32_t minlevel = 10000;
+    // Synchronize progress of all targets
     for (uint16_t i=0; i<cnodes.size(); ++i)
     {
         update_target(&cnodes[i]->currentinfo);
         for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
         {
-            if (cnodes[i]->currentinfo.target[j].elto > 0.087 && cnodes[i]->currentinfo.target[j].cover[0].count/10 < minlevel)
+            if (cnodes[i]->currentinfo.target[j].cover[0].count > targets[cnodes[i]->currentinfo.target[j].name].cover[0].count)
             {
-                minlevel = cnodes[i]->currentinfo.target[j].cover[0].count / 10;
+                targets[cnodes[i]->currentinfo.target[j].name].cover[0].count = cnodes[i]->currentinfo.target[j].cover[0].count;
             }
+            // if (cnodes[i]->currentinfo.target[j].elto > 0.)
+            // {
+            //     uint32_t mylevel = targets[cnodes[i]->currentinfo.target[j].name].cover[0].count / cnodes[i]->currentinfo.target[j].elto;
+            //     if (mylevel < minlevel)
+            //     {
+            //         minlevel = mylevel;
+            //     }
+            // }
         }
     }
 
-    for (double targetel=DPI2; targetel>0.; targetel-=DPI8)
+    // Pick current target for each Node
+    for (uint16_t i=0; i<cnodes.size(); ++i)
     {
-        for (uint16_t i=0; i<cnodes.size(); ++i)
+        uint32_t minlevel = 10000;
+        cnodes[i]->currentinfo.target_idx = -1;
+        for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
         {
-            cnodes[i]->currentinfo.target_idx = -1;
-            for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
+            if (cnodes[i]->currentinfo.target[j].elto > 0.)
             {
-                if (cnodes[i]->currentinfo.target[j].elto > targetel && cnodes[i]->currentinfo.target[j].elto <= targetel + DPI8)
+                // Remain candidate if weighted count is low enough
+                uint32_t mylevel = 0.01 * targets[cnodes[i]->currentinfo.target[j].name].cover[0].count / cnodes[i]->currentinfo.target[j].elto;
+                if (mylevel < minlevel)
                 {
-                    bool taken = false;
-                    if (cnodes[i]->currentinfo.target[j].cover[0].count/10 > minlevel)
-                    {
-                        taken = true;
-                    }
-                    if (!taken && i > 0)
+                    // Remove from candidacy if previous Node has been targeted
+                    if (i > 0)
                     {
                         for (uint16_t ii=i-1; ii<cnodes.size(); --ii)
                         {
                             if (cnodes[ii]->currentinfo.target_idx == j)
                             {
-                                taken = true;
+                                mylevel = minlevel;
                             }
                         }
                     }
-                    if (!taken)
+                    if (mylevel < minlevel)
                     {
+                        minlevel = mylevel;
                         cnodes[i]->currentinfo.target_idx = j;
                     }
                 }
             }
+            // if (cnodes[i]->currentinfo.target_idx < cnodes[i]->currentinfo.target.size())
+            // {
+            //     break;
+            // }
         }
     }
 
@@ -1367,20 +1381,20 @@ int32_t Simulator::Target(vector<vector<cosmosstruc> > &results)
 {
     int32_t iretn = 0;
     uint32_t minlevel = -1;
-    for (uint32_t tstep=0; tstep<results.size(); ++tstep)
-    {
-        for (uint16_t i=0; i<results[tstep].size(); ++i)
-        {
-            update_target(&results[tstep][i]);
-            for (uint16_t j=0; j<results[tstep][i].target.size(); ++j)
-            {
-                if (results[tstep][i].target[j].elto > 0.087 && results[tstep][i].target[j].cover[0].count/10 < minlevel)
-                {
-                    minlevel = results[tstep][i].target[j].cover[0].count / 10;
-                }
-            }
-        }
-    }
+    // for (uint32_t tstep=0; tstep<results.size(); ++tstep)
+    // {
+    //     for (uint16_t i=0; i<results[tstep].size(); ++i)
+    //     {
+    //         update_target(&results[tstep][i]);
+    //         for (uint16_t j=0; j<results[tstep][i].target.size(); ++j)
+    //         {
+    //             if (results[tstep][i].target[j].elto > 0.087 && results[tstep][i].target[j].cover[0].count / cnodes[i]->currentinfo.target[j].elto < minlevel)
+    //             {
+    //                 minlevel = results[tstep][i].target[j].cover[0].count / cnodes[i]->currentinfo.target[j].elto;
+    //             }
+    //         }
+    //     }
+    // }
 
     for (uint32_t tstep=0; tstep<results.size(); ++tstep)
     {
@@ -1396,7 +1410,7 @@ int32_t Simulator::Target(vector<vector<cosmosstruc> > &results)
                     bool taken = false;
                     for (uint16_t ii=i-1; ii<results[tstep].size(); --ii)
                     {
-                        if (results[tstep][ii].target_idx == j || results[tstep][i].target[j].cover[0].count/10 > minlevel)
+                        if (results[tstep][ii].target_idx == j || results[tstep][i].target[j].cover[0].count / cnodes[i]->currentinfo.target[j].elto > minlevel)
                         {
                             taken = true;
                         }

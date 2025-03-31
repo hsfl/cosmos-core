@@ -2970,7 +2970,7 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
     {
         // Add lat to event list
         eventstruc cevent;
-        cevent.name = "LATA" + to_signed(DEGOF(lat), 4, true);
+        cevent.name = "LATA" + to_signed(std::round(DEGOF(lat)), 4, true);
         cevent.type = EVENT_TYPE_LATA;
         cevent.value = lat;
         cevent.utc = currentutc;
@@ -3001,7 +3001,7 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
     {
         // Add lat to event list
         eventstruc cevent;
-        cevent.name = "LATD" + to_signed(DEGOF(lat), 4, true);
+        cevent.name = "LATD" + to_signed(std::round(DEGOF(lat)), 4, true);
         cevent.type = EVENT_TYPE_LATD;
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
@@ -3159,7 +3159,7 @@ int32_t OrbitalEventGenerator::check_land_event(bool force_end)
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
         cevent.dtime = 0.;
-        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_LAND;
+        cevent.flag = (5 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_LAND;
         if (in_land)
         {
             cevent.flag |= EVENT_FLAG_LAND;
@@ -3191,7 +3191,7 @@ int32_t OrbitalEventGenerator::check_land_event(bool force_end)
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
         cevent.dtime = cevent.utc - land_start;
-        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
+        cevent.flag = (5 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
         if (in_land)
         {
             cevent.flag |= EVENT_FLAG_LAND;
@@ -3298,7 +3298,7 @@ int32_t OrbitalEventGenerator::check_target_events(bool force_end)
     {
         if (target->type == NODE_TYPE_GROUNDSTATION)
         {
-            iretn += check_gs_aos_event(*target, force_end);
+            iretn += check_gs_event(*target, force_end);
         }
         else if (target->type == NODE_TYPE_TARGET)
         {
@@ -3308,7 +3308,7 @@ int32_t OrbitalEventGenerator::check_target_events(bool force_end)
     return iretn;
 }
 
-int32_t OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool force_end)
+int32_t OrbitalEventGenerator::check_gs_event(const targetstruc& gs, bool force_end)
 {
     // Find target sight acquisition/loss
     // Groundstation is in line-of-sight if elto (elevation from target to sat) is positive
@@ -3330,14 +3330,22 @@ int32_t OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool fo
         {
             in_gs = true;
             eventstruc gs_aos_event;
-            gs_aos_event.name = GS_EVENT_STRING[i] + "AOS_" + gs.name;
+            // gs_aos_event.name = GS_EVENT_STRING[i] + "_AOS:" + gs.name;
+            gs_aos_event.name = gs.name;
             gs_aos_event.type = GS_EVENT_CODE[i];
-            gs_aos_event.utc = gsAOS[i].first;
-            gs_aos_event.dtime = currentutc - gsAOS[i].first;
+            gs_aos_event.utc = currentutc;
+            gs_aos_event.dtime = 0.;
             gs_aos_event.value = gsAOS[i].second;
             gs_aos_event.az = gs.azto;
             gs_aos_event.el = gs.elto;
-            gs_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_GS | EVENT_FLAG_COLOR_GREEN;
+            if (gs_aos_event.type == EVENT_TYPE_GS)
+            {
+                gs_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_GS | EVENT_FLAG_COLOR_GREEN | (3 * EVENT_SCALE_PRIORITY);
+            }
+            else
+            {
+                gs_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_GS | EVENT_FLAG_COLOR_GREEN | (4 * EVENT_SCALE_PRIORITY);
+            }
             if (in_land)
             {
                 gs_aos_event.flag |= EVENT_FLAG_LAND;
@@ -3355,7 +3363,7 @@ int32_t OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool fo
                 gs_aos_event.flag |= EVENT_FLAG_TARG;
             }
             currentinfo->event.push_back(gs_aos_event);
-            gsAOS[i].first = currentutc;
+            gsAOS[i].first = gs_aos_event.utc;
         }
         // LoS
         else if ((force_end || DEGOF(gs.elto) <= i*5.) && gsAOS[i].first != 0.)
@@ -3363,14 +3371,22 @@ int32_t OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool fo
             in_gs = false;
             // Add event to event list
             eventstruc gs_aos_event;
-            gs_aos_event.name = GS_EVENT_STRING[i] + "LOS_" + gs.name;
+            // gs_aos_event.name = GS_EVENT_STRING[i] + "_LOS:" + gs.name;
+            gs_aos_event.name = gs.name;
             gs_aos_event.type = GS_EVENT_CODE[i];
-            gs_aos_event.utc = gsAOS[i].first;
+            gs_aos_event.utc = currentutc;
             gs_aos_event.dtime = currentutc - gsAOS[i].first;
             gs_aos_event.value = gsAOS[i].second;
             gs_aos_event.az = gs.azto;
             gs_aos_event.el = gs.elto;
-            gs_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT | EVENT_FLAG_COLOR_GREEN;
+            if (gs_aos_event.type == EVENT_TYPE_GS)
+            {
+                gs_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT | EVENT_FLAG_COLOR_GREEN | (3 * EVENT_SCALE_PRIORITY);
+            }
+            else
+            {
+                gs_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT | EVENT_FLAG_COLOR_GREEN | (4 * EVENT_SCALE_PRIORITY);
+            }
             if (in_land)
             {
                 gs_aos_event.flag |= EVENT_FLAG_LAND;

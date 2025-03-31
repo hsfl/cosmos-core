@@ -14091,8 +14091,8 @@ int32_t update_metrics(cosmosstruc *currentinfo)
             currentinfo->target[it].cover[id].resstd = 0.;
             currentinfo->target[it].cover[id].specmin = currentinfo->devspec.cam[id].specmin;
             currentinfo->target[it].cover[id].specmax = currentinfo->devspec.cam[id].specmax;
-            // Must be at least 5 degrees
-            if (currentinfo->target[it].elto > 0.087)
+            // Must be at least 0 degrees
+            if (currentinfo->target[it].elto > 0.0)
             {
                 rvector sat2targ = rv_sub (currentinfo->target[it].loc.pos.eci.s, currentinfo->node.loc.pos.eci.s) ;
                 double sep = currentinfo->target[it].range * acos(dot_rv(rv_normal(sat2targ), rv_normal(boresight)));
@@ -14119,6 +14119,10 @@ int32_t update_metrics(cosmosstruc *currentinfo)
                     else
                     {
                         currentinfo->target[it].cover[id].percent = 1.;
+                    }
+                    if (currentinfo->target[it].cover[id].percent > 0.)
+                    {
+                        ++currentinfo->target[it].cover[id].count;
                     }
                 }
             }
