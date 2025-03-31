@@ -37,7 +37,7 @@ string satfile = "sats.dat";
 string targetfile = "targets.dat";
 string tlefile = "tle.dat";
 string pointingfile;
-map<uint32_t, vector<qatt>> pschedule;
+map<uint32_t, vector<Physics::Simulator::pointing_info>> pschedule;
 double runcount = 1500;
 vector <cartpos> lvlhoffset;
 socket_bus data_channel_out;
@@ -1270,12 +1270,13 @@ int32_t parse_control(string args)
         {
             do
             {
-                vector<qatt> patt;
+                vector<Physics::Simulator::pointing_info> patt;
                 qatt catt;
+                int32_t target_idx;
                 fscanf(iff, "%lf", &catt.utc);
-                while(fscanf(iff, ",%lf,%lf,%lf,%lf", &catt.s.d.x, &catt.s.d.y, &catt.s.d.z, &catt.s.w) == 4)
+                while(fscanf(iff, ",%lf,%lf,%lf,%lf,%d", &catt.s.d.x, &catt.s.d.y, &catt.s.d.z, &catt.s.w, &target_idx) == 5)
                 {
-                    patt.push_back(catt);
+                    patt.push_back({catt, target_idx});
                 }
                 if (patt.size())
                 {
