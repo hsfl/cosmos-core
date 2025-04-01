@@ -6,10 +6,14 @@ cmake_minimum_required(VERSION 3.20)
 FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 FILE(GLOB INCLUDESPP ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp)
 
-add_library(CosmosSupport STATIC estimation_lib.cpp cosmos-defs.h estimation_lib.h configCosmos.h enumlib.h enumlib.cpp cosmos-errno.h cosmos-errclass.h cosmos-errclass.cpp)
+add_library(CosmosSupport STATIC estimation_lib.cpp cosmos-defs.h estimation_lib.h configCosmos.h enumlib.h enumlib.cpp cosmos-errno.h cosmos-errclass.h cosmos-errclass.cpp
+   )
 install(TARGETS CosmosSupport DESTINATION lib)
 #target_link_libraries(CosmosSupport CosmosMath)
 target_link_libraries(CosmosSupport ${COSMOS_LIBS})
+
+add_library(CosmosCheck STATIC  check.h check.cpp)
+install(TARGETS CosmosCheck DESTINATION lib)
 
 add_library(CosmosSlip STATIC sliplib.cpp sliplib.h)
 install(TARGETS CosmosSlip DESTINATION lib)
