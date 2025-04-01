@@ -545,9 +545,9 @@ int32_t Simulator::ParseSatString(string args)
         satloc.pos.lvlh.v.col[0] = values["vr"].number_value();
         satloc.pos.lvlh.v.col[1] = values["vi"].number_value();
         satloc.pos.lvlh.v.col[2] = values["vc"].number_value();
-        ric2lvlh(length_rv(satloc.pos.eci.s), satloc.pos.lvlh, satloc.pos.lvlh);
-        satloc.pos.lvlh.pass++;
-        pos_origin2lvlh(satloc);
+        satloc.pos.eci = Convert::hill2eci(initialloc.pos.eci, satloc.pos.lvlh, false);
+        satloc.pos.eci.pass++;
+        pos_eci(satloc);
         eci2tle2(satloc.pos.eci, satloc.tle);
     }
     if (!jargs["eci"].is_null())
