@@ -14069,36 +14069,39 @@ int32_t update_metrics(cosmosstruc *currentinfo)
     }
     for (uint16_t id=0; id<currentinfo->devspec.cam.size(); ++id)
     {
+        rvector boresight = transform_q(q_conjugate(currentinfo->node.loc.att.icrf.s),currentinfo->devspec.cam[id].los);
         double h = currentinfo->node.loc.pos.geod.s.h;
         double nadirradius = h * currentinfo->devspec.cam[id].fov / 2.;
-        Convert::cartpos cpointing;
-        Convert::sat2geoc(currentinfo->devspec.cam[id].los, currentinfo->node.loc, cpointing.s);
-        Convert::geoidpos gpointing;
-        Convert::geoc2geod(cpointing, gpointing);
+        double slant = acos(dot_rv(rv_normal(boresight), -rv_normal(currentinfo->node.loc.pos.eci.s)));
+        double dr = nadirradius / cos(slant);
+        double dr2 = dr * dr;
+        // Convert::cartpos cpointing;
+        // Convert::sat2geoc(currentinfo->devspec.cam[id].los, currentinfo->node.loc, cpointing.s);
+        // Convert::geoidpos gpointing;
+        // Convert::geoc2geod(cpointing, gpointing);
         for (uint16_t it=0; it<currentinfo->target.size(); ++it)
         {
             currentinfo->target[it].cover[id].area = 0.;
             currentinfo->target[it].cover[id].percent = 0.;
+            currentinfo->target[it].cover[id].elevation = currentinfo->target[it].elto;
+            currentinfo->target[it].cover[id].elstd = 0.;
+            currentinfo->target[it].cover[id].azimuth = currentinfo->target[it].azto;
+            currentinfo->target[it].cover[id].azstd = 0.;
+            currentinfo->target[it].cover[id].resolution = currentinfo->target[it].range * currentinfo->devspec.cam[id].ifov;
+            currentinfo->target[it].cover[id].resstd = 0.;
+            currentinfo->target[it].cover[id].specmin = currentinfo->devspec.cam[id].specmin;
+            currentinfo->target[it].cover[id].specmax = currentinfo->devspec.cam[id].specmax;
             // Must be at least 5 degrees
             if (currentinfo->target[it].elto > 0.087)
             {
-                currentinfo->target[it].cover[id].specmin = currentinfo->devspec.cam[id].specmin;
-                currentinfo->target[it].cover[id].specmax = currentinfo->devspec.cam[id].specmax;
-                currentinfo->target[it].cover[id].area = 0.;
-                double dr = nadirradius / sin(currentinfo->target[it].elto);
-                double dr2 = dr * dr;
-                double sep;
-                Convert::geod2sep(gpointing.s, currentinfo->target[it].loc.pos.geod.s, sep);
+                rvector sat2targ = rv_sub (currentinfo->target[it].loc.pos.eci.s, currentinfo->node.loc.pos.eci.s) ;
+                double sep = currentinfo->target[it].range * acos(dot_rv(rv_normal(sat2targ), rv_normal(boresight)));
+                // Convert::geod2sep(gpointing.s, currentinfo->target[it].loc.pos.geod.s, sep);
                 double sep2 = sep * sep;
                 double tr = sqrt(currentinfo->target[it].area / DPI);
                 double tr2 = tr * tr;
                 if (sep < dr + tr)
                 {
-                    currentinfo->target[it].cover[id].elevation = currentinfo->target[it].elto;
-                    currentinfo->target[it].cover[id].azimuth = currentinfo->target[it].azto;
-                    currentinfo->target[it].cover[id].resolution = currentinfo->target[it].range * currentinfo->devspec.cam[id].ifov;
-                    currentinfo->target[it].cover[id].specmin = currentinfo->devspec.cam[id].specmin;
-                    currentinfo->target[it].cover[id].specmax = currentinfo->devspec.cam[id].specmax;
                     if (sep > fabs(tr - dr))
                     {
                         currentinfo->target[it].cover[id].area = dr2 * acos((sep2 + dr2 - tr2) / (2 * sep * dr)) + tr2 * acos((sep2 + tr2 - dr2) / (2 * sep * tr));
