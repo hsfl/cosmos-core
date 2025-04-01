@@ -156,6 +156,7 @@ namespace Cosmos {
         double utc2unixseconds(double utc=0.);
         string utc2unixdate(double utc=0.);
         string utc2iso8601(double mjd=0.);
+        string utc2datetime(double mjd=0., uint16_t style=0);
         double iso86012utc(string date);
         double iso86012mjd(string date);
 

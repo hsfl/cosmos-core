@@ -34,6 +34,7 @@
 #include "support/timelib.h"
 #include "support/datalib.h"
 #include "support/ephemlib.h"
+#include "support/stringlib.h"
 #include "math/mathlib.h"
 
 namespace Cosmos {
@@ -663,6 +664,32 @@ namespace Cosmos {
             sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02dZ", iy, im, id, ihh, imm, iss);
 
             return string(buffer);
+        }
+
+        //! Create DateTime from MJD
+        //! Represent the provided UTC in the requested form:
+        //! - 0: YYYYDDDSSSSS
+        //! - 1: YYYYDDDHHMMSS
+        //! \param utc UTC time in Modified Julian Day format
+        //! \param style Style of output
+        //! \return UTC in requested format
+        string utc2datetime(double mjd, uint16_t style)
+        {
+            calstruc date = mjd2cal(mjd);
+            string datetime = to_unsigned(date.year, 4, true);
+            datetime += to_unsigned(date.doy, 3, true);
+            switch (style)
+            {
+            case 0:
+                datetime += to_unsigned(date.hour*3600 + date.minute*60 + date.second, 5, true);
+                break;
+            case 1:
+                datetime += to_unsigned(date.hour, 2, true);
+                datetime += to_unsigned(date.minute, 2, true);
+                datetime += to_unsigned(date.second, 2, true);
+                break;
+            }
+            return datetime;
         }
 
         double iso86012utc(string date)
