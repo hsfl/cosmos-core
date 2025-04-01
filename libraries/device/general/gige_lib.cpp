@@ -101,6 +101,7 @@ namespace Cosmos {
             handle->privilege = privilege;
 
             // Set packet size
+
             iretn = gige_writereg(handle, GIGE_REG_STREAM_CHANNEL_PACKET_SIZE, packet_size-8);
             if (iretn < 0)
             {
@@ -660,7 +661,7 @@ the CCP register and closing all sockets.
 
             tbytes = 0;
             ElapsedTime et;
-            double tseconds=500000 + 2. * 1e6 * pbytes / handle->streambps;
+            double tseconds=5. + 2. * pbytes / handle->streambps;
             mjd = currentmjd(0.);
             while (tbytes < pbytes && et.split()<tseconds)
             {
