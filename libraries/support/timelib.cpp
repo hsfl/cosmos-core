@@ -670,6 +670,7 @@ namespace Cosmos {
         //! Represent the provided UTC in the requested form:
         //! - 0: YYYYDDDSSSSS
         //! - 1: YYYYDDDHHMMSS
+        //! - 2: Unix time
         //! \param utc UTC time in Modified Julian Day format
         //! \param style Style of output
         //! \return UTC in requested format
@@ -692,6 +693,9 @@ namespace Cosmos {
                 datetime += to_unsigned(date.hour, 2, true);
                 datetime += to_unsigned(date.minute, 2, true);
                 datetime += to_unsigned(date.second, 2, true);
+                break;
+            case 2:
+                datetime = to_unixtime(mjd);
                 break;
             }
             return datetime;
