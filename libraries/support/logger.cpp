@@ -145,8 +145,9 @@ namespace Cosmos {
                 return Set(itype, true, ipathname, iinterval, iextension);
             }
 
-            int32_t Logger::Set(uint16_t itype, bool itimestamped, string ipathname, double iinterval, string iextension)
+            int32_t Logger::Set(uint16_t itype, bool itimestamped, string ipathname, double iinterval, string iextension, bool idated)
             {
+                dated = idated;
                 timestamped = itimestamped;
                 interval = iinterval;
                 Extension = iextension;
@@ -187,6 +188,7 @@ namespace Cosmos {
 
             FILE* Logger::Open()
             {
+                static string opathName;
                 switch (type)
                 {
                 case LOG_NONE:
@@ -204,28 +206,40 @@ namespace Cosmos {
                     }
                     break;
                 default:
-                    double mjd = currentmjd();
-                    mjd -= fmod(mjd - floor(mjd), interval);
-                    if (fabs(mjd - oldmjd) > interval / 2.)
+                    double mjd;
+                    if (dated)
+                    {
+                        mjd = currentmjd();
+                    }
+                    else
+                    {
+                        mjd = 0.;
+                    }
+                    if (dated && interval != 0.)
+                    {
+                        mjd -= fmod(mjd - floor(mjd), interval);
+                    }
+                    if (interval == 0. || fabs(mjd - oldmjd) > interval / 2.)
                     {
                         string npathName;
-                        if (Extension == "log")
+                        if (Extension.empty())
                         {
-                            npathName = pathName + "_" + data_name(mjd, Extension + to_unsigned(type));
+                            npathName = pathName + data_name(mjd, ".log" + to_unsigned(type));
                         }
-                        else {
-                            npathName = pathName + "_" + data_name(mjd, Extension);
+                        else
+                        {
+                            npathName = pathName + data_name(mjd, Extension);
                         }
 
                         if (log_fd != nullptr) {
-                            if (npathName != pathName) {
+                            if (npathName != opathName) {
                                 FILE *fd = fopen(npathName.c_str(), "a");
                                 if (fd != nullptr) {
                                     if (log_fd != stdout) {
                                         fclose(log_fd);
                                     }
                                     log_fd = fd;
-                                    pathName = npathName;
+                                    opathName = npathName;
                                 }
                             }
                         }
@@ -233,7 +247,7 @@ namespace Cosmos {
                             FILE *fd = fopen(npathName.c_str(), "a");
                             if (fd != nullptr) {
                                 log_fd = fd;
-                                pathName = npathName;
+                                opathName = npathName;
                             }
                         }
                         oldmjd = mjd;

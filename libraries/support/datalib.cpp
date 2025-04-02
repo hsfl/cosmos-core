@@ -931,13 +931,16 @@ int32_t data_list_nodes(vector<string>& nodes)
 */
 string data_name(double mjd, string type, string node, string agent, string extra)
 {
-    string name;
+    string name = "";
 
     int32_t year, month;
     double jday, day;
 
-    mjd2ymd(mjd,year,month,day,jday);
-    name = to_unsigned(decisec(mjd), 10, true);
+    if (mjd != 0.)
+    {
+        mjd2ymd(mjd,year,month,day,jday);
+        name += ("_" + to_unsigned(decisec(mjd), 10, true));
+    }
     if (!node.empty())
     {
         name += ("_" + node);
