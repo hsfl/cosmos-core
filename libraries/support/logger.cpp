@@ -211,10 +211,10 @@ namespace Cosmos {
                         string npathName;
                         if (Extension == "log")
                         {
-                            npathName = pathName + data_name(mjd, Extension + to_unsigned(type));
+                            npathName = pathName + "_" + data_name(mjd, Extension + to_unsigned(type));
                         }
                         else {
-                            npathName = pathName + data_name(mjd, Extension);
+                            npathName = pathName + "_" + data_name(mjd, Extension);
                         }
 
                         if (log_fd != nullptr) {
