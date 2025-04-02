@@ -12,8 +12,8 @@ install(TARGETS CosmosSupport DESTINATION lib)
 #target_link_libraries(CosmosSupport CosmosMath)
 target_link_libraries(CosmosSupport ${COSMOS_LIBS})
 
-add_library(CosmosCheck STATIC  check.h check.cpp)
-install(TARGETS CosmosCheck DESTINATION lib)
+# add_library(CosmosCheck STATIC  check.h check.cpp)
+# install(TARGETS CosmosCheck DESTINATION lib)
 
 add_library(CosmosSlip STATIC sliplib.cpp sliplib.h)
 install(TARGETS CosmosSlip DESTINATION lib)
@@ -30,7 +30,7 @@ target_link_libraries(CosmosPrint  CosmosSupport ${COSMOS_LIBS})
 #install(TARGETS CosmosError DESTINATION lib)
 #target_link_libraries(CosmosError CosmosString CosmosData CosmosSupport ${COSMOS_LIBS})
 
-add_library(CosmosLog STATIC logger.h logger.cpp)
+add_library(CosmosLog STATIC  check.h check.cpp logger.h logger.cpp)
 install(TARGETS CosmosLog DESTINATION lib)
 target_link_libraries(CosmosLog CosmosNetwork CosmosNamespace CosmosTime CosmosString CosmosData CosmosSupport ${COSMOS_LIBS})
 

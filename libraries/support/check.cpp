@@ -2,7 +2,7 @@
 #include "support/check.h"
 #include "support/timelib.h"
 
-Check::Check(string name, string date_time)
+Log::Checker::Checker(string name, string date_time)
 {
     if (date_time.empty())
     {
@@ -11,7 +11,15 @@ Check::Check(string name, string date_time)
     file_name = name + "_" + date_time + ".chk";
 }
 
-int32_t Check::Report(string name, string description, string result, bool pass)
+Log::Checker::~Checker()
+{
+    if (fp != nullptr)
+    {
+        fclose(fp);
+    }
+}
+
+int32_t Log::Checker::Report(string name, string description, string result, bool pass)
 {
     if (fp == nullptr)
     {
@@ -22,7 +30,7 @@ int32_t Check::Report(string name, string description, string result, bool pass)
         }
     }
 
-    fprintf(fp, "{\"sequencenumber\":%u,\"name\":\"%s\",\"description\":\"%s\",\"results\":\"%s\",\"pass\":\"%s\"}", sequence_num, name, description, result, (pass?"true":"false"));
+    fprintf(fp, "{\"sequencenumber\":%u,\"name\":\"%s\",\"description\":\"%s\",\"results\":\"%s\",\"pass\":\"%s\"}\n", ++sequence_num, name.c_str(), description.c_str(), result.c_str(), (pass?"true":"false"));
 
     return sequence_num;
 }

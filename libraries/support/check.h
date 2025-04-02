@@ -3,10 +3,12 @@
 
 namespace Cosmos {
 namespace Support {
-class Check
+namespace Log {
+class Checker
 {
 public:
-    Check(string base_name, string date_time="");
+    Checker(string base_name, string date_time="");
+    ~Checker();
     int32_t Report(string name, string description, string result, bool pass);
 
 private:
@@ -14,6 +16,7 @@ private:
     string file_name;
     FILE *fp = nullptr;
 };
+}
 }
 }
 
