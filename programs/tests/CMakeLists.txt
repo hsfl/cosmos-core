@@ -52,6 +52,7 @@ target_link_libraries(observation_windows CosmosString CosmosConvert)
 target_link_libraries(targetstruc_tests CosmosPhysics CosmosConvert CosmosData CosmosString)
 target_link_libraries(log_move_test CosmosData)
 target_link_libraries(gauss_jackson_test CosmosAgent CosmosPhysics CosmosAgent)
+target_link_libraries(check_check CosmosLog)
 
 #include(CTest)
 #enable_testing()

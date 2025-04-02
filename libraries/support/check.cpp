@@ -30,7 +30,31 @@ int32_t Log::Checker::Report(string name, string description, string result, boo
         }
     }
 
-    fprintf(fp, "{\"sequencenumber\":%u,\"name\":\"%s\",\"description\":\"%s\",\"results\":\"%s\",\"pass\":\"%s\"}\n", ++sequence_num, name.c_str(), description.c_str(), result.c_str(), (pass?"true":"false"));
+    this->name = name;
+    this->description = description;
+    this->result = result;
+    this->pass = pass;
+    ++sequencenumber;
+    fprintf(fp, "%s\n", to_json().dump().c_str());
+    // fprintf(fp, "{\"sequencenumber\":%u,\"name\":\"%s\",\"description\":\"%s\",\"results\":\"%s\",\"pass\":\"%s\"}\n", ++sequence_num, name.c_str(), description.c_str(), result.c_str(), (pass?"true":"false"));
 
-    return sequence_num;
+    return sequencenumber;
+}
+
+int32_t Log::Checker::Test(string record)
+{
+    int32_t iretn = this->from_json(record);
+
+    if (iretn > 0)
+    {
+        if (sequencenumber > maxsequencenumber)
+        {
+            maxsequencenumber = sequencenumber;
+        }
+        if (!pass)
+        {
+            ++failcount;
+        }
+    }
+    return iretn;
 }

@@ -1,18 +1,81 @@
 #ifndef CHECK_H
 #define CHECK_H
 
+#include "support/configCosmos.h"
+
 namespace Cosmos {
 namespace Support {
 namespace Log {
 class Checker
 {
 public:
-    Checker(string base_name, string date_time="");
+    Checker(string base_name="test", string date_time="");
     ~Checker();
     int32_t Report(string name, string description, string result, bool pass);
+    int32_t Test(string record);
+
+    uint32_t sequencenumber = 0;
+    uint32_t maxsequencenumber = 0;
+    uint32_t failcount = 0;
+    string name;
+    string description;
+    string result;
+    bool pass = false;
+
+    json11::Json to_json() const
+    {
+        return json11::Json::object
+            {
+                { "sequencenumber"   , sequencenumber },
+                { "name"  , name },
+                { "description"  , description },
+                { "result"  , result },
+                { "pass" , pass}
+            };
+    }
+
+    int32_t from_json(const string& s)
+    {
+        string error;
+        json11::Json p = json11::Json::parse(s,error);
+        if(error.empty())
+        {
+            uint16_t count = 0;
+            if(!p["sequencenumber"].is_null())
+            {
+                sequencenumber = p["sequencenumber"].number_value();
+                ++count;
+            }
+            if(!p["name"].is_null())
+            {
+                name = p["name"].string_value();
+                ++count;
+            }
+            if(!p["description"].is_null())
+            {
+                description = p["description"].string_value();
+                ++count;
+            }
+            if(!p["result"].is_null())
+            {
+                result = p["result"].string_value();
+                ++count;
+            }
+            if(!p["pass"].is_null())
+            {
+                pass = p["pass"].bool_value();
+                ++count;
+            }
+            return  count;
+        }
+        else
+        {
+            return GENERAL_ERROR_ARGS;
+        }
+    }
+
 
 private:
-    int32_t sequence_num = 0;
     string file_name;
     FILE *fp = nullptr;
 };
