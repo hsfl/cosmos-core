@@ -675,7 +675,12 @@ namespace Cosmos {
         //! \return UTC in requested format
         string utc2datetime(double mjd, uint16_t style)
         {
-            calstruc date = mjd2cal(mjd);
+            calstruc date;
+            if (mjd < 1.)
+            {
+                mjd = currentmjd();
+            }
+            date = mjd2cal(mjd);
             string datetime = to_unsigned(date.year, 4, true);
             datetime += to_unsigned(date.doy, 3, true);
             switch (style)
