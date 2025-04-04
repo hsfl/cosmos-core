@@ -21,6 +21,31 @@ Log::Checker::~Checker()
 
 int32_t Log::Checker::Report(string name, string description, string result, bool pass)
 {
+    record trecord;
+    trecord.name = name;
+    trecord.description = description;
+    trecord.result = result;
+    trecord.pass = pass;
+    trecord.sequencenumber = records.size() + 1;
+    if (trecord.sequencenumber > maxsequencenumber)
+    {
+        maxsequencenumber = trecord.sequencenumber;
+    }
+    if (records.size() < trecord.sequencenumber)
+    {
+        records.resize(trecord.sequencenumber);
+    }
+    if (!trecord.pass)
+    {
+        ++failcount;
+    }
+    records[trecord.sequencenumber-1] = trecord;
+
+    return maxsequencenumber;
+}
+
+int32_t Log::Checker::Save()
+{
     if (fp == nullptr)
     {
         fp = fopen(file_name.c_str(), "a");
@@ -30,31 +55,21 @@ int32_t Log::Checker::Report(string name, string description, string result, boo
         }
     }
 
-    this->name = name;
-    this->description = description;
-    this->result = result;
-    this->pass = pass;
-    ++sequencenumber;
     fprintf(fp, "%s\n", to_json().dump().c_str());
-    // fprintf(fp, "{\"sequencenumber\":%u,\"name\":\"%s\",\"description\":\"%s\",\"results\":\"%s\",\"pass\":\"%s\"}\n", ++sequence_num, name.c_str(), description.c_str(), result.c_str(), (pass?"true":"false"));
-
-    return sequencenumber;
+    return 0;
 }
 
-int32_t Log::Checker::Test(string record)
+int32_t Log::Checker::Test(string nrecord)
 {
-    int32_t iretn = this->from_json(record);
+    int32_t iretn = from_json(nrecord);
 
     if (iretn > 0)
     {
-        if (sequencenumber > maxsequencenumber)
-        {
-            maxsequencenumber = sequencenumber;
-        }
-        if (!pass)
-        {
-            ++failcount;
-        }
+        return maxsequencenumber;
     }
-    return iretn;
+    else
+    {
+        failcount = maxsequencenumber;
+        return iretn;
+    }
 }
