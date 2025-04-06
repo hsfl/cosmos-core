@@ -42,6 +42,7 @@ public:
 
     struct info
     {
+        string filesystem="";
         string mount="";
         uint64_t size=0;
         uint64_t used=0;

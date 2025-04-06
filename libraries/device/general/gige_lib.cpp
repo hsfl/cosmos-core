@@ -101,6 +101,7 @@ namespace Cosmos {
             handle->privilege = privilege;
 
             // Set packet size
+
             iretn = gige_writereg(handle, GIGE_REG_STREAM_CHANNEL_PACKET_SIZE, packet_size-8);
             if (iretn < 0)
             {
@@ -654,14 +655,14 @@ the CCP register and closing all sockets.
             iretn = gige_writereg(handle,GIGE_REG_SCP,handle->stream.cport);
             if ((iretn=gige_writereg(handle,GIGE_REG_SCPS,bsize)) < 0)
                 return iretn;
-            if ((iretn=gige_writereg(handle,PHXReg::PHXAcquisitionStartReg,1)) < 0)
-                return iretn;
             pbytes = gige_readreg(handle,PHXReg::PHXWidthReg) * gige_readreg(handle,PHXReg::PHXHeightReg) * frames * handle->bpp;
 
             tbytes = 0;
             ElapsedTime et;
-            double tseconds=500000 + 2. * 1e6 * pbytes / handle->streambps;
+            double tseconds = 0.5 + 1.1 * pbytes / handle->streambps;
             mjd = currentmjd(0.);
+            if ((iretn=gige_writereg(handle,PHXReg::PHXAcquisitionStartReg,1)) < 0)
+                return iretn;
             while (tbytes < pbytes && et.split()<tseconds)
             {
                 if ((iretn=recvfrom(handle->stream.cudp,(char *)bufferin,bsize,0,static_cast<struct sockaddr *>(nullptr),static_cast<socklen_t *>(nullptr))) > 0)

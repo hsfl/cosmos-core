@@ -99,7 +99,7 @@ namespace Cosmos {
                 Logger() {}
 
                 int32_t Set(uint16_t type, string ipathname="", double iinterval=1800., string iextension="log");
-                int32_t Set(uint16_t type, bool timestamped, string ipathname="", double iinterval=1800., string iextension="log");
+                int32_t Set(uint16_t type, bool timestamped, string ipathname="", double iinterval=1800., string iextension="log", bool dated=true);
                 int32_t Type();
                 FILE *Open();
                 int32_t Close();
@@ -108,6 +108,7 @@ namespace Cosmos {
 
 
             private:
+                bool dated = true;
                 bool timestamped = false;
                 double interval = 30. / 1440.;
                 double oldmjd = 0.;

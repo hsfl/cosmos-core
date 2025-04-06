@@ -205,17 +205,20 @@ vector <DeviceDisk::info> DeviceDisk::getInfo()
         while (fgets(nextline, 100, mfd) != nullptr)
         {
             vector<string> fields = string_split(nextline);
-            if (fields.size() == 6 && (fields[2] == "ext4" || fields[2] == "btrfs" || fields[2] == "vfat"))
+            if (fields.size() > 3 && (fields[2] == "ext4" || fields[2] == "btrfs" || fields[2] == "vfat"))
             {
                 struct statvfs tstat;
-                if (statvfs(fields[0].c_str(), &tstat) == 0)
+                tinfo.filesystem = fields[0];
+                tinfo.mount = fields[1];
+                int32_t iretn = statvfs(tinfo.mount.c_str(), &tstat);
+                if (iretn != 0)
                 {
-                    tinfo.mount = fields[0];
-                    tinfo.size = tstat.f_bsize * tstat.f_blocks;
-                    tinfo.free = tstat.f_bsize * tstat.f_bfree;
-                    tinfo.used = tstat.f_bsize * (tstat.f_blocks - tstat.f_bfree);
-                    result.push_back(tinfo);
+                    continue;
                 }
+                tinfo.size = tstat.f_bsize * tstat.f_blocks;
+                tinfo.free = tstat.f_bsize * tstat.f_bfree;
+                tinfo.used = tstat.f_bsize * (tstat.f_blocks - tstat.f_bfree);
+                result.push_back(tinfo);
             }
         }
     }

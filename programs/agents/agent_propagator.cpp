@@ -1038,7 +1038,7 @@ void add_sim_devices()
         json_createpiece(&(*sit)->currentinfo, "BCreg", DeviceType::BCREG);
 //        json_createpiece(&(*sit)->currentinfo, "Right", DeviceType::BCREG);
         // CPU
-        json_createpiece(&(*sit)->currentinfo, "iOBC", DeviceType::CPU);
+        json_createpiece(&(*sit)->currentinfo, "aOBC", DeviceType::CPU);
         (*sit)->currentinfo.devspec.cpu[0].volt = 5.;
         (*sit)->currentinfo.devspec.cpu[0].amp = 2. / (*sit)->currentinfo.devspec.cpu[0].volt;
         (*sit)->currentinfo.devspec.cpu[0].state = 1;

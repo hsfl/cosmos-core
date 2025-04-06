@@ -56,16 +56,19 @@ int main(int argc, char *argv[])
 	uint32_t gain=1;
 	uint32_t binning=1;
     uint32_t test = 0;
+    uint16_t psize = 1450;
 	char ipaddress[20];
 
 	switch (argc)
 	{
+    case 8:
+        binning=atol(argv[7]);
     case 7:
-        binning=atol(argv[6]);
+        gain = atol(argv[6]);
     case 6:
-        gain = atol(argv[5]);
+        test = atol(argv[5]);
     case 5:
-        test = atol(argv[4]);
+        psize = atol(argv[4]);
     case 4:
 		exposure = atol(argv[3]);
 	case 3:
@@ -74,7 +77,7 @@ int main(int argc, char *argv[])
 		strcpy(ipaddress, argv[1]);
 		break;
 	default:
-		printf("Usage: gigesnap ipaddress [extraname [exposure [gain [binning]]]]\n");
+        printf("Usage: gigesnap ipaddress [extraname [exposure [psize [gain [binning]]]]]\n");
 		exit (1);
 		break;
 	}
@@ -129,16 +132,19 @@ int main(int argc, char *argv[])
 
 
 
-    if ((handle=gige_open(ipaddress,0x02,40000,5000,40000000)) == NULL)
+    if ((handle=gige_open(ipaddress,0x02,40000,5000,40000000, psize)) == NULL)
 	{
-        if((handle = gige_open(gige_value_to_address(gige_list[0].address),0x02,40000,5000,8000000)) == NULL)
+        if((handle = gige_open(gige_value_to_address(gige_list[0].address),0x02,40000,5000,8000000, psize)) == NULL)
 		{
 			printf("Couldn't open camera\n");
 			exit(1);
 		}
-	}
+    }
 
-	iretn = gige_readreg(handle,GIGE_REG_CCP);
+    iretn = gige_readreg(handle,GIGE_REG_SCPS);
+    printf("Read GIGE_REG_STREAM_CHANNEL_PACKET_SIZE %d\n",iretn);
+
+    iretn = gige_readreg(handle,GIGE_REG_CCP);
     printf("Read CCP: %u\n",iretn);
 
 	iretn = gige_readreg(handle,GIGE_REG_DEVICE_MAC_HIGH);
@@ -579,10 +585,8 @@ int main(int argc, char *argv[])
         }
 
 		printf("%u %u %u %u %f %f %f\n\n",counts[0],counts[1],counts[2],counts[3],mean,std, snr);
-		iretn = gige_readreg(handle,GIGE_REG_SCPS);
-		printf("Read GIGE_REG_STREAM_CHANNEL_PACKET_SIZE %d\n",iretn);
 
-		iretn = gige_readreg(handle,GIGE_REG_SCDA);
+        iretn = gige_readreg(handle,GIGE_REG_SCDA);
 		printf("Read GIGE_STREAM_CHANNEL_DESTINATION_ADDRESS %x\n",iretn);
 
 		// Separate and print out some of the image quality metrics:
