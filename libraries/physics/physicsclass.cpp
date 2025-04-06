@@ -3231,7 +3231,7 @@ int32_t OrbitalEventGenerator::check_umbra_event(bool force_end)
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
         cevent.dtime = 0.;
-        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_UMBRA;
+        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_COLOR_WHITE | EVENT_FLAG_UMBRA;
         if (in_land)
         {
             cevent.flag |= EVENT_FLAG_LAND;
@@ -3263,7 +3263,7 @@ int32_t OrbitalEventGenerator::check_umbra_event(bool force_end)
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
         cevent.dtime = cevent.utc - umbra_start;
-        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
+        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_COLOR_WHITE | EVENT_FLAG_EXIT;
         if (in_land)
         {
             cevent.flag |= EVENT_FLAG_LAND;
@@ -3331,7 +3331,7 @@ int32_t OrbitalEventGenerator::check_gs_event(const targetstruc& gs, bool force_
             in_gs = true;
             eventstruc gs_aos_event;
             // gs_aos_event.name = GS_EVENT_STRING[i] + "_AOS:" + gs.name;
-            gs_aos_event.name = gs.name;
+            gs_aos_event.name = AOS_EVENT_STRING[i] + gs.name;
             gs_aos_event.type = GS_EVENT_CODE[i];
             gs_aos_event.utc = currentutc;
             gs_aos_event.dtime = 0.;
@@ -3372,7 +3372,7 @@ int32_t OrbitalEventGenerator::check_gs_event(const targetstruc& gs, bool force_
             // Add event to event list
             eventstruc gs_aos_event;
             // gs_aos_event.name = GS_EVENT_STRING[i] + "_LOS:" + gs.name;
-            gs_aos_event.name = gs.name;
+            gs_aos_event.name = LOS_EVENT_STRING[i] + gs.name;
             gs_aos_event.type = GS_EVENT_CODE[i];
             gs_aos_event.utc = currentutc;
             gs_aos_event.dtime = currentutc - gsAOS[i].first;
@@ -3424,7 +3424,7 @@ int32_t OrbitalEventGenerator::check_gs_event(const targetstruc& gs, bool force_
         in_gs =true;
         // Add event to event list
         eventstruc gs_aos_event;
-        gs_aos_event.name = GS_EVENT_STRING[DEGMAX] + "_" + gs.name;
+        gs_aos_event.name = "MAX_" + gs.name; // + "_" + GS_EVENT_STRING[DEGMAX];
         gs_aos_event.type = GS_EVENT_CODE[DEGMAX];
         gs_aos_event.utc = gsAOS[DEGMAX].first;
         gs_aos_event.dtime = 0;
