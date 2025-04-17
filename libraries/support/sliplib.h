@@ -74,10 +74,10 @@
 //! \defgroup sliplib_functions COSMOS SLIP support functions
 //! @{
 
-int32_t slip_unpack(uint8_t *sbuf, uint16_t ssize, uint8_t *rbuf, uint16_t rsize);
-int32_t slip_decode(uint8_t *sbuf, uint16_t ssize, uint8_t *rbuf, uint16_t rsize);
-int32_t slip_pack(uint8_t *rbuf, uint16_t rsize, uint8_t *sbuf, uint16_t ssize);
-int32_t slip_encode(uint8_t *rbuf, uint16_t rsize, uint8_t *sbuf, uint16_t ssize);
+int32_t slip_unpack(const uint8_t *sbuf, uint16_t ssize, uint8_t *rbuf, uint16_t rsize);
+int32_t slip_decode(const uint8_t *sbuf, uint16_t ssize, uint8_t *rbuf, uint16_t rsize);
+int32_t slip_pack(const uint8_t *rbuf, uint16_t rsize, uint8_t *sbuf, uint16_t ssize);
+int32_t slip_encode(const uint8_t *rbuf, uint16_t rsize, uint8_t *sbuf, uint16_t ssize);
 int32_t slip_unpack(vector<uint8_t> &sbuf, vector<uint8_t> &rbuf);
 int32_t slip_decode(vector<uint8_t> &sbuf, vector<uint8_t> &rbuf);
 int32_t slip_pack(vector<uint8_t> &rbuf, vector<uint8_t> &sbuf);

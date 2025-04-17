@@ -47,7 +47,7 @@
 	\return bytes in raw buffer
 */
 
-int32_t slip_unpack(uint8_t *sbuf, uint16_t ssize, uint8_t *rbuf, uint16_t rsize)
+int32_t slip_unpack(const uint8_t *sbuf, uint16_t ssize, uint8_t *rbuf, uint16_t rsize)
 {
 	return (slip_decode(sbuf, ssize, rbuf, rsize));
 }
@@ -67,14 +67,23 @@ int32_t slip_unpack(vector<uint8_t> &sbuf, vector<uint8_t> &rbuf)
 	\return bytes in raw buffer
 */
 
-int32_t slip_decode(uint8_t *sbuf, uint16_t ssize, uint8_t *rbuf, uint16_t rsize)
+int32_t slip_decode(const uint8_t *sbuf, uint16_t ssize, uint8_t *rbuf, uint16_t rsize)
 {
 	uint16_t i, j, ch;
 
 	i = j = 0;
+    do
+    {
+        if (j > ssize-1)
+        {
+            return (SLIP_ERROR_PACKING);
+        }
+        ch = sbuf[j++];
+    } while (ch != SLIP_FEND);
+
 	do
 	{
-		if (j > ssize-3)
+		if (j > ssize-1)
 			return (SLIP_ERROR_PACKING);
 		ch = sbuf[j++];
 		if (i < rsize)
@@ -82,7 +91,7 @@ int32_t slip_decode(uint8_t *sbuf, uint16_t ssize, uint8_t *rbuf, uint16_t rsize
 			switch (ch)
 			{
 			case SLIP_FESC:
-                if (j > ssize-3)
+                if (j > ssize-1)
 					return (SLIP_ERROR_PACKING);
 				ch = sbuf[j++];
 				switch (ch)
@@ -104,7 +113,7 @@ int32_t slip_decode(uint8_t *sbuf, uint16_t ssize, uint8_t *rbuf, uint16_t rsize
 				break;
 			}
 		}
-		else
+		else if (ch != SLIP_FEND)
 			return (SLIP_ERROR_BUFFER);
 	} while (ch != SLIP_FEND);
 
@@ -170,7 +179,7 @@ int32_t slip_decode(vector<uint8_t> &sbuf, vector<uint8_t> &rbuf)
 	\return bytes actually written
 */
 
-int32_t slip_encode(uint8_t *rbuf, uint16_t rsize, uint8_t *sbuf, uint16_t ssize)
+int32_t slip_encode(const uint8_t *rbuf, uint16_t rsize, uint8_t *sbuf, uint16_t ssize)
 {
 	uint16_t i, j;
 
@@ -244,7 +253,7 @@ int32_t slip_encode(vector<uint8_t> &rbuf, vector<uint8_t> &sbuf)
 	\return bytes actually written
 */
 
-int32_t slip_pack(uint8_t *rbuf, uint16_t rsize, uint8_t *sbuf, uint16_t ssize)
+int32_t slip_pack(const uint8_t *rbuf, uint16_t rsize, uint8_t *sbuf, uint16_t ssize)
 {
 	int32_t i;
 
