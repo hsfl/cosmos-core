@@ -108,7 +108,7 @@ public:
                 failcount = p["failcount"].number_value();
                 ++count;
             }
-            records.resize(maxsequencenumber);
+            records.resize(p["records"].array_items().size());
             for (uint16_t i=0; i<records.size(); ++i)
             {
                 if (!p["records"][i].is_null())
