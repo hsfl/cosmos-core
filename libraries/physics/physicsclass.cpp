@@ -1788,6 +1788,7 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
 
 int32_t State::Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype)
 {
+    int32_t iretn;
     dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
     dtj = dt / 86400.;
 
@@ -1802,15 +1803,98 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     {
         if (currentinfo.node.phys.strucs[i].name.find("panel") != string::npos)
         {
-            json_addpiece(&currentinfo, i, DeviceType::PVSTRG, i);
+            json_createpiece(&currentinfo, i, DeviceType::PVSTRG, i);
+            // json_addpiece(&currentinfo, i, DeviceType::TSEN, i);
         }
         else
         {
-            json_addpiece(&currentinfo, i, DeviceType::NONE);
+            json_createpiece(&currentinfo, i, DeviceType::NONE);
         }
-        piecestruc piece;
     }
+
+    // CPU
+    json_createpiece(&currentinfo, "obc_cpu", DeviceType::CPU);
+
+    // Disk
+    json_createpiece(&currentinfo, "obc_disk", DeviceType::DISK);
+
+    // Thruster
+    iretn = json_createpiece(&currentinfo, "adcs_thrust", DeviceType::THST);
+    // currentinfo.devspec.thst[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unitz(-1.), rv_unitx());
+
+    // Reaction wheels
+    iretn = json_createpiece(&currentinfo, "adcs_rw_x", DeviceType::RW);
+    // currentinfo.devspec.rw[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    iretn = json_createpiece(&currentinfo, "adcs_rw_y", DeviceType::RW);
+    // currentinfo.devspec.rw[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
+    iretn = json_createpiece(&currentinfo, "adcs_rw_z", DeviceType::RW);
+    // currentinfo.devspec.rw[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+
+    // Torque rods
+    iretn = json_createpiece(&currentinfo, "adcs_mtr_x", DeviceType::MTR);
+    // currentinfo.devspec.mtr[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    iretn = json_createpiece(&currentinfo, "adcs_mtr_y", DeviceType::MTR);
+    // currentinfo.devspec.mtr[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
+    iretn = json_createpiece(&currentinfo, "adcs_mtr_z", DeviceType::MTR);
+    // currentinfo.devspec.mtr[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+
+    // GPS
+    json_createpiece(&currentinfo, "adcs_gps", DeviceType::GPS);
+
+    // Magnetometer
+    iretn = json_createpiece(&currentinfo, "adcs_mag", DeviceType::MAG);
+    currentinfo.devspec.mag[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+
+    // Gyros
+    iretn = json_createpiece(&currentinfo, "adcs_gyro_x", DeviceType::GYRO);
+    // currentinfo.devspec.gyro[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    iretn = json_createpiece(&currentinfo, "adcs_gyro_y", DeviceType::GYRO);
+    // currentinfo.devspec.gyro[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
+    iretn = json_createpiece(&currentinfo, "adcs_gyro_z", DeviceType::GYRO);
+    // currentinfo.devspec.gyro[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+
+    // Star trackers
+    iretn = json_createpiece(&currentinfo, "adcs_stt_x+", DeviceType::STT);
+    // currentinfo.devspec.stt[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    iretn = json_createpiece(&currentinfo, "adcs_stt_x-", DeviceType::STT);
+    // currentinfo.devspec.stt[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(-1.0), rv_unity());
+
+    // Sun and Earth sensors
+    iretn = json_createpiece(&currentinfo, "adcs_xyzsen_sun", DeviceType::XYZSEN);
+    //        currentinfo.devspec.xyzsen[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(-1.0), rv_unity());
+    iretn = json_createpiece(&currentinfo, "adcs_xyzsen_earth", DeviceType::XYZSEN);
+    //        currentinfo.devspec.xyzsen[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+
+
+    // Detectors
+    json_createpiece(&currentinfo, "camera1", DeviceType::CAM);
+    json_createpiece(&currentinfo, "camera2", DeviceType::CAM);
+    json_createpiece(&currentinfo, "camera3", DeviceType::CAM);
+    json_createpiece(&currentinfo, "camera4", DeviceType::CAM);
+    // for (camstruc det : dets)
+    // {
+    //     json_createpiece(&currentinfo, det.name, DeviceType::CAM);
+    //     currentinfo.devspec.cam[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].volt = 5.;
+    //     currentinfo.devspec.cam[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].amp = 20. / det.volt;
+    //     currentinfo.devspec.cam[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].state = 0;
+    //     currentinfo.devspec.cam[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].fov = det.fov;
+    //     currentinfo.devspec.cam[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].ifov = det.ifov;
+    //     currentinfo.devspec.cam[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].specmin = det.specmin;
+    //     currentinfo.devspec.cam[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].specmax = det.specmax;
+    // }
+
+    // EPS
+    json_createpiece(&currentinfo, "battery", DeviceType::BATT);
+
+    // TSEN
+    uint16_t devcnt = currentinfo.device.size();
+    for (uint16_t i=0; i<devcnt; ++i)
+    {
+        json_createpiece(&currentinfo, "tsen_" + currentinfo.pieces[currentinfo.device[i]->pidx].name, DeviceType::TSEN);
+    }
+
     json_map_node(&currentinfo);
+    json_updatecosmosstruc(&currentinfo);
 
     currentinfo.mass = currentinfo.node.phys.mass;
 
@@ -2625,6 +2709,29 @@ int32_t ThermalPropagator::Propagate(double nextutc)
 
             triangle.temp = triangle.heat / (triangle.mass * triangle.hcap);
             currentinfo->node.phys.heat += triangle.heat;
+        }
+
+        // Translate from triangles to actual devices
+        for (auto &piece : currentinfo->pieces)
+        {
+            piece.temp = 0;
+            uint16_t count = 0;
+            for (uint32_t &findex : currentinfo->node.phys.strucs[piece.struc_idx].face_idx)
+            {
+                for (uint32_t &tindex : currentinfo->node.phys.faces[findex].triangle_idx)
+                {
+                    piece.temp += currentinfo->node.phys.triangles[tindex].temp;
+                    ++count;
+                }
+            }
+            if (count)
+            {
+                piece.temp /= count;
+                if (piece.cidx < currentinfo->device.size())
+                {
+                    currentinfo->device[piece.cidx]->temp = piece.temp;
+                }
+            }
         }
 
         currentinfo->node.phys.temp = heatratio / currentinfo->node.phys.hcap;

@@ -790,6 +790,9 @@ int32_t json_createpiece(cosmosstruc *cinfo, string name, DeviceType ctype, doub
         json_mapdeviceentry(cinfo->device[cidx], cinfo);
         json_toggledeviceentry(cinfo->device[cidx]->didx, ctype, cinfo, true);
     }
+
+    json_updatecosmosstruc(cinfo);
+
     return pidx;
 }
 

@@ -613,89 +613,121 @@ int32_t Simulator::ParseSatString(string args)
     (*sit)->currentinfo.event_tick = eventtick / 86400.;
     (*sit)->currentinfo.node.type = nodetype;
 
-    // CPU
-    iretn = json_createpiece(&(*sit)->currentinfo, "obc_cpu", DeviceType::CPU);
+    // // TSEN
+    // for (uint16_t i=0; i<(*sit)->currentinfo.pieces.size(); ++i)
+    // {
+    //     iretn = json_createpiece(&(*sit)->currentinfo, "tsen_piece_" + (*sit)->currentinfo.pieces[i].name, DeviceType::TSEN);
+    // }
 
-    // Disk
-    iretn = json_createpiece(&(*sit)->currentinfo, "obc_disk", DeviceType::DISK);
+    // // CPU
+    // iretn = json_createpiece(&(*sit)->currentinfo, "obc_cpu", DeviceType::CPU);
+
+    // // Disk
+    // iretn = json_createpiece(&(*sit)->currentinfo, "obc_disk", DeviceType::DISK);
 
     // Thruster
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_thrust", DeviceType::THST);
-    (*sit)->currentinfo.devspec.thst[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].maxthrust = maxthrust;
-    (*sit)->currentinfo.devspec.thst[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unitz(-1.), rv_unitx());
-    (*sit)->currentinfo.node.phys.maxthrust = maxthrust;
+        // json_createpiece(&(*sit)->currentinfo, "adcs_thrust", DeviceType::THST);
+    for (uint16_t i=0; i<(*sit)->currentinfo.devspec.thst.size(); ++i)
+    {
+        (*sit)->currentinfo.devspec.thst[i].maxthrust = maxthrust;
+    }
+    // (*sit)->currentinfo.devspec.thst[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unitz(-1.), rv_unitx());
+    // (*sit)->currentinfo.node.phys.maxthrust = maxthrust;
 
     // Reaction wheels
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_rw_x", DeviceType::RW);
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxtrq = maxtorque;
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxomg = maxomega;
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_rw_y", DeviceType::RW);
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxtrq = maxtorque;
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxomg = maxomega;
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_rw_z", DeviceType::RW);
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxtrq = maxtorque;
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxomg = maxomega;
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+    for (uint16_t i=0; i<(*sit)->currentinfo.devspec.rw.size(); ++i)
+    {
+        (*sit)->currentinfo.devspec.rw[i].mxtrq = maxtorque;
+        (*sit)->currentinfo.devspec.rw[i].mxomg = maxomega;
+    }
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_rw_x", DeviceType::RW);
+    // (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxtrq = maxtorque;
+    // (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxomg = maxomega;
+    // (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_rw_y", DeviceType::RW);
+    // (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxtrq = maxtorque;
+    // (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxomg = maxomega;
+    // (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_rw_z", DeviceType::RW);
+    // (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxtrq = maxtorque;
+    // (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxomg = maxomega;
+    // (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
     (*sit)->currentinfo.node.phys.maxtorque = maxtorque;
 
     // Torque rods
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mtr_x", DeviceType::MTR);
-    (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxmom = maxmoment;
-    (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mtr_y", DeviceType::MTR);
-    (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxmom = maxmoment;
-    (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mtr_z", DeviceType::MTR);
-    (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxmom = maxmoment;
-    (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+    for (uint16_t i=0; i<(*sit)->currentinfo.devspec.mtr.size(); ++i)
+    {
+        (*sit)->currentinfo.devspec.mtr[i].mxmom = maxmoment;
+    }
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mtr_x", DeviceType::MTR);
+    // (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxmom = maxmoment;
+    // (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mtr_y", DeviceType::MTR);
+    // (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxmom = maxmoment;
+    // (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mtr_z", DeviceType::MTR);
+    // (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxmom = maxmoment;
+    // (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
 
-    // GPS
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_gps", DeviceType::GPS);
+    // // GPS
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_gps", DeviceType::GPS);
 
-    // Magnetometer
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mag", DeviceType::MAG);
-    (*sit)->currentinfo.devspec.mag[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    // // Magnetometer
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mag", DeviceType::MAG);
+    // (*sit)->currentinfo.devspec.mag[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
 
-    // Gyros
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_gyro_x", DeviceType::GYRO);
-    (*sit)->currentinfo.devspec.gyro[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_gyro_y", DeviceType::GYRO);
-    (*sit)->currentinfo.devspec.gyro[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_gyro_z", DeviceType::GYRO);
-    (*sit)->currentinfo.devspec.gyro[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+    // // Gyros
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_gyro_x", DeviceType::GYRO);
+    // (*sit)->currentinfo.devspec.gyro[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_gyro_y", DeviceType::GYRO);
+    // (*sit)->currentinfo.devspec.gyro[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_gyro_z", DeviceType::GYRO);
+    // (*sit)->currentinfo.devspec.gyro[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
 
-    // Star trackers
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_stt_x+", DeviceType::STT);
-    (*sit)->currentinfo.devspec.stt[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_stt_x-", DeviceType::STT);
-    (*sit)->currentinfo.devspec.stt[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(-1.0), rv_unity());
+    // // Star trackers
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_stt_x+", DeviceType::STT);
+    // (*sit)->currentinfo.devspec.stt[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_stt_x-", DeviceType::STT);
+    // (*sit)->currentinfo.devspec.stt[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(-1.0), rv_unity());
 
-    // Sun and Earth sensors
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_xyzsen_sun", DeviceType::XYZSEN);
-    //        (*sit)->currentinfo.devspec.xyzsen[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(-1.0), rv_unity());
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_xyzsen_earth", DeviceType::XYZSEN);
-    //        (*sit)->currentinfo.devspec.xyzsen[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+    // // Sun and Earth sensors
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_xyzsen_sun", DeviceType::XYZSEN);
+    // //        (*sit)->currentinfo.devspec.xyzsen[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(-1.0), rv_unity());
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_xyzsen_earth", DeviceType::XYZSEN);
+    // //        (*sit)->currentinfo.devspec.xyzsen[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
 
 
     // Detectors
-    for (camstruc det : dets)
+    for (uint16_t i=0; i<4; ++i)
     {
-        iretn = json_createpiece(&(*sit)->currentinfo, det.name, DeviceType::CAM);
-        (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].volt = 5.;
-        (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].amp = 20. / det.volt;
-        (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].state = 0;
-        (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].fov = det.fov;
-        (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].ifov = det.ifov;
-        (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].specmin = det.specmin;
-        (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].specmax = det.specmax;
+        if (i == dets.size())
+        {
+            break;
+        }
+        (*sit)->currentinfo.devspec.cam[i].volt = 5.;
+        (*sit)->currentinfo.devspec.cam[i].amp = 20. / dets[i].volt;
+        (*sit)->currentinfo.devspec.cam[i].state = 0;
+        (*sit)->currentinfo.devspec.cam[i].fov = dets[i].fov;
+        (*sit)->currentinfo.devspec.cam[i].ifov = dets[i].ifov;
+        (*sit)->currentinfo.devspec.cam[i].specmin = dets[i].specmin;
+        (*sit)->currentinfo.devspec.cam[i].specmax = dets[i].specmax;
     }
+    // for (camstruc det : dets)
+    // {
+    //     iretn = json_createpiece(&(*sit)->currentinfo, det.name, DeviceType::CAM);
+    //     (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].volt = 5.;
+    //     (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].amp = 20. / det.volt;
+    //     (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].state = 0;
+    //     (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].fov = det.fov;
+    //     (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].ifov = det.ifov;
+    //     (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].specmin = det.specmin;
+    //     (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].specmax = det.specmax;
+    // }
 
-    json_map_node(&(*sit)->currentinfo);
+    // json_map_node(&(*sit)->currentinfo);
     //    jsonnode json;
     //    json_setup_node(json, &(*sit)->currentinfo, false);
-    json_updatecosmosstruc(&(*sit)->currentinfo);
+    // json_updatecosmosstruc(&(*sit)->currentinfo);
 
     (*sit)->sohstring = json_list_of_soh(&(*sit)->currentinfo);
 
