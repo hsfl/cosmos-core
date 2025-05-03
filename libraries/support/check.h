@@ -15,11 +15,11 @@ public:
     int32_t Save();
     int32_t Test(string nrecord);
 
-    uint32_t maxsequencenumber = 0;
+    uint32_t maxid = 0;
     uint32_t failcount = 0;
     struct record
     {
-        uint32_t sequencenumber = 0;
+        uint32_t id = 0;
         string name;
         string description;
         string result;
@@ -29,7 +29,7 @@ public:
         {
             return json11::Json::object
                 {
-                 { "sequencenumber"   , sequencenumber },
+                 { "id"   , id },
                  { "name"  , name },
                  { "description"  , description },
                  { "result"  , result },
@@ -44,9 +44,9 @@ public:
             if(error.empty())
             {
                 uint16_t count = 0;
-                if(!p["sequencenumber"].is_null())
+                if(!p["id"].is_null())
                 {
-                    sequencenumber = p["sequencenumber"].number_value();
+                    id = p["id"].number_value();
                     ++count;
                 }
                 if(!p["name"].is_null())
@@ -85,7 +85,7 @@ public:
     {
         return json11::Json::object
             {
-                { "maxsequencenumber"   , maxsequencenumber },
+                { "maxid"   , maxid },
                 { "failcount"   , failcount },
                 { "records" , records}
             };
@@ -98,9 +98,9 @@ public:
         if(error.empty())
         {
             uint16_t count = 0;
-            if(!p["maxsequencenumber"].is_null())
+            if(!p["maxid"].is_null())
             {
-                maxsequencenumber = p["maxsequencenumber"].number_value();
+                maxid = p["maxid"].number_value();
                 ++count;
             }
             if(!p["failcount"].is_null())

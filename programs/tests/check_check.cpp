@@ -40,5 +40,5 @@ int main(int argc, char **argv)
         ifs.close();
     }
 
-    exit(100*(float(check->failcount)/check->maxsequencenumber));
+    exit(100*(float(check->failcount)/check->maxid));
 }

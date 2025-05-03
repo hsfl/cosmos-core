@@ -26,22 +26,22 @@ int32_t Log::Checker::Report(string name, string description, string result, boo
     trecord.description = description;
     trecord.result = result;
     trecord.pass = pass;
-    trecord.sequencenumber = records.size() + 1;
-    if (trecord.sequencenumber > maxsequencenumber)
+    trecord.id = records.size() + 1;
+    if (trecord.id > maxid)
     {
-        maxsequencenumber = trecord.sequencenumber;
+        maxid = trecord.id;
     }
-    if (records.size() < trecord.sequencenumber)
+    if (records.size() < trecord.id)
     {
-        records.resize(trecord.sequencenumber);
+        records.resize(trecord.id);
     }
     if (!trecord.pass)
     {
         ++failcount;
     }
-    records[trecord.sequencenumber-1] = trecord;
+    records[trecord.id-1] = trecord;
 
-    return maxsequencenumber;
+    return maxid;
 }
 
 int32_t Log::Checker::Save()
@@ -65,11 +65,11 @@ int32_t Log::Checker::Test(string nrecord)
 
     if (iretn > 0)
     {
-        return maxsequencenumber;
+        return maxid;
     }
     else
     {
-        failcount = maxsequencenumber;
+        failcount = maxid;
         return iretn;
     }
 }
