@@ -848,7 +848,7 @@ string to_bool(bool value, char type)
 
 string to_iso8601(double value)
 {
-    return utc2iso8601(value);
+    return mjd2iso8601(value);
 }
 
 string to_unixtime(double value, uint8_t precision)

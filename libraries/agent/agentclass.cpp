@@ -1458,7 +1458,7 @@ int32_t Agent::req_get_time(string &request, string &response, Agent* agent)
         }
         else if (args[1] == "human")
         {
-            response = utc2iso8601();
+            response = mjd2iso8601();
         }
         else if (args[1] == "met")
         {
@@ -2396,7 +2396,7 @@ int32_t Agent::req_command(string &request, string &response, Agent *agent)
     break;
     case PacketComm::TypeId::CommandObcPing:
     {
-        string ping = utc2iso8601(currentmjd());
+        string ping = mjd2iso8601(currentmjd());
         if (parms.size() > 0)
         {
             ping = parms[0];
