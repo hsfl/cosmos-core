@@ -121,6 +121,19 @@ namespace Cosmos {
             return string(time_string);
         }
 
+        //! TIme difference.
+        //! Return difference between local time and UTC in days.
+        //! \return UTC - Local in days
+        double tmdiff(double mjd)
+        {
+            time_t thetime = (time_t)utc2unixseconds(mjd);
+            struct tm *localt = localtime(&thetime);
+            // struct tm *gmt = gmtime(thetime);
+
+            double timediff = localt->tm_gmtoff / 86400.;
+            return timediff;
+        }
+
         //! Unix time to UTC
         /*! Convert Unix time in a timeval structure to a double precision number representing Mofidied Julian Day.
  * \param unixtime Unix time to be converted.
@@ -643,9 +656,9 @@ namespace Cosmos {
  * \param utc Coordinated Universal Time expressed in Modified Julian Days. If 0., then use current time.
  * \return C++ String containing the ISO 8601 date.
  */
-        string utc2iso8601(double utc)
+        string mjd2iso8601(double utc, double offset)
         {
-            char buffer[25];
+            char buffer[30];
             int32_t iy=0, im=0, id=0, ihh, imm, iss;
             double fd=0.;
 
@@ -661,7 +674,16 @@ namespace Cosmos {
             imm = (int32_t)(1440 * fd);
             fd -= imm / 1440.;
             iss = (int32_t)(86400 * fd);
-            sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02dZ", iy, im, id, ihh, imm, iss);
+            if (offset == 0.)
+            {
+                sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02dZ", iy, im, id, ihh, imm, iss);
+            }
+            else
+            {
+                int16_t hr = offset * 24;
+                int16_t mn = (fabs(offset * 24 - hr) * 60);
+                sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02d%+02d:%02d", iy, im, id, ihh, imm, iss, hr, mn);
+            }
 
             return string(buffer);
         }
@@ -717,8 +739,8 @@ namespace Cosmos {
         }
 
         // just call utc2iso8601(double utc)
-        string mjd2iso8601(double mjd){
-            return utc2iso8601(mjd);
+        string utc2iso8601(double mjd, double offset){
+            return mjd2iso8601(mjd);
         }
 
 
