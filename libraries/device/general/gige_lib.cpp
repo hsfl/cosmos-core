@@ -659,7 +659,7 @@ the CCP register and closing all sockets.
 
             tbytes = 0;
             ElapsedTime et;
-            double tseconds = 0.5 + 1.1 * pbytes / handle->streambps;
+            double tseconds = 1.5 + 1.1 * pbytes / handle->streambps;
             mjd = currentmjd(0.);
             if ((iretn=gige_writereg(handle,PHXReg::PHXAcquisitionStartReg,1)) < 0)
                 return iretn;
