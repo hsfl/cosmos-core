@@ -114,6 +114,8 @@ namespace Cosmos {
             static int32_t QueueBeacon(uint8_t btype, uint8_t bcount, Agent* agent, NODE_ID_TYPE dest=NODEIDDEST, const string& channelout="", const string& radioin="");
             static int32_t QueueEnableChannel(const string& name, uint8_t enable, Agent* agent, NODE_ID_TYPE dest=NODEIDDEST, const string &channelout="", const string& radioin="");
             static int32_t QueueEnableChannel(uint8_t number, uint8_t enable, Agent* agent, NODE_ID_TYPE dest=NODEIDDEST, const string& channelout="", const string& radioin="");
+            static int32_t QueueSendFileResponses(Agent* agent, NODE_ID_TYPE dest=NODEIDDEST, const string& channelout="EXEC", const string& radioin="");
+            static int32_t QueueSaveFileProgress(Agent* agent, NODE_ID_TYPE dest=NODEIDDEST, const string& channelout="EXEC", const string& radioin="");
         private:
             Agent* agent;
             /// Current packet id index, to index response_packets

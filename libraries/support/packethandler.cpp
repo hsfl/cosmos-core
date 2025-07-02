@@ -42,6 +42,8 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::CommandFileTransferList, FileForward);
             add_func(PacketComm::TypeId::CommandFileResetQueue, FileForward);
             add_func(PacketComm::TypeId::CommandFileStopTransfer, FileForward);
+            add_func(PacketComm::TypeId::CommandFileSendFileResponses, FileForward);
+            add_func(PacketComm::TypeId::CommandFileSaveFileProgress, FileForward);
             add_func(PacketComm::TypeId::CommandExecClearQueue, ClearQueue);
             add_func(PacketComm::TypeId::CommandExecSetOpsMode, ExecForward);
             add_func(PacketComm::TypeId::CommandExecEnableChannel, EnableChannel);
@@ -1416,6 +1418,34 @@ namespace Cosmos {
             packet.data.resize(2);
             packet.data[0] = enable;
             packet.data[1] = number;
+            iretn = agent->channel_push(packet);
+            return iretn;
+        }
+
+        int32_t PacketHandler::QueueSendFileResponses(Agent* agent, NODE_ID_TYPE dest, const string& channelout, const string& radioin)
+        {
+            int32_t iretn = 0;
+            PacketComm packet;
+
+            packet.header.type = PacketComm::TypeId::CommandFileSendFileResponses;
+            packet.header.nodeorig = agent->nodeId;
+            packet.header.nodedest = dest;
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number(channelout);
+            iretn = agent->channel_push(packet);
+            return iretn;
+        }
+
+        int32_t PacketHandler::QueueSaveFileProgress(Agent* agent, NODE_ID_TYPE dest, const string& channelout, const string& radioin)
+        {
+            int32_t iretn = 0;
+            PacketComm packet;
+
+            packet.header.type = PacketComm::TypeId::CommandFileSaveFileProgress;
+            packet.header.nodeorig = agent->nodeId;
+            packet.header.nodedest = dest;
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number(channelout);
             iretn = agent->channel_push(packet);
             return iretn;
         }

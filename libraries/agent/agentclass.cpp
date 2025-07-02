@@ -2263,30 +2263,26 @@ int32_t Agent::req_command(string &request, string &response, Agent *agent)
     break;
     case PacketComm::TypeId::CommandFileTransferFile:
     {
-        string node = agent->cinfo->node.name;
-        string agentname = agent->cinfo->agent0.name;
+        string node = "destination";
+        string agentname = "subfolder";
         string file = "";
-        if (parms.size() > 0)
+        if (parms.size() < 3)
         {
-            node = parms[0];
-            if (parms.size() > 1)
-            {
-                agentname = parms[1];
-                if (parms.size() > 2)
-                {
-                    file = parms[2];
-                }
-            }
+            response = "Invalid arguments. Requires node, agent, and file name";
+            return response.size();
         }
-        packet.data.resize(1);
-        packet.data[0] = parms[0].size();
+        node = parms[0];
+        agentname = parms[1];
+        file = parms[2];
 
+        packet.data.resize(0);
         packet.data.push_back((uint8_t)node.size());
-        packet.data.insert(packet.data.end(), node.begin(), node.end());
         packet.data.push_back((uint8_t)agentname.size());
-        packet.data.insert(packet.data.end(), agentname.begin(), agentname.end());
         packet.data.push_back((uint8_t)file.size());
+        packet.data.insert(packet.data.end(), node.begin(), node.end());
+        packet.data.insert(packet.data.end(), agentname.begin(), agentname.end());
         packet.data.insert(packet.data.end(), file.begin(), file.end());
+        response = "Requesting " + node + "/outgoing/" + agentname + "/" + file + " to be transferred.";
     }
     break;
     case PacketComm::TypeId::CommandFileTransferNode:
@@ -2366,6 +2362,13 @@ int32_t Agent::req_command(string &request, string &response, Agent *agent)
         // No args
         packet.data.clear();
         response = "Stopping file transfer for remote node";
+    }
+    break;
+    case PacketComm::TypeId::CommandFileSendFileResponses:
+    {
+        // No args
+        packet.data.clear();
+        response = "Requesting node to send response-type file protocol packets";
     }
     break;
     case PacketComm::TypeId::CommandObcInternalRequest:
