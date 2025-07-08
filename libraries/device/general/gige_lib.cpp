@@ -64,7 +64,7 @@ namespace Cosmos {
     \return A handle to the camera to be used for all subsequent
     calls.
 */
-        gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_msec, uint32_t socket_usec, uint32_t streambps, uint16_t packet_size)
+        gige_handle *gige_open(const char address[18],uint8_t privilege, uint32_t heartbeat_msec, uint32_t socket_usec, uint32_t streambps, uint16_t packet_size)
         {
             int32_t iretn = 0;
             int32_t nbytes;
@@ -179,7 +179,7 @@ namespace Cosmos {
 //                nbytes=recvfrom(handle->stream.cudp,(char *)bufferin,GIGE_MAX_PACKET,0,static_cast<struct sockaddr *>(nullptr),static_cast<socklen_t *>(nullptr));
 //                if (nbytes < 0) break;
 //            }
-            handle->bestsize = bsize - 100;
+            // handle->bestsize = bsize - 100;
             handle->bestsize = gige_readreg(handle,GIGE_REG_SCPS);
 
             if ((iretn=gige_writereg(handle,GIGE_REG_SCPS,(uint32_t)handle->bestsize)) < 0)
@@ -235,7 +235,7 @@ the CCP register and closing all sockets.
 
             handle->command.addrlen = sizeof(handle->command.caddr);
 
-            ncount = 100;
+            ncount = 200;
             do
             {
                 nbytes = recvfrom(handle->command.cudp,(char *)handle->cbyte,12,0,(struct sockaddr *)&handle->command.caddr,(socklen_t *)&handle->command.addrlen);
@@ -659,7 +659,7 @@ the CCP register and closing all sockets.
 
             tbytes = 0;
             ElapsedTime et;
-            double tseconds = 0.5 + 1.1 * pbytes / handle->streambps;
+            double tseconds = 1.5 + 1.1 * pbytes / handle->streambps;
             mjd = currentmjd(0.);
             if ((iretn=gige_writereg(handle,PHXReg::PHXAcquisitionStartReg,1)) < 0)
                 return iretn;
