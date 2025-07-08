@@ -30,7 +30,7 @@ namespace Cosmos {
 
             channel[0].name = "SELF";
             channel[0].mtx = new std::recursive_mutex;
-            channel[0].maximum = 1000;
+            channel[0].maximum = 50000;
 
             channel[1].name = "OBC";
             channel[1].mtx = new std::recursive_mutex;
@@ -46,7 +46,7 @@ namespace Cosmos {
 
             channel[4].name = "FILE";
             channel[4].mtx = new std::recursive_mutex;
-            channel[4].maximum = 1000;
+            channel[4].maximum = 50000;
 
             channel[5].name = "EXEC";
             channel[5].mtx = new std::recursive_mutex;
@@ -88,28 +88,36 @@ namespace Cosmos {
         //! \param maximum Maximum size of ::channelstruc::quu.
         int32_t Channel::Add(string name, uint16_t datasize, uint16_t rawsize, float byte_rate, uint16_t maximum)
         {
+            size_t channel_idx = std::numeric_limits<size_t>::max();
             for (uint8_t i=0; i<channel.size(); ++i)
             {
                 if (channel[i].name == name)
                 {
-                    return i;
+                    channel_idx = i;
+                    break;
                 }
             }
+            channel_idx = std::min(channel_idx, channel.size()-1);
+            if (channel_idx < channel.size()-1)
+            {
+                // If the channel already exists, we will update it instead of adding a new one.
+                return Update(name, datasize, rawsize, byte_rate, maximum);
+            }
             channel.resize(channel.size()+1);
-            channel.back().name = name;
-            channel.back().datasize = datasize;
+            channel[channel_idx].name = name;
+            channel[channel_idx].datasize = datasize;
             if (rawsize)
             {
-                channel.back().rawsize = rawsize;
+                channel[channel_idx].rawsize = rawsize;
             }
             else
             {
-                channel.back().rawsize = datasize;
+                channel[channel_idx].rawsize = datasize;
             }
-            channel.back().byte_rate = byte_rate;
-            channel.back().maximum = maximum;
-            channel.back().mtx = new std::recursive_mutex;
-            return channel.size() - 1;
+            channel[channel_idx].byte_rate = byte_rate;
+            channel[channel_idx].maximum = maximum;
+            channel[channel_idx].mtx = new std::recursive_mutex;
+            return channel_idx;
         }
 
         //! \brief Update existing channel.
@@ -493,10 +501,16 @@ namespace Cosmos {
                         channel[number].level = 0;
                     }
                     channel[number].quu.pop();
+                    printf("============================== Channel %s overflowed, current size %lu maximum %hu.\n", channel[number].name.c_str(),
+                           channel[number].quu.size(), channel[number].maximum);
+                    exit(0);
                 }
                 iretn = channel[number].quu.size();
                 channel[number].mtx->unlock();
-                secondsleep(packet.wrapped.size() / channel[number].byte_rate);
+                // secondsleep(packet.wrapped.size() / channel[number].byte_rate);
+                printf("channel %d (%s) pushed %d bytes, byte_rate %f, level %d, quu size %d\n",
+                       number, channel[number].name.c_str(), packet.wrapped.size(),
+                       channel[number].byte_rate, channel[number].level, channel[number].quu.size());
             }
             return iretn;
         }
