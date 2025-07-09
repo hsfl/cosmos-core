@@ -274,10 +274,10 @@ namespace Cosmos
                             double time_to_flush_current_queue = agent->channel_size(out_radio)/packet_rate;
                             // Calculated as the amount of time we would like to transmit continually for
                             double effective_time = continual_stream_time - time_to_flush_current_queue;
-                            // if (time_to_flush_current_queue > 0)
-                            // {
-                            //     printf("channel_size %d packet_rate %.2f time_to_flush_current_queue %.2f effective_time %.2f\n", agent->channel_size(out_radio), packet_rate, time_to_flush_current_queue, effective_time);
-                            // }
+                            if (time_to_flush_current_queue > 0)
+                            {
+                                // printf("channel_size %d packet_rate %.2f time_to_flush_current_queue %.2f effective_time %.2f\n", agent->channel_size(out_radio), packet_rate, time_to_flush_current_queue, effective_time);
+                            }
                             if (effective_time <= 0)
                             {
                                 // Wait until queue is less full
@@ -301,8 +301,8 @@ namespace Cosmos
                                 // to calculate the queuing speed of the system.
                                 // Adds in some arbitrary inefficiency.
                                 // Keep the rate above some arbitrary lower bound.
-                                packet_rate = std::max((iretn / queueing_time)*0.75, PACKET_RATE_LOWER_BOUND);
-                                printf("Queued %d packets in %.2f seconds, packet rate %.2f packets/sec\n", iretn, queueing_time, packet_rate);
+                                // packet_rate = std::max((iretn / queueing_time)*0.75, PACKET_RATE_LOWER_BOUND);
+                                // printf("Queued %d packets in %.2f seconds, packet rate %.2f packets/sec\n", iretn, queueing_time, packet_rate);
                             }
                         }
                     }

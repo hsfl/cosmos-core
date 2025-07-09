@@ -30,7 +30,7 @@ namespace Cosmos {
 
             channel[0].name = "SELF";
             channel[0].mtx = new std::recursive_mutex;
-            channel[0].maximum = 50000;
+            channel[0].maximum = 10000;
 
             channel[1].name = "OBC";
             channel[1].mtx = new std::recursive_mutex;
@@ -46,7 +46,7 @@ namespace Cosmos {
 
             channel[4].name = "FILE";
             channel[4].mtx = new std::recursive_mutex;
-            channel[4].maximum = 50000;
+            channel[4].maximum = 10000;
 
             channel[5].name = "EXEC";
             channel[5].mtx = new std::recursive_mutex;
@@ -501,16 +501,18 @@ namespace Cosmos {
                         channel[number].level = 0;
                     }
                     channel[number].quu.pop();
-                    printf("============================== Channel %s overflowed, current size %lu maximum %hu.\n", channel[number].name.c_str(),
-                           channel[number].quu.size(), channel[number].maximum);
-                    exit(0);
                 }
                 iretn = channel[number].quu.size();
                 channel[number].mtx->unlock();
-                // secondsleep(packet.wrapped.size() / channel[number].byte_rate);
-                printf("channel %d (%s) pushed %d bytes, byte_rate %f, level %d, quu size %d\n",
-                       number, channel[number].name.c_str(), packet.wrapped.size(),
-                       channel[number].byte_rate, channel[number].level, channel[number].quu.size());
+                double throttle_time = packet.wrapped.size() / channel[number].byte_rate;
+                if (throttle_time > 1e-3)
+                {
+                    // Throttle based on channel byte rate, but only if the sleep
+                    // time is greater than a certain threshold. Otherwise, thread
+                    // context switching will incur undesireable performance penalties
+                    // and channel byte rates will not be adhered to.
+                    secondsleep(throttle_time);
+                }
             }
             return iretn;
         }
