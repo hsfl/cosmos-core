@@ -341,7 +341,6 @@ namespace Cosmos {
             // Hold QUEUE packet tx_id's in here
             vector<PACKET_TX_ID_TYPE> tqueue;
 
-int32_t current_channel_buffer_size = 0;
             // Store separately to not be affected by sentqueue being toggled mid-run, which would be bad.
             bool sendqueue = !txq[dest_node_idx].outgoing.sentqueue;
 
@@ -502,7 +501,7 @@ int32_t current_channel_buffer_size = 0;
                                 {
                                     nbytes = fread(chunk, 1, byte_count, txq[dest_node_idx].outgoing.progress[tx_id].fp);
                                 }
-                                // int32_t current_channel_buffer_size = 0;
+                                int32_t current_channel_buffer_size = 0;
                                 if (nbytes == static_cast<size_t>(byte_count))
                                 {
                                     outgoing_packet.header.nodeorig = self_node_id;
@@ -620,11 +619,7 @@ int32_t current_channel_buffer_size = 0;
                 ++total_queued_packets;
                 txq[dest_node_idx].outgoing.sentqueue = true;
             }
-            if (total_queued_packets > 0)
-            {
-                printf("current_channel_buffer_size: %d channel_buffer_limit %d max_packets_to_queue %u total_queued_packets %u \n", 
-                    current_channel_buffer_size, channel_buffer_limit, max_packets_to_queue, total_queued_packets);
-            }
+
             return total_queued_packets;
         }
 
