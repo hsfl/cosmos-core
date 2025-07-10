@@ -30,7 +30,7 @@ namespace Cosmos {
 
             channel[0].name = "SELF";
             channel[0].mtx = new std::recursive_mutex;
-            channel[0].maximum = 10000;
+            channel[0].maximum = 1000;
 
             channel[1].name = "OBC";
             channel[1].mtx = new std::recursive_mutex;
@@ -46,7 +46,7 @@ namespace Cosmos {
 
             channel[4].name = "FILE";
             channel[4].mtx = new std::recursive_mutex;
-            channel[4].maximum = 10000;
+            channel[4].maximum = 1000;
 
             channel[5].name = "EXEC";
             channel[5].mtx = new std::recursive_mutex;
