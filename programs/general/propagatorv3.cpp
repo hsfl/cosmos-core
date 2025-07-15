@@ -233,8 +233,9 @@ int main(int argc, char *argv[])
                     if (postevent)
                     {
                         json11::Json jobj = json11::Json::object({
-                            {"mtype", "event"},
+                            {"type", "event"},
                             {"node_name", sim->cnodes[i]->currentinfo.node.name},
+                            {"utc", event.utc},
                             {"event_utc", event.utc},
                             {"event_name", event.name},
                             {"event_type", static_cast<int>(event.type)},
@@ -247,7 +248,7 @@ int main(int argc, char *argv[])
                         iretn = socket_post(data_channel_out, output.c_str());
 
                         // Post SOH
-                        string jstring;
+                        // string jstring;
                         agent->post(Agent::AgentMessage::EVENT, jobj.dump());
                     }
                 }
@@ -297,7 +298,8 @@ int main(int argc, char *argv[])
                 sim->cnodes[i]->currentinfo.devspec.cpu[0].maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/1073741824.);
                 sim->cnodes[i]->currentinfo.devspec.cpu[0].maxload = deviceCpu.getCpuCount();
                 json11::Json jobj = json11::Json::object({
-                    {"type", "node"},
+                    {"type", static_cast<uint8_t>(Agent::AgentMessage::SOH)},
+                    {"utc", sim->cnodes[i]->currentinfo.node.utc},
                     {"node", sim->cnodes[i]->currentinfo.node.name},
                     {"ecipos", sim->cnodes[i]->currentinfo.node.loc.pos.eci},
                     {"alphatt", sim->cnodes[i]->currentinfo.node.loc.att.icrf},
@@ -311,8 +313,9 @@ int main(int argc, char *argv[])
                 send_telem_to_cosmos_web(&sim->cnodes[i]->currentinfo);
 
                 // Post SOH
-                string jstring;
-                agent->post(Agent::AgentMessage::SOH, json_of_list(jstring, sim->cnodes[i]->sohstring, &sim->cnodes[i]->currentinfo));
+                // string jstring;
+                // agent->post(Agent::AgentMessage::SOH, json_of_list(jstring, sim->cnodes[i]->sohstring, &sim->cnodes[i]->currentinfo));
+                agent->post(Agent::AgentMessage::SOH, output);
             }
         }
         //        if (printevent)
