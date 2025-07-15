@@ -128,7 +128,7 @@ void Loop()
         // Find remote file agent
         while (!find_file_agent())
         {
-            secondsleep(4.);
+            secondsleep(2.);
         }
 
         // Start comm and file subagents
@@ -249,6 +249,11 @@ void handle_incoming_packets()
                 }
             }
         }
+        else if (packet.header.nodedest == remote_node_id)
+        {
+            agent->channel_push("COMM", packet);
+        }
+        break;
     }
 }
 
@@ -273,7 +278,8 @@ void init_agent(int argc, char *argv[])
     }
 
     // Set channels
-    agent->channel_add("COMM", Support::Channel::PACKETCOMM_DATA_SIZE, Support::Channel::PACKETCOMM_PACKETIZED_SIZE, 18000., 1000);
+    // agent->channel_add("COMM", Support::Channel::PACKETCOMM_DATA_SIZE, Support::Channel::PACKETCOMM_PACKETIZED_SIZE, 18000., 50000);
+    agent->channel_add("COMM", Support::Channel::PACKETCOMM_DATA_SIZE, Support::Channel::PACKETCOMM_PACKETIZED_SIZE, 1e7, 50000);
 
     // Initialize the packethandler, which helps handle and route packets
     packethandler.init(agent);
@@ -405,7 +411,7 @@ int32_t start_subagents(Agent *agent)
         else
         {
             file_thread = thread([=] { file_module->Loop(); });
-            secondsleep(3.);
+            secondsleep(1.);
             printf("%f FILE: Thread started\n", agent->uptime.split());
             fflush(stdout);
         }
@@ -427,7 +433,7 @@ int32_t start_subagents(Agent *agent)
         else
         {
             websocket_thread = std::thread([=] { websocket_module->Loop(); });
-            secondsleep(3.);
+            secondsleep(1.);
             printf("%f COMM: Thread started\n", agent->uptime.split());
             fflush(stdout);
         }

@@ -135,6 +135,7 @@ namespace Cosmos {
                         if (!file.name.compare(0,3,"in_"))
                         {
                             tx_progress tx_in;
+                            tx_in.enabled = true; // Enable incoming response activity by default
                             tx_in.temppath = file.path.substr(0,file.path.find(".meta"));
                             if (read_meta(tx_in) >= 0)
                             {
@@ -240,7 +241,7 @@ namespace Cosmos {
         {
             if (node_name.empty())
             {
-                return outgoing_tx_load();
+                return TRANSFER_ERROR_NODE;
             }
             int32_t iretn = lookup_node_id(cinfo, node_name);
             if (iretn == NODEIDUNKNOWN)
@@ -318,62 +319,6 @@ namespace Cosmos {
 
             return outgoing_tx_recount(dest_node_id);
         }
-
-        //! Look through the outgoing and incoming queues of all nodes and generate any necessary packets.
-        //! Note that this gets outgoing packets for every node, no distinction is made.
-        //! Not thread safe.
-        //! \param packets Outgoing packets will be pushed onto this vector of PacketComm packets.
-        //! \return
-        // int32_t Transfer::get_outgoing_lpackets(vector<PacketComm> &packets)
-        // {
-        //     for (auto it = node_id_to_txq_map.begin(); it != node_id_to_txq_map.end(); ++it)
-        //     {
-        //         int32_t iretn = get_outgoing_lpackets(it->first, packets);
-        //         if (iretn < 0)
-        //         {
-        //             if (debug_log != nullptr)
-        //             {
-        //                 debug_log->Printf("%.4f %.4f Main: get_outgoing_lpackets: %s at node %u\n", tet.split(), dt.lap(), cosmos_error_string(iretn).c_str(), it->first);
-        //             }
-        //             return iretn;
-        //         }
-        //     }
-            
-        //     return 0;
-        // }
-
-        //! Look through the outgoing and incoming queues of the specified node and generate any necessary packets.
-        //! Not thread safe.
-        //! \param node_name Name of the node
-        //! \param packets Outgoing packets will be pushed onto this vector of PacketComm packets.
-        //! \return
-        // int32_t Transfer::get_outgoing_lpackets(const string node_name, vector<PacketComm> &packets)
-        // {
-        //     if (node_name.empty())
-        //     {
-        //         if (debug_log != nullptr)
-        //         {
-        //             debug_log->Printf("%.4f %.4f Main: get_outgoing_lpackets: node_name is empty\n", tet.split(), dt.lap());
-        //         }
-        //         return TRANSFER_ERROR_FILENAME;
-        //     }
-
-        //     // Find corresponding node_id in the node table
-        //     uint8_t node_id = lookup_node_id(cinfo, node_name);
-        //     if (node_id == NODEIDUNKNOWN)
-        //     {
-        //         if (debug_log != nullptr)
-        //         {
-        //             debug_log->Printf("%.4f %.4f Main: get_outgoing_lpackets: node_id is unknown\n", tet.split(), dt.lap());
-        //         }
-        //         return TRANSFER_ERROR_NODE;
-        //     }
-
-            // int32_t iretn = 0;
-            // iretn = get_outgoing_lpackets(node_id, packets);
-
-            // return iretn;
-        // }
 
         //! Look through the outgoing and incoming queues of the specified node and generate any necessary packets.
         //! Not thread safe.
@@ -487,7 +432,7 @@ namespace Cosmos {
                         {
                             // This sections runs, for example, after a read_meta of a previous run where all data was already sent
                             txq[dest_node_idx].outgoing.progress[tx_id].sentdata = true;
-                            write_meta(txq[dest_node_idx].outgoing.progress[tx_id], 0.);
+                            // write_meta(txq[dest_node_idx].outgoing.progress[tx_id], 0.);
                         }
                         // Grab next chunk of file's data and push DATA packet
                         else
@@ -533,7 +478,7 @@ namespace Cosmos {
                                     if (txq[dest_node_idx].outgoing.progress[tx_id].total_bytes == 0)
                                     {
                                         txq[dest_node_idx].outgoing.progress[tx_id].sentdata = true;
-                                        write_meta(txq[dest_node_idx].outgoing.progress[tx_id], 0.);
+                                        // write_meta(txq[dest_node_idx].outgoing.progress[tx_id], 0.);
                                     }
                                     break;
                                 }
@@ -576,7 +521,7 @@ namespace Cosmos {
                                     txq[dest_node_idx].outgoing.progress[tx_id].complete = true;
                                     break;
                                 }
-                                write_meta(txq[dest_node_idx].outgoing.progress[tx_id]);
+                                // write_meta(txq[dest_node_idx].outgoing.progress[tx_id]);
 
                                 // Break out if channel is getting too full
                                 if (current_channel_buffer_size < 0 || current_channel_buffer_size > channel_buffer_limit)
@@ -627,19 +572,20 @@ namespace Cosmos {
                     // A COMPLETE packet was not received yet
                     else
                     {
+                        // TODO: move to a separate function for an outer user to manually call. The logic itself (ACK timer) is sensible
                         // Check if it's not too soon to send another REQCOMPLETE packet
                         if (txq[dest_node_idx].outgoing.progress[tx_id].response_timer.timer() < 0)
                         {
                 // **************************************************************
                 // ** REQCOMPLETE ***********************************************
                 // **************************************************************
-                            txq[dest_node_idx].outgoing.progress[tx_id].response_timer.set(txq[dest_node_idx].outgoing.waittime);
-                            outgoing_packet.header.nodeorig = self_node_id;
-                            outgoing_packet.header.nodedest = dest_node_id;
-                            serialize_reqcomplete(outgoing_packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), tx_id, txq[dest_node_idx].outgoing.progress[tx_id].file_crc);
-                            agent->channel_push(channel_id, outgoing_packet);
-                            print_file_packet(outgoing_packet, 1, "Outgoing", &agent->debug_log);
-                            ++total_queued_packets;
+                            // txq[dest_node_idx].outgoing.progress[tx_id].response_timer.set(txq[dest_node_idx].outgoing.waittime);
+                            // outgoing_packet.header.nodeorig = self_node_id;
+                            // outgoing_packet.header.nodedest = dest_node_id;
+                            // serialize_reqcomplete(outgoing_packet, static_cast <PACKET_NODE_ID_TYPE>(self_node_id), tx_id, txq[dest_node_idx].outgoing.progress[tx_id].file_crc);
+                            // agent->channel_push(channel_id, outgoing_packet);
+                            // print_file_packet(outgoing_packet, 1, "Outgoing", &agent->debug_log);
+                            // ++total_queued_packets;
                         }
 
                         // If it's too soon, don't send a REQCOMPLETE packet yet.
@@ -707,8 +653,15 @@ namespace Cosmos {
             ElapsedTime file_stream_timeout;
 
             // Iterate over tx_id's requiring a response
-            for (PACKET_TX_ID_TYPE tx_id : txq[orig_node_idx].incoming.respond)
+            // for (PACKET_TX_ID_TYPE tx_id : txq[orig_node_idx].incoming.respond)
+            for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
             {
+                if (txq[orig_node_idx].incoming.progress[tx_id].tx_id != tx_id
+                || !txq[orig_node_idx].incoming.progress[tx_id].enabled)
+                {
+                    // Not a transaction to consider, skip
+                    continue;
+                }
                 // **************************************************************
                 // ** REQMETA ***************************************************
                 // **************************************************************
@@ -962,7 +915,7 @@ namespace Cosmos {
                 tp.chunk_end = tx_out.file_size - 1;
                 tx_out.file_info.push_back(tp);
 
-                write_meta(tx_out, 0.);
+                // write_meta(tx_out, 0.);
 
                 iretn = outgoing_tx_add(tx_out, dest_node);
                 return iretn;
@@ -1246,6 +1199,7 @@ namespace Cosmos {
             tx_in.sentmeta = false;
             tx_in.sentdata = false;
             tx_in.complete = false;
+            tx_in.enabled = true;
             tx_in.node_name = node_name;
             tx_in.agent_name = "";
             tx_in.file_name = "";
@@ -1270,6 +1224,7 @@ namespace Cosmos {
             tx_in.sentmeta = true;
             tx_in.sentdata = false;
             tx_in.complete = false;
+            tx_in.enabled = true;
             tx_in.node_name = node_name;
             tx_in.agent_name = meta.agent_name;
             tx_in.file_name = meta.file_name;
@@ -1345,6 +1300,7 @@ namespace Cosmos {
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].sentmeta = tx_in.sentmeta;
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].sentdata = tx_in.sentdata;
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].complete = tx_in.complete;
+            txq[orig_node_idx].incoming.progress[tx_in.tx_id].enabled = tx_in.enabled;
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].node_name = tx_in.node_name;
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].agent_name = tx_in.agent_name;
             txq[orig_node_idx].incoming.progress[tx_in.tx_id].file_name = tx_in.file_name;
@@ -1458,7 +1414,7 @@ namespace Cosmos {
                     }
 
                     // Save it to disk
-                    write_meta(txq[orig_node_idx].incoming.progress[meta.header.tx_id]);
+                    // write_meta(txq[orig_node_idx].incoming.progress[meta.header.tx_id]);
                 }
 
                 txq[orig_node_idx].incoming.progress[meta.header.tx_id].sentmeta = true;
@@ -1562,7 +1518,7 @@ namespace Cosmos {
             {
                 int iret = rename(completed_filepath.c_str(), txq[orig_node_idx].incoming.progress[tx_id].filepath.c_str());
                 // Make sure metadata is recorded
-                write_meta(txq[orig_node_idx].incoming.progress[tx_id], 0.);
+                // write_meta(txq[orig_node_idx].incoming.progress[tx_id], 0.);
                 if (!iret && debug_log != nullptr)
                 {
                     debug_log->Printf("%.4f %.4f Incoming: Renamed/Data: %d %s\n", tet.split(), dt.lap(), iret, txq[orig_node_idx].incoming.progress[tx_id].filepath.c_str());
@@ -1645,13 +1601,14 @@ namespace Cosmos {
                 }
             }
 
+            // TODO: this logic doesn't belong in this library
             // Request META if it hasn't been received yet and it's been awhile since we last requested it
             // Also to periodically keep the sender up-to-date on holes
-            if (txq[orig_node_idx].incoming.progress[tx_id].response_timer.timer() < 0)
-            {
-                txq[orig_node_idx].incoming.progress[tx_id].response_timer.set(txq[orig_node_idx].incoming.waittime);
-                iretn = RESPONSE_REQUIRED;
-            }
+            // if (txq[orig_node_idx].incoming.progress[tx_id].response_timer.timer() < 0)
+            // {
+            //     txq[orig_node_idx].incoming.progress[tx_id].response_timer.set(txq[orig_node_idx].incoming.waittime);
+            //     iretn = RESPONSE_REQUIRED;
+            // }
 
             // Regardless, receive the DATA anyway
 
@@ -1702,7 +1659,7 @@ namespace Cosmos {
                         merge_chunks_overlap(txq[orig_node_idx].incoming.progress[tx_id]);
                     }
                     // Write latest meta data to disk
-                    write_meta(txq[orig_node_idx].incoming.progress[tx_id]);
+                    // write_meta(txq[orig_node_idx].incoming.progress[tx_id]);
                     if (debug_log != nullptr)
                     {
                         // Leave this commented out since there are a lot of DATA packets flowing
@@ -1909,7 +1866,7 @@ namespace Cosmos {
                     // Save meta to disk
                     if (updated)
                     {
-                        write_meta(txq[orig_node_idx].outgoing.progress[tx_id]);
+                        // write_meta(txq[orig_node_idx].outgoing.progress[tx_id]);
                         txq[orig_node_idx].outgoing.progress[tx_id].sentdata = false;
                     }
                 }
@@ -2625,6 +2582,61 @@ int32_t Transfer::close_file_pointers(uint8_t node_id, uint8_t direction)
         break;
     }
     return iretn;
+}
+
+/**
+ * @brief Write all metadata progress for the node's transactions.
+ * 
+ * @param node_id ID of node
+ * @return int32_t 0 on success, negative on error
+ */
+int32_t Transfer::save_progress(uint8_t node_id)
+{
+    const size_t txq_idx = node_id_to_txq_idx(node_id);
+    if (txq_idx == INVALID_TXQ_IDX)
+    {
+        return TRANSFER_ERROR_NODE;
+    }
+
+    // Save outgoing progress
+    for (auto &tx_out : txq[txq_idx].outgoing.progress)
+    {
+        // Check if this file is valid
+        if (!tx_out.tx_id)
+        {
+            continue;
+        }
+        int32_t iretn = write_meta(tx_out, 0.);
+        if (iretn < 0)
+        {
+            if (debug_log != nullptr)
+            {
+                debug_log->Printf("%.4f %.4f Main: save_progress: Error writing metadata for tx_id %u: %s\n", tet.split(), dt.lap(), (unsigned)tx_out.tx_id, cosmos_error_string(iretn).c_str());
+            }
+            return iretn;
+        }
+    }
+
+    // Save incoming progress
+    for (auto &tx_in : txq[txq_idx].incoming.progress)
+    {
+        // Check if this file is valid
+        if (!tx_in.tx_id)
+        {
+            continue;
+        }
+        int32_t iretn = write_meta(tx_in, 0.);
+        if (iretn < 0)
+        {
+            if (debug_log != nullptr)
+            {
+                debug_log->Printf("%.4f %.4f Main: save_progress: Error writing metadata for tx_id %u: %s\n", tet.split(), dt.lap(), (unsigned)tx_in.tx_id, cosmos_error_string(iretn).c_str());
+            }
+            return iretn;
+        }
+    }
+
+    return 0;
 }
 
 /**

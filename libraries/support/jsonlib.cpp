@@ -1935,7 +1935,18 @@ int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc
 */
 int32_t json_append(string &jstring, const char *tstring)
 {
-    jstring.append(tstring);
+    if (jstring.back() == '}')
+    {
+        jstring.back() = ',';
+    }
+    if (tstring[0] == '{')
+    {
+        jstring.append(tstring+1);
+    }
+    else
+    {
+        jstring.append(tstring);
+    }
     return 0;
 }
 
@@ -1995,11 +2006,12 @@ int32_t json_join(string &stringina, string stringinb)
 int32_t json_out_character(string &jstring,char character)
 {
     char tstring[2] = {0,0};
-    int32_t iretn = 0;
+//    int32_t iretn = 0;
 
     tstring[0] = character;
-    if ((iretn=json_append(jstring,tstring)) < 0)
-        return iretn;
+    jstring.append(tstring);
+//    if ((iretn=json_append(jstring,tstring)) < 0)
+//        return iretn;
 
     return 0;
 }
@@ -7308,7 +7320,8 @@ int32_t json_load_node(string node, jsonnode &json)
         ifs.close();
         ibuf[fstat.st_size] = 0;
         json_out_node(json.node, node);
-        json.node += ibuf;
+        json_append(json.node, ibuf);
+//        json.node += ibuf;
         free(ibuf);
     }
 

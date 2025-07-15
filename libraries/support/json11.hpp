@@ -51,6 +51,7 @@
 #pragma once
 #include "support/configCosmos.h"
 
+#include <array>
 //#include <string>
 //#include <vector>
 //#include <map>

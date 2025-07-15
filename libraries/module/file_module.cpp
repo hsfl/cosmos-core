@@ -45,13 +45,9 @@ namespace Cosmos
             agent->debug_log.Printf("Starting File Loop\n");
             is_running = true;
 
-            // Perform initial load
-            double diskcheckwait = 30.;
-            ElapsedTime disk_check_timer;
-            disk_check_timer.set(diskcheckwait);
-
             while(is_running)
             {
+                std::this_thread::yield();
                 if (agent->running() != (uint16_t)Agent::State::IDLE)
                 {
 
@@ -94,20 +90,36 @@ namespace Cosmos
                             break;
                         case PacketComm::TypeId::CommandFileTransferFile:
                             {
-                                string node_name;
+                                if (packet.data.size() < 3)
+                                {
+                                    agent->debug_log.Printf("%16.10f Error: CommandFileTransferFile packet too short\n", currentmjd());
+                                    continue;
+                                }
                                 size_t nn_len = packet.data[0];
-                                node_name.insert(node_name.begin(), packet.data.begin()+1, packet.data.begin()+1+nn_len);
-                                string agent_name;
-                                size_t an_len = *(packet.data.begin()+1+nn_len);
-                                agent_name.insert(agent_name.begin(), packet.data.begin()+2+nn_len, packet.data.begin()+2+nn_len+an_len);
-                                string file_name;
-                                size_t fn_len = *(packet.data.begin()+2+nn_len+an_len);
-                                file_name.insert(file_name.begin(), packet.data.begin()+2+nn_len+an_len, packet.data.begin()+3+nn_len+an_len+fn_len);
-
-                                iretn = transfer.enable_single(node_name, file_name);
-                                file_transfer_enabled = true;
-
-                                string s = std::to_string(iretn) + " files enabled";
+                                size_t an_len = packet.data[1];
+                                size_t fn_len = packet.data[2];
+                                if (nn_len + an_len + fn_len + 3 > packet.data.size())
+                                {
+                                    agent->debug_log.Printf("%16.10f Error: CommandFileTransferFile packet too short for node, agent, and file names\n", currentmjd());
+                                    continue;
+                                }
+                                string node_name = "";
+                                string agent_name = "";
+                                string file_name = "";
+                                node_name.insert(node_name.begin(), packet.data.begin()+3, packet.data.begin()+3+nn_len);
+                                agent_name.insert(agent_name.begin(), packet.data.begin()+3+nn_len, packet.data.begin()+3+nn_len+an_len);
+                                file_name.insert(file_name.begin(), packet.data.begin()+3+nn_len+an_len, packet.data.begin()+3+nn_len+an_len+fn_len);
+                                iretn = transfer.outgoing_tx_add(node_name, agent_name, file_name);
+                                if (iretn < 0)
+                                {
+                                    agent->debug_log.Printf("%16.10f Error (%s) adding file %s/outgoing/%s/%s\n", currentmjd(), cosmos_error_string(iretn).c_str(), node_name.c_str(), agent_name.c_str(), file_name.c_str());
+                                    continue;
+                                }
+                                else
+                                {
+                                    file_transfer_enabled = true;
+                                    agent->debug_log.Printf("%16.10f Enabling transfer of %s/outgoing/%s/%s\n", currentmjd(), node_name.c_str(), agent_name.c_str(), file_name.c_str());
+                                }
                             }
                             break;
                         case PacketComm::TypeId::CommandFileTransferNode:
@@ -116,7 +128,6 @@ namespace Cosmos
                                 size_t nn_len = packet.data[0];
                                 node_name.insert(node_name.begin(), packet.data.begin()+1, packet.data.begin()+1+nn_len);
 
-                                iretn = transfer.outgoing_tx_load(node_name);
                                 iretn = transfer.enable_all(node_name);
                                 file_transfer_enabled = true;
 
@@ -125,26 +136,15 @@ namespace Cosmos
                             break;
                         case PacketComm::TypeId::CommandFileTransferRadio:
                             {
-                                uint8_t current_out_radio = out_radio;
                                 set_radio_availability(packet.data[0], packet.data[1]);
+                                // See if any radios have been enabled
                                 if (out_radio == 0)
                                 {
                                     file_transfer_enabled = false;
                                 }
                                 else
                                 {
-                                    // Enable transfer and rescan outgoing directory
                                     file_transfer_enabled = true;
-                                    // Scan directories if scanning interval passed or if radio changed
-                                    if (disk_check_timer.timer() > 0 && out_radio == current_out_radio)
-                                    {
-                                        break;
-                                    }
-                                    for (size_t i = 0; i < contact_nodes.size(); ++i)
-                                    {
-                                        iretn = transfer.outgoing_tx_load(contact_nodes[i]);
-                                    }
-                                    disk_check_timer.set(diskcheckwait);
                                 }
                             }
                             break;
@@ -184,6 +184,37 @@ namespace Cosmos
                                 }
                             }
                             break;
+                        case PacketComm::TypeId::CommandFileSendFileResponses:
+                            {
+                                if (!out_radio || agent->channel_enabled(out_radio) != 1)
+                                {
+                                    agent->debug_log.Printf("%16.10f Error: CommandFileSendFileResponses called but no outgoing radio connection established\n", currentmjd());
+                                    break;
+                                }
+                                // Check if any response-type packets need to be pushed
+                                for (size_t i = 0; i < contact_nodes.size(); ++i)
+                                {
+                                    iretn = transfer.send_outgoing_rpackets(contact_nodes[i], agent, out_radio, continual_stream_time);
+                                    if (iretn < 0)
+                                    {
+                                        agent->debug_log.Printf("%16.10f Error in get_outgoing_rpackets: %d\n", currentmjd(), cosmos_error_string(iretn).c_str());
+                                    }
+                                }
+                                file_transfer_respond = false;
+                            }
+                            break;
+                        case PacketComm::TypeId::CommandFileSaveFileProgress:
+                            {
+                                for (size_t i = 0; i < contact_nodes.size(); ++i)
+                                {
+                                    iretn = transfer.save_progress(contact_nodes[i]);
+                                    if (iretn < 0)
+                                    {
+                                        agent->debug_log.Printf("%16.10f Error in save_progress for node %u: %s\n", currentmjd(), (unsigned)contact_nodes[i], cosmos_error_string(iretn).c_str());
+                                    }
+                                }
+                            }
+                            break;
                         default:
                             break;
                         }
@@ -197,32 +228,44 @@ namespace Cosmos
                         continue;
                     }
 
-                    // Check if any response-type packets need to be pushed
-                    if (file_transfer_respond)
-                    {
-                        for (size_t i = 0; i < contact_nodes.size(); ++i)
-                        {
-                            iretn = transfer.send_outgoing_rpackets(contact_nodes[i], agent, out_radio, continual_stream_time);
-                            if (iretn < 0)
-                            {
-                                agent->debug_log.Printf("%16.10f Error in get_outgoing_rpackets: %d\n", currentmjd(), cosmos_error_string(iretn).c_str());
-                            }
-                        }
-                        file_transfer_respond = false;
-                    }
-
+// double last_time = 0;
+// static int32_t last_channel_size = 0;
                     // Get our own files' transfer packets if transfer is enabled
                     if (file_transfer_enabled)
                     {
-                        // Scan directories if scanning interval passed
-                        if (disk_check_timer.timer() < 0)
+                        int32_t channel_buffer_limit = agent->channel_maximum(out_radio) * 0.4;
+                        // If the channel is already full, don't queue up any more packets
+                        int32_t current_channel_size = agent->channel_size(out_radio);
+                        if (current_channel_size < 0)
                         {
-                            for (size_t i = 0; i < contact_nodes.size(); ++i)
-                            {
-                                iretn = transfer.outgoing_tx_load(contact_nodes[i]);
-                            }
-                            disk_check_timer.set(diskcheckwait);
+                            agent->debug_log.Printf("%16.10f Error in channel_size for radio %d: %s\n", currentmjd(), out_radio, cosmos_error_string(current_channel_size).c_str());
+                            continue;
                         }
+                        if (current_channel_size > channel_buffer_limit)
+                        {
+                            continue;
+                        }
+
+                        // int32_t packet_diff = last_channel_size - current_channel_size;
+                        // if (packet_diff < 0)
+                        // {
+                        //     // If the channel size has increased
+                        //     packet_rate = 0.001;
+                        // }
+                        // else
+                        // {
+                        //     if (last_time > 0)
+                        //     {
+                        //         // Calculate the packet rate based on the time since the last loop
+                        //         double current_time = agent->uptime.split();
+                        //         double elapsed_time = current_time - last_time;
+                        //         if (elapsed_time > 0)
+                        //         {
+                        //             packet_rate = packet_diff / elapsed_time;
+                        //             last_time = current_time;
+                        //         }
+                        //     }
+                        // }
 
                         // Perform runs of file packet grabbing
                         for (size_t i = 0; i < contact_nodes.size(); ++i)
@@ -231,6 +274,10 @@ namespace Cosmos
                             double time_to_flush_current_queue = agent->channel_size(out_radio)/packet_rate;
                             // Calculated as the amount of time we would like to transmit continually for
                             double effective_time = continual_stream_time - time_to_flush_current_queue;
+                            if (time_to_flush_current_queue > 0)
+                            {
+                                // printf("channel_size %d packet_rate %.2f time_to_flush_current_queue %.2f effective_time %.2f\n", agent->channel_size(out_radio), packet_rate, time_to_flush_current_queue, effective_time);
+                            }
                             if (effective_time <= 0)
                             {
                                 // Wait until queue is less full
@@ -254,12 +301,12 @@ namespace Cosmos
                                 // to calculate the queuing speed of the system.
                                 // Adds in some arbitrary inefficiency.
                                 // Keep the rate above some arbitrary lower bound.
-                                packet_rate = std::max((iretn / queueing_time)*0.75, PACKET_RATE_LOWER_BOUND);
+                                // packet_rate = std::max((iretn / queueing_time)*0.75, PACKET_RATE_LOWER_BOUND);
+                                // printf("Queued %d packets in %.2f seconds, packet rate %.2f packets/sec\n", iretn, queueing_time, packet_rate);
                             }
                         }
                     }
                 }
-                std::this_thread::yield();
             }
 
             return;
