@@ -63,8 +63,8 @@ namespace Cosmos {
             int32_t outgoing_tx_add(tx_progress &tx_out, const string dest_node_name);
             int32_t outgoing_tx_add(const string dest_node, const string dest_agent, const string file_name);
             int32_t outgoing_tx_load();
-            int32_t outgoing_tx_load(const string node_name);
-            int32_t outgoing_tx_load(const uint8_t node_id);
+            int32_t outgoing_tx_load(const string node_name, const string& specific_directory="");
+            int32_t outgoing_tx_load(const uint8_t node_id, const string& specific_directory="");
             int32_t outgoing_tx_recount(const string node_name);
             int32_t outgoing_tx_recount(const uint8_t node_id);
             int32_t incoming_tx_recount(const string node_name);

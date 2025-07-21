@@ -36,9 +36,11 @@ namespace Cosmos
             //! Sets the radios in radios_channel_number to use in order of their priority
             void set_radios(vector<uint8_t> radios);
 
-        private:
-            //! The transfer class, holds all info about ongoing transfers
+            //! The transfer class, holds all info about ongoing transfers.
+            //! Direct manipulation of this object is not thread safe.
             Transfer transfer;
+
+        private:
             //! Vector of radios that are available to use, sorted by use priority, highest priority first
             vector<bool> radios_available;
             //! Maps index of available_radios to a radio channel number, sorted by use priority, highest priority first

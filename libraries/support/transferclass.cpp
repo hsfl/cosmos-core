@@ -28,6 +28,11 @@
 ********************************************************************/
 
 #include "support/transferclass.h"
+
+//! Reusable buffer for file transfer chunks.
+static constexpr size_t MAX_CHUNK_SIZE = 4096;
+static PACKET_BYTE chunk[MAX_CHUNK_SIZE];
+
 namespace Cosmos {
     namespace Support {
         Transfer::Transfer() {}
@@ -63,6 +68,14 @@ namespace Cosmos {
             // {
             //     this->debug_log->Printf("Transfer: step 1\n");
             // }
+            if (packet_size > MAX_CHUNK_SIZE)
+            {
+                if (this->debug_log != nullptr)
+                {
+                    this->debug_log->Printf("%.4f Transfer: Packet size %zu exceeds maximum chunk size %zu\n", tet.split(), packet_size, MAX_CHUNK_SIZE);
+                }
+                return COSMOS_GENERAL_ERROR_OVERSIZE;
+            }
 
             // Transfer: Queue
             const int32_t node_ids_size = cinfo->realm.node_ids.size();
@@ -236,8 +249,9 @@ namespace Cosmos {
         //! Scan the outgoing directory of the specified node in txq.
         //! Enqueues new files in its outgoing queue.
         //! Not thread safe.
+        //! @param specific_directory Optional specific directory to scan within the outgoing directory.
         //! \return Number of files in the outgoing queue, negative on error
-        int32_t Transfer::outgoing_tx_load(const string node_name)
+        int32_t Transfer::outgoing_tx_load(const string node_name, const string& specific_directory)
         {
             if (node_name.empty())
             {
@@ -248,15 +262,16 @@ namespace Cosmos {
             {
                 return TRANSFER_ERROR_NODE;
             }
-            return outgoing_tx_load(iretn);
+            return outgoing_tx_load(iretn, specific_directory);
         }
 
         //! Scan the outgoing directory of the specified node in txq.
         //! Enqueues new files in its outgoing queue.
         //! Not thread safe.
         //! \param dest_node_id ID of destination node
+        //! @param specific_directory Optional specific directory to scan within the outgoing directory.
         //! \return Number of files in this node's outgoing queue, negative on error
-        int32_t Transfer::outgoing_tx_load(const uint8_t dest_node_id)
+        int32_t Transfer::outgoing_tx_load(const uint8_t dest_node_id, const string& specific_directory)
         {
             const size_t dest_node_idx = node_id_to_txq_idx(dest_node_id);
             if (dest_node_idx == INVALID_TXQ_IDX)
@@ -285,8 +300,14 @@ namespace Cosmos {
                 for (filestruc file : data_list_files(txq[dest_node_idx].node_name, "outgoing"))
                 {
                     // dest_node/outgoing/dest_agents
-                    if (file.type == "directory")
+                    if (file.type == "directory" && !specific_directory.empty())
                     {
+                        // If a specific directory is specified, only scan that directory
+                        data_list_files(txq[dest_node_idx].node_name, "outgoing", file.name, file_names);
+                    }
+                    else if (file.type == "directory" && specific_directory.empty())
+                    {
+                        // Otherwise scan all directories in outgoing
                         data_list_files(txq[dest_node_idx].node_name, "outgoing", file.name, file_names, files_to_scan_per_dir);
                     }
                 }
@@ -344,19 +365,6 @@ namespace Cosmos {
             // Store separately to not be affected by sentqueue being toggled mid-run, which would be bad.
             bool sendqueue = !txq[dest_node_idx].outgoing.sentqueue;
 
-            // Each file can queue up to a certain fraction of the max packets that can be queued up
-            uint32_t packets_per_file = 1;
-            uint8_t outgoing_file_count = txq[dest_node_idx].outgoing.size;
-            if (!outgoing_file_count)
-            {
-                return 0;
-            }
-            else
-            {
-                packets_per_file = std::max(max_packets_to_queue / outgoing_file_count, 1u);
-            }
-            // If a previous file did not use all its allotted packet count, then the next file(s) can queue up however many went unused
-            size_t extra_packets = 0;
             // Keep track of total queued packets, don't exceed max
             uint32_t total_queued_packets = 0;
             // Since it's possible to queue too fast for the other threads to pull quickly enough,
@@ -394,9 +402,13 @@ namespace Cosmos {
                     continue;
                 }
 
-                // Files can queue up a number of extra packets that went unused so far
-                size_t packets_left_to_queue_for_this_file = packets_per_file + extra_packets;
-                extra_packets = 0;
+                // Files can queue DATA packets up to the maximum allowed, or any of the non-DATA packets even if the maximum is reached.
+                uint32_t packets_left_to_queue_for_this_file = max_packets_to_queue - total_queued_packets;
+                if (total_queued_packets > max_packets_to_queue)
+                {
+                    // Handle integer negative overflow
+                    packets_left_to_queue_for_this_file = 0;
+                }
 
                 // **************************************************************
                 // ** METADATA **************************************************
@@ -427,10 +439,16 @@ namespace Cosmos {
                 // **************************************************************
                     if (txq[dest_node_idx].outgoing.progress[tx_id].file_size)
                     {
+                        if (txq[dest_node_idx].outgoing.progress[tx_id].file_info.empty())
+                        {
+                            // Update total_bytes
+                            merge_chunks_overlap(txq[dest_node_idx].outgoing.progress[tx_id]);
+                        }
                         // Check if there is any more data to send
                         if (txq[dest_node_idx].outgoing.progress[tx_id].total_bytes == 0)
                         {
-                            // This sections runs, for example, after a read_meta of a previous run where all data was already sent
+                            // This sections runs, for example, after a read_meta of a previous run where all data was already sent,
+                            // or if all file_info entries were sent.
                             txq[dest_node_idx].outgoing.progress[tx_id].sentdata = true;
                             // write_meta(txq[dest_node_idx].outgoing.progress[tx_id], 0.);
                         }
@@ -458,28 +476,30 @@ namespace Cosmos {
                             }
 
                             // If we're good, continue with the process, queue up as many data packets as allotted
+                            // TODO: replace this offsetof with something else as it can be bug-prone w.r.t. to architecture differences
                             const PACKET_FILE_SIZE_TYPE packet_data_size_limit = packet_size - offsetof(struct packet_struct_data, chunk);
-                            PACKET_BYTE* chunk = new PACKET_BYTE[packet_data_size_limit]();
+                            // PACKET_BYTE* chunk = new PACKET_BYTE[packet_data_size_limit]();
                             while (txq[dest_node_idx].outgoing.progress[tx_id].fp != nullptr // Check file is still open
-                            && packets_left_to_queue_for_this_file > 0                       // Queue up to max per file
-                            && total_queued_packets < max_packets_to_queue)                  // Don't exceed max
+                                && packets_left_to_queue_for_this_file > 0                   // Queue up to max per file
+                                && total_queued_packets < max_packets_to_queue)              // Don't exceed max
                             {
-                                // Check if last chunk is finished yet
+                                // Check if chunk is finished yet
                                 if (txq[dest_node_idx].outgoing.progress[tx_id].file_info.back().chunk_start > txq[dest_node_idx].outgoing.progress[tx_id].file_info.back().chunk_end)
                                 {
-                                    // All done with this file_info entry. Close file and remove entry.
-                                    fclose(txq[dest_node_idx].outgoing.progress[tx_id].fp);
-                                    txq[dest_node_idx].outgoing.progress[tx_id].fp = nullptr;
+                                    // All done with this file_info entry
                                     txq[dest_node_idx].outgoing.progress[tx_id].file_info.pop_back();
-                                    // Update total_bytes
-                                    merge_chunks_overlap(txq[dest_node_idx].outgoing.progress[tx_id]);
 
                                     // Check if there is any more data to send
                                     if (txq[dest_node_idx].outgoing.progress[tx_id].total_bytes == 0)
                                     {
                                         txq[dest_node_idx].outgoing.progress[tx_id].sentdata = true;
                                         // write_meta(txq[dest_node_idx].outgoing.progress[tx_id], 0.);
+                                        break;
                                     }
+                                }
+                                // Check if there is any more data to send
+                                if (txq[dest_node_idx].outgoing.progress[tx_id].file_info.empty())
+                                {
                                     break;
                                 }
 
@@ -497,9 +517,15 @@ namespace Cosmos {
                                 // Read the packet and send it
                                 size_t nbytes = 0;
                                 // Read bytes into chunk
-                                if (!fseek(txq[dest_node_idx].outgoing.progress[tx_id].fp, tp.chunk_start, SEEK_SET))
+                                int32_t iretn = fseek(txq[dest_node_idx].outgoing.progress[tx_id].fp, tp.chunk_start, SEEK_SET);
+                                if (!iretn)
                                 {
                                     nbytes = fread(chunk, 1, byte_count, txq[dest_node_idx].outgoing.progress[tx_id].fp);
+                                }
+                                else
+                                {
+                                    printf("fseek: error %d for file %s at position %u\n", 
+                                        iretn, txq[dest_node_idx].outgoing.progress[tx_id].filepath.c_str(), tp.chunk_start);
                                 }
                                 int32_t current_channel_buffer_size = 0;
                                 if (nbytes == static_cast<size_t>(byte_count))
@@ -537,7 +563,6 @@ namespace Cosmos {
                                     break;
                                 }
                             }
-                            delete[] chunk;
                         }
                     }
                     // Zero length file, ask other end to dequeue it
@@ -603,9 +628,6 @@ namespace Cosmos {
                 {
                     tqueue.push_back(tx_id);
                 }
-
-                // Let next file queue up more if this file didn't have much
-                extra_packets = packets_left_to_queue_for_this_file;
             }
 
             // Push QUEUE packet if it needs to be sent
@@ -1027,7 +1049,7 @@ namespace Cosmos {
 
             if (debug_log != nullptr)
             {
-                debug_log->Printf("%u %u %s %s %s %d ", tx_out.tx_id, tx_out.file_crc, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str(), PROGRESS_QUEUE_SIZE);
+                debug_log->Printf("%u %u %s %s %s %d ", tx_out.tx_id, tx_out.file_crc, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str(), tx_out.file_size);
             }
 
             // Good to go. Add it to queue.
@@ -1320,7 +1342,7 @@ namespace Cosmos {
 
             if (debug_log != nullptr)
             {
-                debug_log->Printf("%.4f %.4f Main/Incoming: Add incoming: %u %u %s %s %s %d\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.file_crc, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.filepath.c_str(), PROGRESS_QUEUE_SIZE);
+                debug_log->Printf("%.4f %.4f Main/Incoming: Add incoming: %u %u %s %s %s %d\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.file_crc, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.file_name.c_str(), tx_in.file_size);
             }
 
             return incoming_tx_recount(orig_node_id);
@@ -1652,12 +1674,6 @@ namespace Cosmos {
                 {
                     fseek(txq[orig_node_idx].incoming.progress[tx_id].fp, tp.chunk_start, SEEK_SET);
                     fwrite(data.chunk.data(), data.byte_count, 1, txq[orig_node_idx].incoming.progress[tx_id].fp);
-                    fflush(txq[orig_node_idx].incoming.progress[tx_id].fp);
-                    // Recalculate total periodically, if it's time to resend a REQDATA to the sender
-                    if (iretn == RESPONSE_REQUIRED)
-                    {
-                        merge_chunks_overlap(txq[orig_node_idx].incoming.progress[tx_id]);
-                    }
                     // Write latest meta data to disk
                     // write_meta(txq[orig_node_idx].incoming.progress[tx_id]);
                     if (debug_log != nullptr)
@@ -1675,6 +1691,7 @@ namespace Cosmos {
                         if (txq[orig_node_idx].incoming.progress[tx_id].total_bytes == txq[orig_node_idx].incoming.progress[tx_id].file_size)
                         {
                             // Now check the file_crc
+                            fflush(txq[orig_node_idx].incoming.progress[tx_id].fp);
                             int32_t crcret = calc_crc.calc_file(txq[orig_node_idx].incoming.progress[tx_id].temppath + ".file");
                             if (crcret < 0 || txq[orig_node_idx].incoming.progress[tx_id].file_crc != crcret)
                             {
@@ -2481,6 +2498,14 @@ PACKET_CHUNK_SIZE_TYPE Transfer::get_packet_size()
 //! Sets the size of the packet to stuff. Should be set to the size of packet the channel supports that file packets will be sent out on.
 int32_t Transfer::set_packet_size(const PACKET_CHUNK_SIZE_TYPE size)
 {
+    if (size > MAX_CHUNK_SIZE)
+    {
+        if (this->debug_log != nullptr)
+        {
+            this->debug_log->Printf("%.4f Transfer: Packet size %zu exceeds maximum chunk size %zu\n", tet.split(), size, MAX_CHUNK_SIZE);
+        }
+        return COSMOS_GENERAL_ERROR_OVERSIZE;
+    }
     packet_size = size;
     return 0;
 }
@@ -2650,9 +2675,9 @@ int32_t Transfer::save_progress(uint8_t node_id)
  */
 void Transfer::print_file_packet(PacketComm packet, uint8_t direction, string type, Log::Logger* debug_log)
 {
-    if (packet.header.type == PacketComm::TypeId::DataFileChunkData)
+    if (packet.header.type == PacketComm::TypeId::DataFileChunkData || packet.header.type == PacketComm::TypeId::DataFileReqData)
     {
-        // For DATA-type packets, print only the first time it comes in. Comment out these lines to skip all DATA-packet logging
+        // For DATA and REQDATA type packets, print only the first time it comes in. Comment out these lines to skip all DATA-packet logging
         // PACKET_FILE_SIZE_TYPE chunk_start;
         // memmove(&chunk_start, &packet.data[0]+PACKET_DATA_OFFSET_CHUNK_START, sizeof(chunk_start));
         // if (chunk_start != 0)

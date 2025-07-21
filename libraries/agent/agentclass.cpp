@@ -348,9 +348,10 @@ Agent::Agent(string realm_name,
                 "    ExternalTask command parameters\n"
                 "    TestRadio start step count bytes\n"
                 "    ListDirectory node:agent\n"
-                "    TransferFile node:agent:file\n"
+                "    TransferFile node agent file\n"
                 "    TransferNode node\n"
                 "    TransferRadio\n"
+                "    TransferDirectory node outgoing_subdirectory\n"
                 "    InternalRequest request parameters\n"
                 "    Heartbeat\n"
                 "    Ping {string}\n"
@@ -2369,6 +2370,26 @@ int32_t Agent::req_command(string &request, string &response, Agent *agent)
         // No args
         packet.data.clear();
         response = "Requesting node to send response-type file protocol packets";
+    }
+    break;
+    case PacketComm::TypeId::CommandFileTransferDirectory:
+    {
+        string node = "destination";
+        string outgoing_subdirectory = "subfolder";
+        if (parms.size() < 2)
+        {
+            response = "Invalid arguments. Requires node, and the subdirectory name under the outgoing folder";
+            return response.size();
+        }
+        node = parms[0];
+        outgoing_subdirectory = parms[1];
+
+        packet.data.resize(0);
+        packet.data.push_back((uint8_t)node.size());
+        packet.data.push_back((uint8_t)outgoing_subdirectory.size());
+        packet.data.insert(packet.data.end(), node.begin(), node.end());
+        packet.data.insert(packet.data.end(), outgoing_subdirectory.begin(), outgoing_subdirectory.end());
+        response = "Requesting " + node + "/outgoing/" + outgoing_subdirectory + " to be transferred.";
     }
     break;
     case PacketComm::TypeId::CommandObcInternalRequest:

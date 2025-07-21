@@ -215,6 +215,37 @@ namespace Cosmos
                                 }
                             }
                             break;
+                        case PacketComm::TypeId::CommandFileTransferDirectory:
+                            {
+                                if (packet.data.size() < 2)
+                                {
+                                    agent->debug_log.Printf("%16.10f Error: CommandFileTransferDirectory packet too short\n", currentmjd());
+                                    continue;
+                                }
+                                size_t nn_len = packet.data[0];
+                                size_t dn_len = packet.data[1];
+                                if (nn_len + dn_len + 2 > packet.data.size())
+                                {
+                                    agent->debug_log.Printf("%16.10f Error: CommandFileTransferDirectory packet too short for node, agent, and file names\n", currentmjd());
+                                    continue;
+                                }
+                                string node_name = "";
+                                string outgoing_subdirectory = "";
+                                node_name.insert(node_name.begin(), packet.data.begin()+2, packet.data.begin()+2+nn_len);
+                                outgoing_subdirectory.insert(outgoing_subdirectory.begin(), packet.data.begin()+2+nn_len, packet.data.begin()+2+nn_len+dn_len);
+                                iretn = transfer.outgoing_tx_load(node_name, outgoing_subdirectory);
+                                if (iretn < 0)
+                                {
+                                    agent->debug_log.Printf("%16.10f Error (%s) adding directory %s/outgoing/%s\n", currentmjd(), cosmos_error_string(iretn).c_str(), node_name.c_str(), outgoing_subdirectory.c_str());
+                                    continue;
+                                }
+                                else
+                                {
+                                    file_transfer_enabled = true;
+                                    agent->debug_log.Printf("%16.10f Enabling transfer of directory %s/outgoing/%s\n", currentmjd(), node_name.c_str(), outgoing_subdirectory.c_str());
+                                }
+                            }
+                            break;
                         default:
                             break;
                         }
@@ -228,8 +259,6 @@ namespace Cosmos
                         continue;
                     }
 
-// double last_time = 0;
-// static int32_t last_channel_size = 0;
                     // Get our own files' transfer packets if transfer is enabled
                     if (file_transfer_enabled)
                     {
@@ -271,12 +300,13 @@ namespace Cosmos
                         for (size_t i = 0; i < contact_nodes.size(); ++i)
                         {
                             // Consider current queue fullness, this decreases the effective time we have to queue and transmit
-                            double time_to_flush_current_queue = agent->channel_size(out_radio)/packet_rate;
+                            int32_t channel_size = agent->channel_size(out_radio);
+                            double time_to_flush_current_queue = channel_size/packet_rate;
                             // Calculated as the amount of time we would like to transmit continually for
                             double effective_time = continual_stream_time - time_to_flush_current_queue;
-                            if (time_to_flush_current_queue > 0)
+                            if (channel_size > 0)
                             {
-                                // printf("channel_size %d packet_rate %.2f time_to_flush_current_queue %.2f effective_time %.2f\n", agent->channel_size(out_radio), packet_rate, time_to_flush_current_queue, effective_time);
+                                // printf("channel_size %d packet_rate %.2f continual_stream_time %.2f time_to_flush_current_queue %.2f effective_time %.2f channel_size %d\n", agent->channel_size(out_radio), packet_rate, continual_stream_time, time_to_flush_current_queue, effective_time, channel_size);
                             }
                             if (effective_time <= 0)
                             {
@@ -302,7 +332,7 @@ namespace Cosmos
                                 // Adds in some arbitrary inefficiency.
                                 // Keep the rate above some arbitrary lower bound.
                                 // packet_rate = std::max((iretn / queueing_time)*0.75, PACKET_RATE_LOWER_BOUND);
-                                // printf("Queued %d packets in %.2f seconds, packet rate %.2f packets/sec\n", iretn, queueing_time, packet_rate);
+                                // printf("Queued %d packets in %.2f seconds, packet rate %.2f packets/sec channel_size %d\n", iretn, queueing_time, packet_rate, channel_size);
                             }
                         }
                     }
@@ -371,7 +401,13 @@ namespace Cosmos
                 {
                     return;
                 }
-                transfer.set_packet_size(channel_datasize);
+                int32_t iretn = transfer.set_packet_size(channel_datasize);
+                assert(iretn >= 0);
+                if (iretn < 0)
+                {
+                    agent->debug_log.Printf("%.4f Error setting packet size for radio %d: %s\n", agent->uptime.split(), new_out_radio, cosmos_error_string(iretn).c_str());
+                    return;
+                }
             }
             bool radio_changed = (out_radio != new_out_radio);
             out_radio = new_out_radio;
