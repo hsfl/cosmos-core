@@ -43,6 +43,7 @@
 #include "module/file_module.h"
 #include "module/websocket_module.h"
 #include "support/packethandler.h"
+#include "support/filesenderimpl/UdpSender.h"
 
 
 Agent* agent;
@@ -50,6 +51,7 @@ beatstruc remote_agent;
 // Reusable packet object
 PacketComm packet;
 PacketHandler packethandler;
+UdpSender udp_sender;
 // Avoid joining threads that haven't been started or have already been joined
 bool threads_started = false;
 // Reserved auto node ids
@@ -401,7 +403,8 @@ int32_t start_subagents(Agent *agent)
     // File subagent
     // For file transfers
     {
-        file_module = new Cosmos::Module::FileModule();
+        file_module = new Cosmos::Module::FileModule(&udp_sender, false);
+        udp_sender.init("192.168.150.123", 8101);
         iretn = file_module->Init(agent, { remote_agent.node });
         if (iretn < 0)
         {
@@ -417,7 +420,7 @@ int32_t start_subagents(Agent *agent)
         }
         // Set radios to use and in the order of the use priority, highest to lowest
         uint8_t COMM = agent->channel_number("COMM");
-        file_module->set_radios({COMM});
+        // file_module->set_radios({COMM});
     }
 
     // Websocket subagent

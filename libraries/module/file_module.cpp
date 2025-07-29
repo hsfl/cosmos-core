@@ -4,7 +4,6 @@ namespace Cosmos
 {
     namespace Module
     {
-        FileModule::FileModule() {}
 
         int32_t FileModule::Init(Agent *parent_agent, const vector<string> file_transfer_contact_nodes)
         {
@@ -50,7 +49,6 @@ namespace Cosmos
                 std::this_thread::yield();
                 if (agent->running() != (uint16_t)Agent::State::IDLE)
                 {
-
                     // Process packets from channel
                     ElapsedTime cet;
                     while (cet.split() < 1.)
@@ -136,25 +134,23 @@ namespace Cosmos
                             break;
                         case PacketComm::TypeId::CommandFileTransferRadio:
                             {
-                                set_radio_availability(packet.data[0], packet.data[1]);
-                                // See if any radios have been enabled
-                                if (out_radio == 0)
+                                if (packet.data[1])
                                 {
-                                    file_transfer_enabled = false;
+                                    file_transfer_enabled = true;
                                 }
                                 else
                                 {
-                                    file_transfer_enabled = true;
+                                    file_transfer_enabled = false;
                                 }
                             }
                             break;
                         case PacketComm::TypeId::CommandFileTransferList:
                             {
-                                if (out_radio)
-                                {
-                                    string s = transfer.list_outgoing();
-                                    agent->push_response(out_radio, packet.header.nodeorig, mychannel, centisec(), s);
-                                }
+                                // if (out_radio)
+                                // {
+                                //     string s = transfer.list_outgoing();
+                                //     agent->push_response(out_radio, packet.header.nodeorig, mychannel, centisec(), s);
+                                // }
                             }
                             break;
                         case PacketComm::TypeId::CommandFileResetQueue:
@@ -176,7 +172,6 @@ namespace Cosmos
                             break;
                         case PacketComm::TypeId::CommandFileStopTransfer:
                             {
-                                out_radio = 0;
                                 file_transfer_enabled = false;
                                 for (auto node : contact_nodes)
                                 {
@@ -186,15 +181,10 @@ namespace Cosmos
                             break;
                         case PacketComm::TypeId::CommandFileSendFileResponses:
                             {
-                                if (!out_radio || agent->channel_enabled(out_radio) != 1)
-                                {
-                                    agent->debug_log.Printf("%16.10f Error: CommandFileSendFileResponses called but no outgoing radio connection established\n", currentmjd());
-                                    break;
-                                }
                                 // Check if any response-type packets need to be pushed
                                 for (size_t i = 0; i < contact_nodes.size(); ++i)
                                 {
-                                    iretn = transfer.send_outgoing_rpackets(contact_nodes[i], agent, out_radio, continual_stream_time);
+                                    iretn = transfer.send_outgoing_rpackets(contact_nodes[i]);
                                     if (iretn < 0)
                                     {
                                         agent->debug_log.Printf("%16.10f Error in get_outgoing_rpackets: %d\n", currentmjd(), cosmos_error_string(iretn).c_str());
@@ -251,89 +241,22 @@ namespace Cosmos
                         }
                     }
 
-                    // No outgoing radio connection established,
-                    // Or the channel is not in active mode
-                    if (!out_radio || agent->channel_enabled(out_radio) != 1)
+                    if (!file_transfer_enabled)
                     {
                         secondsleep(1.);
                         continue;
                     }
 
                     // Get our own files' transfer packets if transfer is enabled
-                    if (file_transfer_enabled)
+                    // Perform runs of file packet grabbing
+                    for (size_t i = 0; i < contact_nodes.size(); ++i)
                     {
-                        int32_t channel_buffer_limit = agent->channel_maximum(out_radio) * 0.4;
-                        // If the channel is already full, don't queue up any more packets
-                        int32_t current_channel_size = agent->channel_size(out_radio);
-                        if (current_channel_size < 0)
+                        // Queue up outgoing file packets
+                        iretn = transfer.send_outgoing_lpackets(contact_nodes[i]);
+                        
+                        if (iretn < 0)
                         {
-                            agent->debug_log.Printf("%16.10f Error in channel_size for radio %d: %s\n", currentmjd(), out_radio, cosmos_error_string(current_channel_size).c_str());
-                            continue;
-                        }
-                        if (current_channel_size > channel_buffer_limit)
-                        {
-                            continue;
-                        }
-
-                        // int32_t packet_diff = last_channel_size - current_channel_size;
-                        // if (packet_diff < 0)
-                        // {
-                        //     // If the channel size has increased
-                        //     packet_rate = 0.001;
-                        // }
-                        // else
-                        // {
-                        //     if (last_time > 0)
-                        //     {
-                        //         // Calculate the packet rate based on the time since the last loop
-                        //         double current_time = agent->uptime.split();
-                        //         double elapsed_time = current_time - last_time;
-                        //         if (elapsed_time > 0)
-                        //         {
-                        //             packet_rate = packet_diff / elapsed_time;
-                        //             last_time = current_time;
-                        //         }
-                        //     }
-                        // }
-
-                        // Perform runs of file packet grabbing
-                        for (size_t i = 0; i < contact_nodes.size(); ++i)
-                        {
-                            // Consider current queue fullness, this decreases the effective time we have to queue and transmit
-                            int32_t channel_size = agent->channel_size(out_radio);
-                            double time_to_flush_current_queue = channel_size/packet_rate;
-                            // Calculated as the amount of time we would like to transmit continually for
-                            double effective_time = continual_stream_time - time_to_flush_current_queue;
-                            if (channel_size > 0)
-                            {
-                                // printf("channel_size %d packet_rate %.2f continual_stream_time %.2f time_to_flush_current_queue %.2f effective_time %.2f channel_size %d\n", agent->channel_size(out_radio), packet_rate, continual_stream_time, time_to_flush_current_queue, effective_time, channel_size);
-                            }
-                            if (effective_time <= 0)
-                            {
-                                // Wait until queue is less full
-                                continue;
-                            }
-                            // The amount of packets we can feasibly queue up without any issue
-                            uint32_t max_packets = effective_time * packet_rate;
-
-                            // Queue up outgoing file packets
-                            queueing_timer.reset();
-                            iretn = transfer.send_outgoing_lpackets(contact_nodes[i], agent, out_radio, max_packets, continual_stream_time);
-                            double queueing_time = queueing_timer.split();
-                            
-                            if (iretn < 0)
-                            {
-                                agent->debug_log.Printf("%16.10f Error in get_outgoing_lpackets: %s\n", currentmjd(), cosmos_error_string(iretn).c_str());
-                            }
-                            else if (queueing_time > 0 && iretn > 0)
-                            {
-                                // Use the number of packets queued and the elapsed time
-                                // to calculate the queuing speed of the system.
-                                // Adds in some arbitrary inefficiency.
-                                // Keep the rate above some arbitrary lower bound.
-                                // packet_rate = std::max((iretn / queueing_time)*0.75, PACKET_RATE_LOWER_BOUND);
-                                // printf("Queued %d packets in %.2f seconds, packet rate %.2f packets/sec channel_size %d\n", iretn, queueing_time, packet_rate, channel_size);
-                            }
+                            agent->debug_log.Printf("%16.10f Error in get_outgoing_lpackets: %s\n", currentmjd(), cosmos_error_string(iretn).c_str());
                         }
                     }
                 }
@@ -342,87 +265,20 @@ namespace Cosmos
             return;
         }
 
+        void FileModule::soft_shutdown()
+        {
+            file_transfer_enabled = false;
+            is_running = false;
+        }
+
         void FileModule::shutdown()
         {
-            out_radio = 0;
             file_transfer_enabled = false;
             for (auto node : contact_nodes)
             {
                 transfer.close_file_pointers(node, 2);
             }
             is_running = false;
-        }
-
-        void FileModule::set_radios(vector<uint8_t> radios)
-        {
-            // radios_channel_number and radios_available are always the same size, and indexes match
-            radios_channel_number = radios;
-            radios_available.resize(radios.size(), false);
-        }
-
-        void FileModule::set_radio_availability(uint8_t radio, bool availability)
-        {
-            // Turn on or off specified radio
-            for (size_t i=0; i < radios_channel_number.size(); ++i)
-            {
-                if (radios_channel_number[i] == radio)
-                {
-                    // Pointless to do the rest if no change is being made
-                    if (radios_available[i] == availability && out_radio == radio)
-                    {
-                        return;
-                    }
-                    radios_available[i] = availability;
-                }
-            }
-            // Set the out_radio to the newest available and highest priority radio
-            determine_out_radio();
-        }
-
-        void FileModule::determine_out_radio()
-        {
-            // 0 is no radio
-            uint8_t new_out_radio = 0;
-            // Iterate over available radios, which are sorted by priority, highest to lowest
-            for (size_t i=0; i < radios_available.size(); ++i)
-            {
-                // If it's on, use it
-                if (radios_available[i])
-                {
-                    new_out_radio = radios_channel_number[i];
-                    break;
-                }
-            }
-            // Set transfer class to use file packet sizes of the new channel
-            if (new_out_radio)
-            {
-                int32_t channel_datasize = agent->channel_datasize(new_out_radio);
-                if (channel_datasize <= 0)
-                {
-                    return;
-                }
-                int32_t iretn = transfer.set_packet_size(channel_datasize);
-                assert(iretn >= 0);
-                if (iretn < 0)
-                {
-                    agent->debug_log.Printf("%.4f Error setting packet size for radio %d: %s\n", agent->uptime.split(), new_out_radio, cosmos_error_string(iretn).c_str());
-                    return;
-                }
-            }
-            bool radio_changed = (out_radio != new_out_radio);
-            out_radio = new_out_radio;
-
-            // If no radios for files to transfer over,
-            // close and flush all open file pointers.
-            // E.g., if a ground station pass is over
-            if (out_radio == 0 && radio_changed)
-            {
-                agent->debug_log.Printf("%.4f No radios for file transfer, flushing all file pointers\n", agent->uptime.split());
-                for (auto node : contact_nodes)
-                {
-                    transfer.close_file_pointers(node, 2);
-                }
-            }
         }
     }
 }
