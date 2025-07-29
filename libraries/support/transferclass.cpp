@@ -2059,7 +2059,7 @@ namespace Cosmos {
             if (tx.savetime.split() > interval)
             {
                 tx.savetime.reset();
-                serialize_metafile(meta_file_data, tx.tx_id, tx.file_crc, tx.file_name, tx.file_size, tx.node_name, tx.agent_name);
+                serialize_metafile(meta_file_data, tx);
                 file_name.open(tx.temppath + ".meta", std::ios::out|std::ios::binary); // Note: truncs by default
                 if(!file_name.is_open())
                 {
@@ -2231,7 +2231,9 @@ namespace Cosmos {
 
             tx.tx_id = meta.tx_id;
             tx.file_crc = meta.file_crc;
-            tx.sentmeta = !!meta.file_name.size(); // META was obtained if file_name is known
+            tx.sentmeta = meta.sentmeta;
+            tx.sentdata = meta.sentdata;
+            tx.complete = meta.complete;
             // Origin node name
             tx.node_name = meta.node_name;
             // Destination agent name

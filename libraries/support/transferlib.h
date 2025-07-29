@@ -36,7 +36,7 @@ namespace Cosmos {
         constexpr uint8_t FILE_TRANSFER_PROTOCOL_VERSION = 3;
         //! This is the version of the .meta and .file files that are created and used by write_meta() and read_meta.
         //!To be treated separately from FILE_TRANSFER_PROTOCOL_VERSION.
-        constexpr uint8_t FILE_TRANSFER_METAFILE_VERSION = 99;
+        constexpr uint8_t FILE_TRANSFER_METAFILE_VERSION = 100;
 
         /// Chunk start and end.
         struct file_progress
@@ -117,6 +117,9 @@ namespace Cosmos {
             string node_name;
             PACKET_TX_ID_TYPE tx_id;
             PACKET_FILE_CRC_TYPE file_crc;
+            bool sentmeta;
+            bool sentdata;
+            bool complete;
             uint8_t agent_name_len;
             string agent_name;
             uint8_t file_name_len;
@@ -200,7 +203,7 @@ namespace Cosmos {
         int32_t deserialize_reqmeta(const vector<PACKET_BYTE>& pdata, packet_struct_reqmeta& reqmeta);
         void serialize_reqdata(vector<PacketComm>& packets, PACKET_NODE_ID_TYPE self_node_id, PACKET_NODE_ID_TYPE orig_node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc, vector<file_progress>& holes, PACKET_CHUNK_SIZE_TYPE packet_data_size);
         int32_t deserialize_reqdata(const vector<PACKET_BYTE>& pdata, packet_struct_reqdata& reqdata);
-        void serialize_metafile(vector<PACKET_BYTE>& pdata, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc, const string& file_name, PACKET_FILE_SIZE_TYPE file_size, const string& node_name, const string& agent_name);
+        void serialize_metafile(vector<PACKET_BYTE>& pdata, const tx_progress& tx);
         int32_t deserialize_metafile(const vector<PACKET_BYTE>& pdata, packet_struct_metafile& meta);
         void serialize_metadata(PacketComm& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc, const string& file_name, PACKET_FILE_SIZE_TYPE file_size, const string& agent_name);
         int32_t deserialize_metadata(const vector<PACKET_BYTE>& pdata, packet_struct_metadata& meta);
