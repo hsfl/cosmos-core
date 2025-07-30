@@ -61,7 +61,7 @@ void FileSubagentTest::TestSetup()
         ASSERT_GE(iretn, 0);
 
         // File subagent to communicate out of SOCKRADIO
-        uint8_t sockradio_id = iretn;
+        // uint8_t sockradio_id = iretn;
         // file_subagents[i]->set_radios({sockradio_id});
     }
 

@@ -419,7 +419,7 @@ int32_t start_subagents(Agent *agent)
             fflush(stdout);
         }
         // Set radios to use and in the order of the use priority, highest to lowest
-        uint8_t COMM = agent->channel_number("COMM");
+        // uint8_t COMM = agent->channel_number("COMM");
         // file_module->set_radios({COMM});
     }
 
