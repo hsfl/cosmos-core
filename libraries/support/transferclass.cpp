@@ -1212,7 +1212,7 @@ namespace Cosmos {
                     {
                         return static_cast<int32_t>(retval);
                     }
-                    print_file_packet(outgoing_packet, 1, "Outgoing", debug_log);
+                    print_file_packet(packet, 1, "Outgoing", debug_log);
                     if (retval == SendRetVal::QUIT)
                     {
                         return static_cast<int32_t>(retval);
@@ -1250,7 +1250,7 @@ namespace Cosmos {
                     return RET_CONTINUE;
                 }
 
-                // Received file's checksum matches sender_'s checksum, file is succesfully received
+                // Received file's checksum matches sender_'s checksum, file is successfully received
                 incoming_tx_complete(orig_node_idx, tx_id);
             }
             return 0;
@@ -1534,13 +1534,25 @@ namespace Cosmos {
             // Move file to its final location
             if (!txq[orig_node_idx].incoming.progress[tx_id].complete)
             {
-                incoming_tx_complete(orig_node_idx, tx_id, !keep_errored_files);
+                int32_t iretn = incoming_tx_complete(orig_node_idx, tx_id, !keep_errored_files);
+                if (iretn < 0)
+                {
+                    if (debug_log != nullptr)
+                    {
+                        debug_log->Printf("%.4f %.4f Incoming: Error completing incoming: %u %s %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[tx_id].tx_id, txq[orig_node_idx].incoming.progress[tx_id].node_name.c_str(), txq[orig_node_idx].incoming.progress[tx_id].file_name.c_str());
+                    }
+                    return iretn;
+                }
             }
 
             if (debug_log != nullptr)
             {
                 debug_log->Printf("%.4f %.4f Incoming: Delete incoming: %u %s %s\n", tet.split(), dt.lap(), txq[orig_node_idx].incoming.progress[tx_id].tx_id, txq[orig_node_idx].incoming.progress[tx_id].node_name.c_str(), txq[orig_node_idx].incoming.progress[tx_id].node_name.c_str());
             }
+
+            // Remove the META file
+            string meta_filepath = txq[orig_node_idx].incoming.progress[tx_id].temppath + ".meta";
+            remove(meta_filepath.c_str());
 
             txq[orig_node_idx].incoming.progress[tx_id].tx_id = 0;
             txq[orig_node_idx].incoming.progress[tx_id].file_crc = 0;
@@ -1563,7 +1575,7 @@ namespace Cosmos {
         }
 
         //! Completes an incoming file transfer
-        //! Similar to incoming_tx_del() but doesn't reset the tx_id.
+        //! Similar to incoming_tx_del() but doesn't reset the tx_id or delete the META file.
         //! Used when a file's data is fully received.
         //! \return 0 on success
         int32_t Transfer::incoming_tx_complete(const size_t orig_node_idx, const PACKET_TX_ID_TYPE tx_id, bool delete_file)
@@ -1608,16 +1620,6 @@ namespace Cosmos {
                     debug_log->Printf("%.4f %.4f Incoming: Deleting: %s\n", tet.split(), dt.lap(), completed_filepath.c_str());
                 }
             }
-            
-
-            string filepath;
-            // Remove the DATA file
-            filepath = txq[orig_node_idx].incoming.progress[tx_id].temppath + ".file";
-            remove(filepath.c_str());
-
-            // Remove the META file
-            filepath = txq[orig_node_idx].incoming.progress[tx_id].temppath + ".meta";
-            remove(filepath.c_str());
 
             txq[orig_node_idx].incoming.progress[tx_id].complete = true;
 
@@ -2830,7 +2832,7 @@ void Transfer::print_file_packet(const PacketComm& packet, uint8_t direction, st
             break;
         default:
             {
-                debug_log->Printf("[OTHER] %u %s", node_id, "Non-file transfer type in packet.header.type");
+                debug_log->Printf("[OTHER] %u Non-file transfer type in packet.header.type (%u)", node_id, (unsigned)packet.header.type);
             }
         }
         debug_log->Printf("\n");
