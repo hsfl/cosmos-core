@@ -287,6 +287,30 @@ int32_t write_envi_hdr(envi_hdr &hdr)
     return (0);
 }
 
+int32_t write_envi_hdr(string name, size_t columns, size_t rows, size_t planes, uint8_t datatype, uint8_t interleave)
+{
+    envi_hdr ehdr;
+    int32_t iretn = 0;
+
+    ehdr.basename = name;
+    ehdr.columns = columns;
+    ehdr.rows = rows;
+    ehdr.planes = planes;
+    ehdr.datatype = datatype;
+    ehdr.interleave = interleave;
+    ehdr.offset = 0;
+    if (local_byte_order() == ByteOrder::LITTLEENDIAN)
+    {
+        ehdr.byteorder = BO_INTEL;
+    }
+    else
+    {
+        ehdr.byteorder = BO_NETWORK;
+    }
+    iretn = write_envi_hdr(ehdr);
+    return iretn;
+}
+
 int32_t read_envi_data(envi_hdr ehdr, vector<vector<double>> &data)
 {
     static size_t plane = 0;
