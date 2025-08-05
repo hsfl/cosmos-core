@@ -4,6 +4,7 @@
 #include "module/file_module.h"
 #include "module/packethandler_module.h"
 #include "module/websocket_module.h"
+#include "support/filesenderimpl/UdpSender.h"
 #include "thread"
 #include "gtest/gtest.h"
 
@@ -39,6 +40,7 @@ protected:
     //! Each subagent requires a thread of execution
     std::vector<std::thread> subagent_threads;
     uint8_t num_agents = 0;
+    UdpSender udp_sender;
 
     // Defined in file_it_helpers.cpp
     //! Number of files in test

@@ -44,7 +44,8 @@ void FileSubagentTest::TestSetup()
     for (size_t i=0; i<agents.size(); ++i)
     {
         // File subagent setup
-        file_subagents[i] = new Module::FileModule();
+        file_subagents[i] = new Cosmos::Module::FileModule(&udp_sender, false);
+        udp_sender.init("192.168.150.123", 8101);
         int32_t iretn = file_subagents[i]->Init(agents[i], transfer_node_contacts[i]);
         ASSERT_GE(iretn, 0);
 
@@ -60,8 +61,8 @@ void FileSubagentTest::TestSetup()
         ASSERT_GE(iretn, 0);
 
         // File subagent to communicate out of SOCKRADIO
-        uint8_t sockradio_id = iretn;
-        file_subagents[i]->set_radios({sockradio_id});
+        // uint8_t sockradio_id = iretn;
+        // file_subagents[i]->set_radios({sockradio_id});
     }
 
     // Setup websocket connections between the agents

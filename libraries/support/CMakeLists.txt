@@ -92,6 +92,8 @@ add_library(Envi STATIC envi.cpp envi.h)
 install(TARGETS Envi DESTINATION lib)
 target_link_libraries(Envi CosmosData CosmosSupport ${COSMOS_LIBS})
 
+add_subdirectory(filesenderimpl)
+
 install(FILES ${INCLUDES} DESTINATION include/support)
 install(FILES ${INCLUDESPP} DESTINATION include/support)
 
