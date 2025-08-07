@@ -1660,17 +1660,19 @@ int32_t write_envi_data(envi_hdr &ehdr, uint8_t *data)
         datasize = 8;
         break;
     }
+    ehdr.datasize = datasize;
 
     switch (ehdr.interleave)
     {
     case BSQ:
-        for (size_t ip=0; ip<ehdr.planes; ++ip)
-        {
-            for (size_t ir=0; ir<ehdr.rows; ++ir)
-            {
-                fwrite(data+datasize*ehdr.columns*(ir+ip*ehdr.rows), ehdr.datasize, ehdr.columns, fp);
-            }
-        }
+        fwrite(data, ehdr.datasize * ehdr.columns * ehdr.rows, ehdr.planes, fp);
+//        for (size_t ip=0; ip<ehdr.planes; ++ip)
+//        {
+//            for (size_t ir=0; ir<ehdr.rows; ++ir)
+//            {
+//                fwrite(data+datasize*ehdr.columns*(ir+ip*ehdr.rows), ehdr.datasize, ehdr.columns, fp);
+//            }
+//        }
         break;
     case BIL:
         for (size_t ir=0; ir<ehdr.rows; ++ir)
