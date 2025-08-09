@@ -298,9 +298,9 @@ int main(int argc, char *argv[])
                 sim->cnodes[i]->currentinfo.devspec.cpu[0].maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/1073741824.);
                 sim->cnodes[i]->currentinfo.devspec.cpu[0].maxload = deviceCpu.getCpuCount();
                 json11::Json jobj = json11::Json::object({
-                    {"type", static_cast<uint8_t>(Agent::AgentMessage::SOH)},
+                    {"type", "soh"},
                     {"utc", sim->cnodes[i]->currentinfo.node.utc},
-                    {"node", sim->cnodes[i]->currentinfo.node.name},
+                    {"node_name", sim->cnodes[i]->currentinfo.node.name},
                     {"ecipos", sim->cnodes[i]->currentinfo.node.loc.pos.eci},
                     {"alphatt", sim->cnodes[i]->currentinfo.node.loc.att.icrf},
                     {"powerin", sim->cnodes[i]->currentinfo.node.phys.powgen},
