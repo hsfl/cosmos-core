@@ -1433,6 +1433,7 @@ the CCP register and closing all sockets.
             {
                 return 0;
             }
+            return 0;
         }
 
         string gige_read_string(gige_handle *handle, string name)
