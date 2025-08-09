@@ -14,7 +14,7 @@
 #define BO_NETWORK 1
 
 typedef struct envi_hdr
-	{
+{
     size_t planes;
     size_t rows;
     size_t columns;
@@ -23,10 +23,10 @@ typedef struct envi_hdr
     size_t datatype;
     size_t interleave = BSQ;
     size_t byteorder = BO_INTEL;
-	float x0;
-	float y0;
-	float xmpp;
-	float ympp;
+    float x0;
+    float y0;
+    float xmpp;
+    float ympp;
     string map_info;
     string projection_info;
     vector <string> band_name;
@@ -38,10 +38,11 @@ typedef struct envi_hdr
     string hdrname;
     string dataname;
     uint8_t datasize = 0;
-    } envi_hdr;
+} envi_hdr;
 
 
 int32_t write_envi_hdr(envi_hdr &hdr);
+int32_t write_envi_hdr(string name, size_t columns, size_t rows, size_t planes, uint8_t datatype, uint8_t interleave);
 int32_t write_envi_data(string name, size_t columns, size_t rows, size_t planes, uint8_t datatype, uint8_t interleave, uint8_t *data);
 int32_t write_envi_data(envi_hdr &ehdr, uint8_t *data);
 int32_t write_envi_data(string name, uint8_t interleave, vector<vector<vector<double>>> &data);

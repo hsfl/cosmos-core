@@ -122,6 +122,51 @@ uint16_t CRC16::calc(uint8_t *message, uint16_t size)
     return (remainder ^ xorout);
 }
 
+/**
+ * @brief Read file data into a buffer, using a pre-read buffer to minimize I/O.
+ * 
+ * @param file File to read from
+ * @param dest Destination buffer to read data into
+ * @param offset Offset into the file to read from
+ * @param size Number of bytes to read from the file
+ * @return Number of bytes read or negative on error.
+ */
+static int32_t buffered_read(FILE* file, uint8_t* dest, size_t offset, size_t size)
+{
+    static constexpr size_t READ_BUFFER_SIZE = 2*4096; // modify as needed for best performance and memory usage
+    static uint8_t read_buffer[READ_BUFFER_SIZE];
+    // Index of the start of the read buffer in the file. Used to determine if a buffered read request can be fulfilled by the pre-read buffered data.
+    static size_t start_of_buffer_fseek_index = std::numeric_limits<size_t>::max();
+    // Keep track of the current file that is being read from
+    static FILE* current_file = nullptr;
+    // The amount of data in the read buffer, which could be smaller than READ_BUFFER_SIZE if the file is smaller than the buffer size or if the end of the file was reached. 
+    static size_t buffer_size = 0;
+    if (file != current_file                    // If a different file is requested
+    || offset < start_of_buffer_fseek_index     // If the requested offset is before the start of the buffered read
+    || start_of_buffer_fseek_index + buffer_size <= offset + size) // If the requested read is larger than the buffered read
+    {
+        // Read a new buffer
+        if (file == nullptr || fseek(file, offset, SEEK_SET) != 0)
+        {
+            return COSMOS_GENERAL_ERROR_BAD_FD;
+        }
+        start_of_buffer_fseek_index = offset;
+        current_file = file;
+        buffer_size = fread(read_buffer, 1, READ_BUFFER_SIZE, file);
+        if (buffer_size == 0)
+        {
+            return 0;
+        }
+        else if (buffer_size < READ_BUFFER_SIZE && !feof(file))
+        {
+            return COSMOS_GENERAL_ERROR_BAD_FD;
+        }
+    }
+    // Read from the buffer
+    memcpy(dest, read_buffer + (offset - start_of_buffer_fseek_index), size);
+    return size;
+}
+
 // Modified for calculating the crc of a file
 // Returns non-negative uint16_t crc on success, negative on error
 int32_t CRC16::calc_file(string file_path)
@@ -131,16 +176,18 @@ int32_t CRC16::calc_file(string file_path)
     int32_t iretn = 0;
 
     // Check file validity
-    ifstream file(file_path, std::ios::in | std::ios::binary);
-    if (!file.is_open())
+    FILE* fp = fopen(file_path.c_str(), "rb");
+    if (fp == nullptr)
     {
         return COSMOS_TRANSFER_ERROR_FILENAME;
     }
 
     // Divide message by the polynomial a byte at a time until EOF
     char byte;
-    while (file.get(byte))
+    size_t offset = 0;
+    while ((iretn = buffered_read(fp, reinterpret_cast<uint8_t*>(&byte), offset, sizeof(byte))) > 0)
     {
+        ++offset;
         if (lsbfirst)
         {
             // Note, char is signed
@@ -154,14 +201,14 @@ int32_t CRC16::calc_file(string file_path)
             remainder = lookup[data] ^ (remainder << 8);
         }
     }
+    if (iretn < 0)
+    {
+        fclose(fp);
+        return iretn;
+    }
 
     iretn = (remainder ^ xorout);
-    // Error encountered if read stops before EOF is reached
-    if (!file.eof())
-    {
-        iretn = COSMOS_GENERAL_ERROR_OPEN;
-    }
-    file.close();
+    fclose(fp);
 
     /*
      * The final remainder is the CRC.

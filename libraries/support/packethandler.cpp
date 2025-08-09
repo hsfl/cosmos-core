@@ -44,6 +44,7 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::CommandFileStopTransfer, FileForward);
             add_func(PacketComm::TypeId::CommandFileSendFileResponses, FileForward);
             add_func(PacketComm::TypeId::CommandFileSaveFileProgress, FileForward);
+            add_func(PacketComm::TypeId::CommandFileTransferDirectory, FileForward);
             add_func(PacketComm::TypeId::CommandExecClearQueue, ClearQueue);
             add_func(PacketComm::TypeId::CommandExecSetOpsMode, ExecForward);
             add_func(PacketComm::TypeId::CommandExecEnableChannel, EnableChannel);

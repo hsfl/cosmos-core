@@ -287,6 +287,30 @@ int32_t write_envi_hdr(envi_hdr &hdr)
     return (0);
 }
 
+int32_t write_envi_hdr(string name, size_t columns, size_t rows, size_t planes, uint8_t datatype, uint8_t interleave)
+{
+    envi_hdr ehdr;
+    int32_t iretn = 0;
+
+    ehdr.basename = name;
+    ehdr.columns = columns;
+    ehdr.rows = rows;
+    ehdr.planes = planes;
+    ehdr.datatype = datatype;
+    ehdr.interleave = interleave;
+    ehdr.offset = 0;
+    if (local_byte_order() == ByteOrder::LITTLEENDIAN)
+    {
+        ehdr.byteorder = BO_INTEL;
+    }
+    else
+    {
+        ehdr.byteorder = BO_NETWORK;
+    }
+    iretn = write_envi_hdr(ehdr);
+    return iretn;
+}
+
 int32_t read_envi_data(envi_hdr ehdr, vector<vector<double>> &data)
 {
     static size_t plane = 0;
@@ -880,6 +904,7 @@ int32_t write_envi_data(string name, uint8_t interleave, vector<vector<vector<do
     envi_hdr ehdr;
     int32_t iretn = 0;
 
+    ehdr.datasize = 8;
     ehdr.basename = name;
     ehdr.datatype = DT_DOUBLE;
     ehdr.interleave = interleave;
@@ -1220,6 +1245,7 @@ int32_t write_envi_data(string name, uint8_t interleave, vector<vector<vector<ui
     envi_hdr ehdr;
     int32_t iretn = 0;
 
+    ehdr.datasize = 2;
     ehdr.basename = name;
     ehdr.datatype = DT_U_INT;
     ehdr.interleave = interleave;
@@ -1544,6 +1570,22 @@ int32_t write_envi_data(string name, size_t columns, size_t rows, size_t planes,
     ehdr.rows = rows;
     ehdr.planes = planes;
     ehdr.datatype = datatype;
+    if (datatype == DT_BYTE)
+    {
+        ehdr.datasize = 1;
+    }
+    else if (datatype == DT_U_INT || datatype == DT_INT)
+    {
+        ehdr.datasize = 2;
+    }
+    else if (datatype == DT_U_LONG || datatype == DT_LONG || datatype == DT_FLOAT)
+    {
+        ehdr.datasize = 4;
+    }
+    else if (datatype == DT_DOUBLE)
+    {
+        ehdr.datasize = 8;
+    }
     ehdr.interleave = interleave;
     ehdr.offset = 0;
     if (local_byte_order() == ByteOrder::LITTLEENDIAN)
@@ -1618,24 +1660,26 @@ int32_t write_envi_data(envi_hdr &ehdr, uint8_t *data)
         datasize = 8;
         break;
     }
+    ehdr.datasize = datasize;
 
     switch (ehdr.interleave)
     {
     case BSQ:
-        for (size_t ip=0; ip<ehdr.planes; ++ip)
-        {
-            for (size_t ir=0; ir<ehdr.rows; ++ir)
-            {
-                fwrite(data, ehdr.datasize, ehdr.columns, fp);
-            }
-        }
+        fwrite(data, ehdr.datasize * ehdr.columns * ehdr.rows, ehdr.planes, fp);
+//        for (size_t ip=0; ip<ehdr.planes; ++ip)
+//        {
+//            for (size_t ir=0; ir<ehdr.rows; ++ir)
+//            {
+//                fwrite(data+datasize*ehdr.columns*(ir+ip*ehdr.rows), ehdr.datasize, ehdr.columns, fp);
+//            }
+//        }
         break;
     case BIL:
         for (size_t ir=0; ir<ehdr.rows; ++ir)
         {
             for (size_t ip=0; ip<ehdr.planes; ++ip)
             {
-                fwrite(data, ehdr.datasize, ehdr.columns, fp);
+                fwrite(data+datasize*ehdr.columns*(ir+ip*ehdr.rows), ehdr.datasize, ehdr.columns, fp);
             }
         }
         break;
@@ -1644,7 +1688,7 @@ int32_t write_envi_data(envi_hdr &ehdr, uint8_t *data)
         {
             for (size_t ip=0; ip<ehdr.columns; ++ip)
             {
-                fwrite(data, ehdr.datasize, ehdr.planes, fp);
+                fwrite(data+datasize*ehdr.columns*(ir+ip*ehdr.rows), ehdr.datasize, ehdr.planes, fp);
             }
         }
         break;

@@ -98,6 +98,7 @@ namespace Cosmos {
                 CommandFileStopTransfer = 0x487,
                 CommandFileSendFileResponses = 0x488,
                 CommandFileSaveFileProgress = 0x489,
+                CommandFileTransferDirectory = 0x48a,
 
                 DataExec = 0x500,
                 CommandExec = 0x580,
@@ -159,6 +160,7 @@ namespace Cosmos {
                 {TypeId::CommandFileStopTransfer, "FileStopTransfer"},
                 {TypeId::CommandFileSendFileResponses, "SendFileResponses"},
                 {TypeId::CommandFileSaveFileProgress, "SaveFileProgress"},
+                {TypeId::CommandFileTransferDirectory, "TransferDirectory"},
                 {TypeId::CommandObcInternalRequest, "InternalRequest"},
                 {TypeId::CommandObcHeartbeat, "Heartbeat"},
                 {TypeId::CommandObcPing, "Ping"},
@@ -232,6 +234,7 @@ namespace Cosmos {
                 {"FileStopTransfer", TypeId::CommandFileStopTransfer},
                 {"SendFileResponses", TypeId::CommandFileSendFileResponses},
                 {"SaveFileProgress", TypeId::CommandFileSaveFileProgress},
+                {"TransferDirectory", TypeId::CommandFileTransferDirectory},
                 {"InternalRequest", TypeId::CommandObcInternalRequest},
                 {"Ping", TypeId::CommandObcPing},
                 {"SetTle", TypeId::CommandObcSetTle},

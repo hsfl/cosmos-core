@@ -1130,13 +1130,13 @@ int32_t socket_recv(socket_channel &channel, vector<uint8_t> &buffer, size_t max
     return nbytes;
 }
 
-int32_t socket_post(socket_bus &channel, const string buffer, int flags)
+int32_t socket_post(socket_bus &channel, const string &buffer, int flags)
 {
     vector<uint8_t> data(buffer.begin(), buffer.end());
     return socket_post(channel, data, flags);
 }
 
-int32_t socket_post(socket_bus &bus, const vector<uint8_t> buffer, int flags)
+int32_t socket_post(socket_bus &bus, const vector<uint8_t> &buffer, int flags)
 {
     vector<uint8_t> data(buffer.begin(), buffer.end());
     for (socket_channel channel : bus)
@@ -1150,13 +1150,13 @@ int32_t socket_post(socket_bus &bus, const vector<uint8_t> buffer, int flags)
     return 0;
 }
 
-int32_t socket_post(socket_channel &channel, const string buffer, int flags)
+int32_t socket_post(socket_channel &channel, const string &buffer, int flags)
 {
     vector<uint8_t> data(buffer.begin(), buffer.end());
     return socket_post(channel, data, flags);
 }
 
-int32_t socket_post(socket_channel &channel, const vector<uint8_t> buffer, int flags)
+int32_t socket_post(socket_channel &channel, const vector<uint8_t> &buffer, int flags)
 {
     int32_t nbytes;
 #if defined(COSMOS_WIN_OS)
@@ -1170,7 +1170,7 @@ int32_t socket_post(socket_channel &channel, const vector<uint8_t> buffer, int f
     return nbytes;
 }
 
-int32_t socket_sendto(socket_bus &bus, const string buffer, int flags)
+int32_t socket_sendto(socket_bus &bus, const string &buffer, int flags)
 {
     for (socket_channel channel : bus)
     {
@@ -1183,7 +1183,7 @@ int32_t socket_sendto(socket_bus &bus, const string buffer, int flags)
     return 0;
 }
 
-int32_t socket_sendto(socket_bus &bus, const vector<uint8_t> buffer, int flags)
+int32_t socket_sendto(socket_bus &bus, const vector<uint8_t> &buffer, int flags)
 {
     for (socket_channel channel : bus)
     {
@@ -1196,13 +1196,13 @@ int32_t socket_sendto(socket_bus &bus, const vector<uint8_t> buffer, int flags)
     return 0;
 }
 
-int32_t socket_sendto(socket_channel &channel, const string buffer, int flags)
+int32_t socket_sendto(socket_channel &channel, const string &buffer, int flags)
 {
     vector<uint8_t> data(buffer.begin(), buffer.end());
     return socket_sendto(channel, data, flags);
 }
 
-int32_t socket_sendto(socket_channel &channel, const vector<uint8_t> buffer, int flags)
+int32_t socket_sendto(socket_channel &channel, const vector<uint8_t> &buffer, int flags)
 {
     int32_t nbytes;
 #if defined(COSMOS_WIN_OS)
@@ -1216,7 +1216,7 @@ int32_t socket_sendto(socket_channel &channel, const vector<uint8_t> buffer, int
     return nbytes;
 }
 
-int32_t socket_send(socket_channel &channel, const vector<uint8_t> buffer, int flags)
+int32_t socket_send(socket_channel &channel, const vector<uint8_t> &buffer, int flags)
 {
     int32_t nbytes;
 #if defined(COSMOS_WIN_OS)
