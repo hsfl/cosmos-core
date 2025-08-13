@@ -7,6 +7,7 @@
 #include "agent/agentclass.h"
 #include "support/packetcomm.h"
 #include "support/transferclass.h"
+#include <atomic>
 
 namespace Cosmos
 {
@@ -59,7 +60,7 @@ namespace Cosmos
             Transfer transfer;
 
         private:
-            bool file_transfer_enabled = false;
+            std::atomic<bool> file_transfer_enabled{false};
             bool file_transfer_respond = false;
             //! The nodes that this node has file transfer capabilities with
             vector<uint8_t> contact_nodes;
@@ -69,7 +70,7 @@ namespace Cosmos
 
             int32_t mychannel = 0;
             //! Returns from loop if this is set to false
-            bool is_running = false;
+            std::atomic<bool> is_running{false};
             Agent *agent;
         };
     }

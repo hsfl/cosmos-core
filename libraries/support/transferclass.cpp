@@ -1174,6 +1174,7 @@ namespace Cosmos {
                         {
                             return retval;
                         }
+                        // verbose_log = true; // Enable for debugging
                         print_file_packet(outgoing_packet, 1, "Outgoing", debug_log);
                         txq[dest_node_idx].outgoing.progress[tx_id].file_info.back().chunk_start = tp.chunk_end + 1;
                         if (retval == SendRetVal::QUIT)

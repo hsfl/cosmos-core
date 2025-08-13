@@ -44,7 +44,7 @@ namespace Cosmos
             agent->debug_log.Printf("Starting File Loop\n");
             is_running = true;
 
-            while(is_running)
+            while(is_running.load(std::memory_order_relaxed))
             {
                 std::this_thread::yield();
                 if (agent->running() != (uint16_t)Agent::State::IDLE)
@@ -127,7 +127,7 @@ namespace Cosmos
                                 node_name.insert(node_name.begin(), packet.data.begin()+1, packet.data.begin()+1+nn_len);
 
                                 iretn = transfer.enable_all(node_name);
-                                file_transfer_enabled = true;
+                                file_transfer_enabled.store(true, std::memory_order_relaxed);
 
                                 string s = std::to_string(iretn) + " files enabled";
                             }
@@ -136,11 +136,11 @@ namespace Cosmos
                             {
                                 if (packet.data[1])
                                 {
-                                    file_transfer_enabled = true;
+                                    file_transfer_enabled.store(true, std::memory_order_relaxed);
                                 }
                                 else
                                 {
-                                    file_transfer_enabled = false;
+                                    file_transfer_enabled.store(false, std::memory_order_relaxed);
                                 }
                             }
                             break;
@@ -172,7 +172,7 @@ namespace Cosmos
                             break;
                         case PacketComm::TypeId::CommandFileStopTransfer:
                             {
-                                file_transfer_enabled = false;
+                                file_transfer_enabled.store(false, std::memory_order_relaxed);
                                 for (auto node : contact_nodes)
                                 {
                                     transfer.close_file_pointers(node, 2);
@@ -231,7 +231,7 @@ namespace Cosmos
                                 }
                                 else
                                 {
-                                    file_transfer_enabled = true;
+                                    file_transfer_enabled.store(true, std::memory_order_relaxed);
                                     agent->debug_log.Printf("%16.10f Enabling transfer of directory %s/outgoing/%s\n", currentmjd(), node_name.c_str(), outgoing_subdirectory.c_str());
                                 }
                             }
@@ -241,7 +241,7 @@ namespace Cosmos
                         }
                     }
 
-                    if (!file_transfer_enabled)
+                    if (!file_transfer_enabled.load(std::memory_order_relaxed))
                     {
                         secondsleep(1.);
                         continue;
@@ -267,18 +267,18 @@ namespace Cosmos
 
         void FileModule::soft_shutdown()
         {
-            file_transfer_enabled = false;
-            is_running = false;
+            file_transfer_enabled.store(false, std::memory_order_relaxed);
+            is_running.store(false, std::memory_order_relaxed);
         }
 
         void FileModule::shutdown()
         {
-            file_transfer_enabled = false;
+            file_transfer_enabled.store(false, std::memory_order_relaxed);
             for (auto node : contact_nodes)
             {
                 transfer.close_file_pointers(node, 2);
             }
-            is_running = false;
+            is_running.store(false, std::memory_order_relaxed);
         }
     }
 }
