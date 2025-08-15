@@ -14622,6 +14622,37 @@ bool device_has_property(uint16_t deviceType, string prop)
 string json_memory_usage()
 {
     string output;
+#ifdef COSMOS_WIN_OS
+        HANDLE heap = GetProcessHeap();
+        if (heap == NULL) {
+            return output;
+        }
+
+        PROCESS_HEAP_ENTRY entry;
+        entry.lpData = nullptr;
+
+        size_t total_allocated = 0;
+        size_t total_free = 0;
+        size_t block_count = 0;
+
+        while (HeapWalk(heap, &entry)) {
+            if (entry.wFlags & PROCESS_HEAP_ENTRY_BUSY) {
+                total_allocated += entry.cbData;
+            } else if (entry.wFlags & PROCESS_HEAP_ENTRY_MOVEABLE) {
+                total_free += entry.cbData;
+            }
+            ++block_count;
+        }
+
+        if (GetLastError() != ERROR_NO_MORE_ITEMS) {
+            return output;
+        }
+
+        // std::cout << "Heap statistics:\n";
+        // std::cout << "  Allocated memory: " << total_allocated << " bytes\n";
+        // std::cout << "  Free memory:      " << total_free << " bytes\n";
+        // std::cout << "  Total blocks:     " << block_count << "\n";
+#else
     struct mallinfo m = mallinfo();
     output += to_label("arena", m.arena) + "\n";
     output += to_label("ordblks", m.ordblks) + "\n";
@@ -14632,6 +14663,7 @@ string json_memory_usage()
     output += to_label("fsmblks", m.fsmblks) + "\n";
     output += to_label("uordblks", m.uordblks) + "\n";
     output += to_label("fordblks", m.fordblks);
+#endif
     return output;
 }
 

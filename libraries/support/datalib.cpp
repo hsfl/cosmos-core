@@ -2595,7 +2595,7 @@ int32_t data_execute(string cmd, string& result, float timer, string shell)
     // Create the child process.
 
     bSuccess = CreateProcess(NULL,
-                             (LPSTR)cmd.c_str(),                // command line
+                             (LPWSTR)cmd.c_str(),                // command line
                              NULL,               // process security attributes
                              NULL,               // primary thread security attributes
                              TRUE,               // handles are inherited
