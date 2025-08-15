@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
 
                         // Post SOH
                         // string jstring;
-                        agent->post(Agent::AgentMessage::EVENT, jobj.dump());
+                        // agent->post(Agent::AgentMessage::EVENT, jobj.dump());
                     }
                 }
             }
