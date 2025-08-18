@@ -301,6 +301,8 @@ int main(int argc, char *argv[])
                     {"type", "soh"},
                     {"utc", sim->cnodes[i]->currentinfo.node.utc},
                     {"node_name", sim->cnodes[i]->currentinfo.node.name},
+                    {"pvstrg", sim->cnodes[i]->currentinfo.devspec.pvstrg},
+                    {"tsen", sim->cnodes[i]->currentinfo.devspec.tsen},
                     {"ecipos", sim->cnodes[i]->currentinfo.node.loc.pos.eci},
                     {"alphatt", sim->cnodes[i]->currentinfo.node.loc.att.icrf},
                     {"powerin", sim->cnodes[i]->currentinfo.node.phys.powgen},
