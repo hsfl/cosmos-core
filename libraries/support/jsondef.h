@@ -3882,7 +3882,8 @@ union as a ::devicestruc.
                     { "effbase", effbase },
                     { "effslope", effslope },
                     { "maxpower", maxpower },
-                    { "power"  , power}
+                    { "power"  , power},
+                    { "temp"  , temp}
                 };
             }
 
@@ -3900,6 +3901,7 @@ union as a ::devicestruc.
                     if(!parsed["effslope"].is_null()) { effslope = parsed["effslope"].number_value(); }
                     if(!parsed["maxpower"].is_null()) { maxpower = parsed["maxpower"].number_value(); }
                     if(!parsed["power"].is_null()) { power = parsed["power"].number_value(); }
+                    if(!parsed["temp"].is_null()) { temp = parsed["temp"].number_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
