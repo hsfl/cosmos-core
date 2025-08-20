@@ -2318,15 +2318,22 @@ bool data_isdir(string path, bool create_flag)
     }
 
     char *rpath = realpath(path.c_str(), nullptr);
-    if (rpath == nullptr)
+    if (!create_flag)
     {
-        return false;
+        bool exists = (rpath != nullptr);
+        free(rpath);
+        rpath = nullptr;
+        return exists;
     }
-    path = rpath;
-    free(rpath);
-
-    if (create_flag)
+    else
     {
+        if (rpath != nullptr)
+        {
+            path = rpath;
+        }
+        free(rpath);
+        rpath = nullptr;
+
         vector<string> dirs = string_split(path, "/");
         string tpath;
         if (path[0] == '/')
