@@ -9649,7 +9649,7 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
         json_addentry("device_cpu_load",didx, UINT16_MAX, (uint8_t *)&device->load, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_cpu_gib",didx, UINT16_MAX, (uint8_t *)&device->gib, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_cpu_storage",didx, UINT16_MAX, (uint8_t *)&device->storage, (uint16_t)JSON_TYPE_FLOAT, cinfo);
-        json_addentry("device_cpu_boot_count",didx, UINT16_MAX, (uint8_t *)&device->boot_count, (uint16_t)JSON_TYPE_UINT32, cinfo);
+        json_addentry("device_cpu_bootcount",didx, UINT16_MAX, (uint8_t *)&device->bootcount, (uint16_t)JSON_TYPE_UINT32, cinfo);
         char tempbuf1[100];
         char tempbuf2[100];
         sprintf(tempbuf1, "device_cpu_utilization_%03u", didx);
@@ -10398,7 +10398,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_cpu_load",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_gib",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_storage",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_cpu_boot_count",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cpu_bootcount",didx, UINT16_MAX, cinfo, state);
         break;
     case DeviceType::DISK:
         json_toggleentry("device_disk_name",didx, UINT16_MAX, cinfo, state);
@@ -11316,7 +11316,7 @@ const char *json_of_beacon(string &jstring, cosmosstruc *cinfo)
     {
         sprintf(tempstring, ",\"device_cpu_utc_%03d\",\"device_cpu_temp_%03d\"", i, i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_cpu_gib_%03d\",\"device_cpu_load_%03d\",\"device_cpu_boot_count_%03d\"",i,i,i);
+        sprintf(tempstring, ",\"device_cpu_gib_%03d\",\"device_cpu_load_%03d\",\"device_cpu_bootcount_%03d\"",i,i,i);
         result += tempstring;
     }
     result += "}";
@@ -11508,7 +11508,7 @@ string json_list_of_soh(cosmosstruc *cinfo)
     {
         sprintf(tempstring, ",\"device_cpu_utc_%03d\",\"device_cpu_temp_%03d\"", i, i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_cpu_gib_%03d\",\"device_cpu_load_%03d\",\"device_cpu_boot_count_%03d\"",i,i,i);
+        sprintf(tempstring, ",\"device_cpu_gib_%03d\",\"device_cpu_load_%03d\",\"device_cpu_bootcount_%03d\"",i,i,i);
         result += tempstring;
     }
 
@@ -11827,7 +11827,7 @@ string json_list_of_fullsoh(cosmosstruc *cinfo)
         result += tempstring;
         sprintf(tempstring, ",\"device_cpu_amp_%03d\",\"device_cpu_volt_%03d\",\"device_cpu_power_%03d\"", i, i, i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_cpu_gib_%03d\",\"device_cpu_load_%03d\",\"device_cpu_boot_count_%03d\"",i,i,i);
+        sprintf(tempstring, ",\"device_cpu_gib_%03d\",\"device_cpu_load_%03d\",\"device_cpu_bootcount_%03d\"",i,i,i);
         result += tempstring;
     }
 

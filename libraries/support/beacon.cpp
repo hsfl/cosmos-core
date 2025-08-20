@@ -69,7 +69,7 @@ int32_t Beacon::EncodeBinary(TypeId type, cosmosstruc* cinfo, vector<uint8_t> &d
             cpu2_beacons beacon;
             beacon.deci = cinfo->node.deci;
             beacon.uptime = cinfo->devspec.cpu[0].uptime;
-            beacon.bootcount = cinfo->devspec.cpu[0].boot_count;
+            beacon.bootcount = cinfo->devspec.cpu[0].bootcount;
             beacon.initialdate = utc2unixseconds(cinfo->node.utcstart) + .5;
             data.insert(data.begin(), (uint8_t*)&beacon, (uint8_t*)&beacon+sizeof(beacon));
         }
@@ -263,7 +263,7 @@ int32_t Beacon::EncodeBinary(TypeId type, cosmosstruc* cinfo, vector<uint8_t> &d
             for (uint16_t i=0; i<cpucount; ++i)
             {
                 beacon.cpu[i].uptime = cinfo->devspec.cpu[i].uptime;
-                beacon.cpu[i].bootcount = cinfo->devspec.cpu[i].boot_count;
+                beacon.cpu[i].bootcount = cinfo->devspec.cpu[i].bootcount;
                 beacon.cpu[i].mload = std::min(cinfo->devspec.cpu[i].load * 1000. + .5, 65535.);
                 beacon.cpu[i].mmemory = std::min(1000. * cinfo->devspec.cpu[i].gib + .5, 65535.);
                 beacon.cpu[i].mdisk = std::min(cinfo->devspec.cpu[i].storage * 1000. + .5, 65535.);
@@ -760,7 +760,7 @@ int32_t Beacon::Decode(vector<uint8_t> &data, cosmosstruc *cinfo)
                 double mjd = decisec2mjd(beacon.deci);
                 cinfo->devspec.cpu[0].utc = mjd;
                 cinfo->devspec.cpu[0].uptime = beacon.uptime;
-                cinfo->devspec.cpu[0].boot_count = beacon.bootcount;
+                cinfo->devspec.cpu[0].bootcount = beacon.bootcount;
                 cinfo->node.utcstart = unix2utc(beacon.initialdate);
             }
             break;
@@ -922,13 +922,13 @@ int32_t Beacon::Decode(vector<uint8_t> &data, cosmosstruc *cinfo)
                 }
                 cinfo->node.utcstart = unix2utc(beacon.initialdate);
                 double mjd = decisec2mjd(beacon.deci);
-                for (uint16_t i=0; i<(data.size()-9)/COSMOS_SIZEOF(cpu_beacon); ++i)
+                for (uint16_t i=0; i<cinfo->devspec.cpu.size(); ++i)
                 {
                     if (beacon.cpu[i].uptime > 0.)
                     {
                         cinfo->devspec.cpu[i].utc = mjd;
                         cinfo->devspec.cpu[i].uptime = beacon.cpu[i].uptime;
-                        cinfo->devspec.cpu[i].boot_count = beacon.cpu[i].bootcount;
+                        cinfo->devspec.cpu[i].bootcount = beacon.cpu[i].bootcount;
                         cinfo->devspec.cpu[i].load = beacon.cpu[i].mload / 1000.;
                         cinfo->devspec.cpu[i].gib = beacon.cpu[i].mmemory / 1000.;
                         cinfo->devspec.cpu[i].storage = beacon.cpu[i].mdisk / 1000.;
@@ -1102,7 +1102,7 @@ int32_t Beacon::Decode(vector<uint8_t> &data, cosmosstruc *cinfo)
                     return GENERAL_ERROR_BAD_SIZE;
                 }
                 double mjd = decisec2mjd(beacon.deci);
-                for (uint16_t i=0; i<(data.size()-5)/2; ++i)
+                for (uint16_t i=0; i<cinfo->devspec.tsen.size(); ++i)
                 {
                     if (beacon.ctemp[i])
                     {
@@ -1146,7 +1146,7 @@ int32_t Beacon::Decode(vector<uint8_t> &data, cosmosstruc *cinfo)
                     return GENERAL_ERROR_BAD_SIZE;
                 }
                 double mjd = decisec2mjd(beacon.deci);
-                for (uint16_t i=0; i<(data.size()-5)/COSMOS_SIZEOF(epsswch_beacon); ++i)
+                for (uint16_t i=0; i<cinfo->devspec.swch.size(); ++i)
                 {
                     cinfo->devspec.swch[i].utc = mjd;
                     cinfo->devspec.swch[i].volt = beacon.swch[i].mvolt / 1000.;
@@ -1432,7 +1432,7 @@ int32_t Beacon::EncodeJson(TypeId type, cosmosstruc *cinfo, string& Contents)
     {
         json_out_1d(Contents, "device_cpu_utc", 0, cinfo);
         json_out_1d(Contents, "device_cpu_uptime", 0, cinfo);
-        json_out_1d(Contents, "device_cpu_boot_count", 0, cinfo);
+        json_out_1d(Contents, "device_cpu_bootcount", 0, cinfo);
         json_out(Contents, "node_utcstart", cinfo);
     }
     break;
@@ -1513,9 +1513,8 @@ int32_t Beacon::EncodeJson(TypeId type, cosmosstruc *cinfo, string& Contents)
         for (uint16_t i=0; i<cinfo->devspec.cpu.size(); ++i)
         {
             json_out_1d(Contents, "device_cpu_utc", i, cinfo);
-            json_out_1d(Contents, "device_cpu_name", i, cinfo);
             json_out_1d(Contents, "device_cpu_uptime", i, cinfo);
-            json_out_1d(Contents, "device_cpu_boot_count", i, cinfo);
+            json_out_1d(Contents, "device_cpu_bootcount", i, cinfo);
             json_out_1d(Contents, "device_cpu_load", i, cinfo);
             json_out_1d(Contents, "device_cpu_gib", i, cinfo);
             json_out_1d(Contents, "device_cpu_maxgib", i, cinfo);
@@ -1529,7 +1528,6 @@ int32_t Beacon::EncodeJson(TypeId type, cosmosstruc *cinfo, string& Contents)
         for (uint16_t i=0; i<cinfo->devspec.telem.size(); ++i)
         {
             json_out_1d(Contents, "device_telem_utc", i, cinfo);
-            json_out_1d(Contents, "device_telem_name", i, cinfo);
             switch (cinfo->devspec.telem[i].vtype)
             {
             case JSON_TYPE_UINT8:
@@ -1641,7 +1639,6 @@ int32_t Beacon::EncodeJson(TypeId type, cosmosstruc *cinfo, string& Contents)
         for (uint16_t i=0; i<cinfo->devspec.mtr.size(); ++i)
         {
             json_out_1d(Contents, "device_mtr_utc", i, cinfo);
-            json_out_1d(Contents, "device_mtr_name", i, cinfo);
             json_out_1d(Contents, "device_mtr_mom", i, cinfo);
             json_out_1d(Contents, "device_mtr_align", i, cinfo);
         }
@@ -1652,7 +1649,6 @@ int32_t Beacon::EncodeJson(TypeId type, cosmosstruc *cinfo, string& Contents)
         for (uint16_t i=0; i<cinfo->devspec.gyro.size(); ++i)
         {
             json_out_1d(Contents, "device_gyro_utc", i, cinfo);
-            json_out_1d(Contents, "device_gyro_name", i, cinfo);
             json_out_1d(Contents, "device_gyro_omega", i, cinfo);
         }
     }
@@ -1662,7 +1658,6 @@ int32_t Beacon::EncodeJson(TypeId type, cosmosstruc *cinfo, string& Contents)
         for (uint16_t i=0; i<cinfo->devspec.rw.size(); ++i)
         {
             json_out_1d(Contents, "device_rw_utc", i, cinfo);
-            json_out_1d(Contents, "device_rw_name", i, cinfo);
             json_out_1d(Contents, "device_rw_amp", i, cinfo);
             json_out_1d(Contents, "device_rw_omg", i, cinfo);
             json_out_1d(Contents, "device_rw_romg", i, cinfo);

@@ -2202,8 +2202,8 @@ namespace Cosmos
                     add_name(basename+".maxload", &devspec.cpu[didx].maxload, "float");
                     add_name(basename+".maxgib", &devspec.cpu[didx].maxgib, "float");
                     add_name(basename+".gib", &devspec.cpu[didx].gib, "float");
-                    add_name(basename+".boot_count", &devspec.cpu[didx].boot_count, "uint32_t");
-                    add_name(basename+".storage", &devspec.cpu[didx].boot_count, "float");
+                    add_name(basename+".boot_count", &devspec.cpu[didx].bootcount, "uint32_t");
+                    add_name(basename+".storage", &devspec.cpu[didx].bootcount, "float");
                     break;
                 case DeviceType::DISK:
                     basename = "devspec.disk[" + std::to_string(didx) + "]";

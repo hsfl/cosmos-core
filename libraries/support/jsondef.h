@@ -3304,7 +3304,7 @@ union as a ::devicestruc.
             float gib = 0.f;
 
             //! Number of reboots
-            uint32_t boot_count = 0;
+            uint32_t bootcount = 0;
 
             //! Root storage
             float storage = 0.f;
@@ -3321,7 +3321,7 @@ union as a ::devicestruc.
                     { "maxgib" , maxgib },
                     { "gib"	, gib },
                     { "storage"	, storage },
-                    { "boot_count", static_cast<int>(boot_count) },
+                    { "boot_count", static_cast<int>(bootcount) },
                 };
             }
 
@@ -3340,7 +3340,7 @@ union as a ::devicestruc.
                     if(!parsed["maxgib"].is_null()) { maxgib = parsed["maxgib"].number_value(); }
                     if(!parsed["gib"].is_null()) { gib = parsed["gib"].number_value(); }
                     if(!parsed["storage"].is_null()) { storage = parsed["storage"].number_value(); }
-                    if(!parsed["boot_count"].is_null()) { boot_count = parsed["boot_count"].long_value(); }
+                    if(!parsed["boot_count"].is_null()) { bootcount = parsed["boot_count"].long_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }

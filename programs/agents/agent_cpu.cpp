@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
     sohstring += ",\"device_cpu_maxload_00" + std::to_string(cpu_didx) + "\"";
     sohstring += ",\"device_cpu_load_00" + std::to_string(cpu_didx) + "\"";
     sohstring += ",\"device_cpu_uptime_00" + std::to_string(cpu_didx) + "\"";
-    sohstring += ",\"device_cpu_boot_count_00" + std::to_string(cpu_didx) + "\"";
+    sohstring += ",\"device_cpu_bootcount_00" + std::to_string(cpu_didx) + "\"";
 
     //    static const double GiB = 1024. * 1024. * 1024.;
 
@@ -245,7 +245,7 @@ int main(int argc, char *argv[])
         if (agent->cinfo->devspec.cpu_cnt)
         {
             agent->cinfo->devspec.cpu[cpu_didx].uptime = deviceCpu.getUptime();
-            agent->cinfo->devspec.cpu[cpu_didx].boot_count = deviceCpu.getBootCount();
+            agent->cinfo->devspec.cpu[cpu_didx].bootcount = deviceCpu.getBootCount();
             agent->cinfo->devspec.cpu[cpu_didx].load = deviceCpu.getLoad();
             agent->cinfo->devspec.cpu[cpu_didx].gib = deviceCpu.getVirtualMemoryUsed()/1073741824.;
             agent->cinfo->devspec.cpu[cpu_didx].maxgib = deviceCpu.getVirtualMemoryTotal()/1073741824.;
@@ -507,7 +507,7 @@ int32_t request_get_operation(string &request, string &response, Agent *agent)
     response.clear();
     response += to_label("MJD", agent->cinfo->devspec.cpu[cpu_didx].utc, 0, true);
     response += " " + to_label("Uptime", agent->cinfo->devspec.cpu[cpu_didx].uptime);
-    response += " " + to_label("Bootcount", agent->cinfo->devspec.cpu[cpu_didx].boot_count);
+    response += " " + to_label("Bootcount", agent->cinfo->devspec.cpu[cpu_didx].bootcount);
     response += " " + to_label("Load", agent->cinfo->devspec.cpu[cpu_didx].load, 2);
     response += " " + to_label("MemoryGiB", agent->cinfo->devspec.cpu[cpu_didx].gib, 3);
     response += " " + to_label("MemPercent", agent->cinfo->devspec.cpu[cpu_didx].gib/agent->cinfo->devspec.cpu[cpu_didx].maxgib, 1);

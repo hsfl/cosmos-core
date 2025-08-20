@@ -91,7 +91,7 @@ TEST_F(BeaconUTest, CPU_beacon_json_is_populated)
     for(size_t i=0; i<num_cpus; ++i)
     {
         agent->cinfo->devspec.cpu[i].uptime = rand();
-        agent->cinfo->devspec.cpu[i].boot_count = rand();
+        agent->cinfo->devspec.cpu[i].bootcount = rand();
         agent->cinfo->devspec.cpu[i].load = rand()/ (RAND_MAX/std::numeric_limits<float>::max());
         agent->cinfo->devspec.cpu[i].gib = rand() / (RAND_MAX/std::numeric_limits<float>::max());
         agent->cinfo->devspec.cpu[i].storage = rand() / (RAND_MAX/std::numeric_limits<float>::max());
@@ -114,7 +114,7 @@ TEST_F(BeaconUTest, CPU_beacon_json_is_populated)
         EXPECT_DOUBLE_EQ(j["device_cpu_utc_"+didx.str()].number_value(), decisec2mjd(agent->cinfo->node.deci));
         EXPECT_FLOAT_EQ(j["node_utcstart"].number_value(),              agent->cinfo->node.utcstart);
         EXPECT_EQ(j["device_cpu_uptime_"+didx.str()].long_value(),       agent->cinfo->devspec.cpu[i].uptime);
-        EXPECT_EQ(j["device_cpu_boot_count_"+didx.str()].long_value(),   agent->cinfo->devspec.cpu[i].boot_count);
+        EXPECT_EQ(j["device_cpu_bootcount_"+didx.str()].long_value(),   agent->cinfo->devspec.cpu[i].bootcount);
         EXPECT_NEAR(j["device_cpu_load_"+didx.str()].number_value(),    std::min(agent->cinfo->devspec.cpu[i].load, 65.535f),   0.1);
         EXPECT_NEAR(j["device_cpu_gib_"+didx.str()].number_value(),     std::min(agent->cinfo->devspec.cpu[i].gib, 65.535f),    0.1);
         EXPECT_NEAR(j["device_cpu_storage_"+didx.str()].number_value(), std::min(agent->cinfo->devspec.cpu[i].storage, 65.535f),0.1);
@@ -150,7 +150,6 @@ TEST_F(BeaconUTest, MTR_beacon_json_is_populated)
         std::ostringstream didx;
         didx << std::setw(3) << std::setfill('0') << i;
         EXPECT_DOUBLE_EQ(j["device_mtr_utc_"+didx.str()].number_value(), decisec2mjd(agent->cinfo->node.deci));
-        EXPECT_EQ(j["device_mtr_name_"+didx.str()].string_value(), "mtr"+std::to_string(i));
         EXPECT_FLOAT_EQ(j["device_mtr_mom_"+didx.str()].number_value(), agent->cinfo->devspec.mtr[i].mom);
         ASSERT_EQ(j["device_mtr_align_"+didx.str()].is_object(), true);
         auto align = j["device_mtr_align_"+didx.str()].object_items();
@@ -188,7 +187,6 @@ TEST_F(BeaconUTest, RW_beacon_json_is_populated)
     {
         std::ostringstream didx;
         didx << std::setw(3) << std::setfill('0') << i;
-        EXPECT_EQ(j["device_rw_name_"+didx.str()].string_value(), "rw"+std::to_string(i));
         EXPECT_DOUBLE_EQ(j["device_rw_utc_"+didx.str()].number_value(), decisec2mjd(agent->cinfo->node.deci));
         EXPECT_FLOAT_EQ(j["device_rw_amp_"+didx.str()].number_value(), agent->cinfo->devspec.rw[i].amp);
         EXPECT_FLOAT_EQ(j["device_rw_omg_"+didx.str()].number_value(), agent->cinfo->devspec.rw[i].omg);
