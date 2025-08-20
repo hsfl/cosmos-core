@@ -2320,10 +2320,20 @@ bool data_isdir(string path, bool create_flag)
     char *rpath = realpath(path.c_str(), nullptr);
     if (!create_flag)
     {
-        bool exists = (rpath != nullptr);
+        if (rpath != nullptr)
+        {
+            path = rpath;
+        }
         free(rpath);
         rpath = nullptr;
-        return exists;
+        if (!stat(path.c_str(), &st) && S_ISDIR(st.st_mode))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
     else
     {
