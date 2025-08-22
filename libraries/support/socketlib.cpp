@@ -1141,6 +1141,7 @@ int32_t socket_recvmmsg(socket_channel &channel, vector<uint8_t> &buffer, size_t
     static struct mmsghdr msgvec[50];
     static struct iovec iov[50];
     static vector<uint8_t> buffers[50];
+    static struct sockaddr_in addrs[50] = {};
 
     if (maxlen != cmaxlen)
     {
@@ -1152,9 +1153,12 @@ int32_t socket_recvmmsg(socket_channel &channel, vector<uint8_t> &buffer, size_t
             iov[i].iov_base = buffers[i].data();
             iov[i].iov_len = maxlen;
             msgvec[i].msg_hdr.msg_iov = &iov[i];
+            msgvec[i].msg_hdr.msg_iovlen = 1;
             msgvec[i].msg_hdr.msg_control = nullptr;
             msgvec[i].msg_hdr.msg_controllen = 0;
             msgvec[i].msg_hdr.msg_flags = 0;
+            msgvec[i].msg_hdr.msg_name = &addrs[i];
+            msgvec[i].msg_hdr.msg_namelen = sizeof(struct sockaddr_in);
         }
     }
 
