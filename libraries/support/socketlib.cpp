@@ -427,6 +427,8 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
         struct timeval tv;
         tv.tv_sec = usectimeo/1000000;
         tv.tv_usec = usectimeo%1000000;
+        channel.tv.tv_sec = tv.tv_sec;
+        channel.tv.tv_nsec = (tv.tv_usec) * 1000;
         iretn = setsockopt(channel.cudp,SOL_SOCKET,SO_RCVTIMEO,(char*)&tv,sizeof(tv));
 #endif
     }
@@ -1126,6 +1128,65 @@ int32_t socket_recv(socket_channel &channel, vector<uint8_t> &buffer, size_t max
             nbytes = -errno;
         }
         secondsleep(channel.timeout-et.split());
+    }
+    return nbytes;
+}
+
+int32_t socket_recvmmsg(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags)
+{
+    static size_t cmaxlen = 0;
+    int32_t nbytes;
+    static int32_t nmsg = 0;
+    static int32_t cmsg = 0;
+    static struct mmsghdr msgvec[50];
+    static struct iovec iov[50];
+    static vector<uint8_t> buffers[50];
+
+    if (maxlen != cmaxlen)
+    {
+        cmaxlen = maxlen;
+        buffer.resize(maxlen);
+        for (uint16_t i=0; i<50; ++i)
+        {
+            buffers[i].resize(maxlen);
+            iov[i].iov_base = buffers[i].data();
+            iov[i].iov_len = maxlen;
+            msgvec[i].msg_hdr.msg_iov = &iov[i];
+            msgvec[i].msg_hdr.msg_control = nullptr;
+            msgvec[i].msg_hdr.msg_controllen = 0;
+            msgvec[i].msg_hdr.msg_flags = 0;
+        }
+    }
+
+    ElapsedTime et;
+    if (cmsg < nmsg)
+    {
+        memcpy(buffer.data(), buffers[cmsg].data(), msgvec[cmsg].msg_len);
+        nbytes = msgvec[cmsg].msg_len;
+        ++cmsg;
+    }
+    else
+    {
+        cmsg = 0;
+        if ((nmsg = recvmmsg(channel.cudp, msgvec, 50, flags, &channel.tv)))
+        {
+            memcpy(buffer.data(), buffers[cmsg].data(), msgvec[cmsg].msg_len);
+            nbytes = msgvec[cmsg].msg_len;
+            ++cmsg;
+        }
+        else
+        {
+            buffer.clear();
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+            {
+                nbytes = 0;
+            }
+            else
+            {
+                nbytes = -errno;
+            }
+            secondsleep(channel.timeout-et.split());
+        }
     }
     return nbytes;
 }

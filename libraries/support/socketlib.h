@@ -142,6 +142,7 @@ struct socket_channel
     uint16_t mtu = 0;
     // Time out
     double timeout;
+    struct timespec tv;
 };
 
 typedef vector<socket_channel> socket_bus;
@@ -169,6 +170,7 @@ int32_t socket_poll(socket_bus &channel, vector<uint8_t> &buffer, size_t maxlen,
 int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags=0);
 int32_t socket_recvfrom(socket_channel &channel,string &buffer, size_t maxlen, int flags=0);
 int32_t socket_recv(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags=0);
+int32_t socket_recvmmsg(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags=0);
 int32_t socket_post(socket_bus &channel, const string &buffer, int flags=0);
 int32_t socket_post(socket_bus &channel, const vector<uint8_t> &buffer, int flags=0);
 int32_t socket_post(socket_channel &channel, const string &buffer, int flags=0);
