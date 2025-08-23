@@ -939,7 +939,9 @@ string data_name(double mjd, string type, string node, string agent, string extr
     if (mjd != 0.)
     {
         mjd2ymd(mjd,year,month,day,jday);
-        name += ("_" + to_unsigned(decisec(mjd), 10, true));
+        timeval tv = utc2unix(mjd);
+        uint64_t unix_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+        name += ("_" + std::to_string(unix_ms));
     }
     if (!node.empty())
     {
