@@ -1172,11 +1172,14 @@ int32_t socket_recvmmsg(socket_channel &channel, vector<uint8_t> &buffer, size_t
     else
     {
         cmsg = 0;
-        if ((nmsg = recvmmsg(channel.cudp, msgvec, 250, flags, &channel.tv)))
+        if ((nmsg = recvmmsg(channel.cudp, msgvec, 250, flags, &channel.tv)) > -1)
         {
-            memcpy(buffer.data(), buffers[cmsg].data(), msgvec[cmsg].msg_len);
-            nbytes = msgvec[cmsg].msg_len;
-            ++cmsg;
+            if (nmsg)
+            {
+                memcpy(buffer.data(), buffers[cmsg].data(), msgvec[cmsg].msg_len);
+                nbytes = msgvec[cmsg].msg_len;
+                ++cmsg;
+            }
         }
         else
         {
