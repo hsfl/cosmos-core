@@ -43,17 +43,13 @@
 #include "support/stringlib.h"
 #include "support/jsonlib.h"
 #include "agentclass.h"
+#include "task.h"
 #include "event.h"
 
 namespace Cosmos
 {
     namespace Support
     {
-        namespace Command
-        {
-            int32_t Shell(string command_line="", string outpath="", string inpath="", string errpath="");
-        }
-
         //! Class to manage information about a queue of Events
         class CommandQueue
         {
@@ -63,7 +59,7 @@ namespace Cosmos
             /**	An std::queue of members of the Event class that have run	*/
             std::deque<Event> events;
             /** A vector of all threads spawned to run events  */
-            vector<thread> event_threads;
+            vector<Task::Running> event_threads;
             /** A boolean indicator that the queue has changed	*/
             bool queue_changed = false;
 
@@ -72,9 +68,6 @@ namespace Cosmos
         public:
             //! Ensure all threads are joined before destruction.
             ~CommandQueue();
-
-            //! Join all threads spawn and empty our vector.
-            size_t join_event_threads();
 
             //!	Retrieve the size of the queue
             /*!
@@ -158,11 +151,12 @@ namespace Cosmos
             execution (utcexec) is set, the flag EVENT_FLAG_ACTUAL is set to true,
             and this updated command information is logged to the OUTPUT directory.
 
+                \param  agent Pointer to Agent object (for task addition)
                 \param	cmd	Reference to event to run
                 \param	nodename	Name of node
                 \param	logdate_exec	Time of execution (for logging purposes)
             */
-            int32_t run_command(Event &cmd, string nodename, double logdate_exec);
+            int32_t run_command(Agent* agent, Event &cmd, string nodename, double logdate_exec);
 
             //!	Traverse the entire queue of Events, clearing those that have finished.
             /*!

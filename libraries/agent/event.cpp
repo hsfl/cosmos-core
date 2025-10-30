@@ -39,6 +39,7 @@ namespace Cosmos {
 Event::Event() :
     mjd(0),
 	utcexec(0),
+    timeout(30.),
 	name(""),
 	type(0),
 	flag(0),
@@ -63,6 +64,7 @@ string Event::generator(string name,
     this->condition = condition;
     this->flag = flag;
     this->utcexec = 0.;
+    this->timeout = 30.;
     this->type = type;
     event_string = "";
     event_string = this->get_event_string();
@@ -86,6 +88,7 @@ string Event::generator(eventstruc event) {
     {
         jobj.addElement("utcexec", JSONValue(cmd.utcexec));
     }
+    jobj.addElement("timeout", JSONValue(cmd.timeout));
     jobj.addElement("name", JSONValue(cmd.name));
     jobj.addElement("type", JSONValue(cmd.type));
     jobj.addElement("flag", JSONValue(cmd.flag));
@@ -123,6 +126,7 @@ void Event::set_command(string jstring)
 
     mjd = dummy.utc;
     utcexec = dummy.utcexec;
+    timeout = dummy.timeout;
     name = dummy.name;
     type = dummy.type;
     flag = dummy.flag;
@@ -138,6 +142,7 @@ string Event::get_event_string()
     {
         jobj.addElement("utcexec", JSONValue(utcexec));
     }
+    jobj.addElement("timeout", JSONValue(timeout));
     jobj.addElement("name", JSONValue(name));
     jobj.addElement("type", JSONValue(type));
     jobj.addElement("flag", JSONValue(flag));

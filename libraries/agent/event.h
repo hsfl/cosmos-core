@@ -65,6 +65,8 @@ namespace Cosmos
             double		mjd;
             /** %Event execution time (Coordinated Universal Time) -- JIMNOTE: but appears to be using MJD in the code? should it be named mjdexec? */
             double		utcexec=0.;
+            /** %Event timeout (seconds) */
+            double timeout=30.;
             /**	%Event name */
             string		name;
             /** %Event type */

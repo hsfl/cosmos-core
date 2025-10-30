@@ -494,7 +494,7 @@ namespace Cosmos
 //            int32_t channel_disable(string name);
 //            int32_t channel_disable(uint8_t number);
 
-            int32_t task_add(string command, string source="");
+            int32_t task_add(string command, string source="", float timeout=60.);
             int32_t task_del(uint32_t deci);
             int32_t task_iretn(uint16_t number);
             uint32_t task_deci(uint16_t number);
