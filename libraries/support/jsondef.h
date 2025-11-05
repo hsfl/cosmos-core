@@ -1877,6 +1877,8 @@ class sim_param	{
             double utc = 0.; //TODO: replace for mjd
             //! Time event was executed.
             double utcexec = 0.;
+            //! Time until event times out (seconds)
+            double timeout = 30.;
             //! Node for event
             //            char node[COSMOS_MAX_NAME+1] = "";
             string node;
@@ -1930,6 +1932,7 @@ class sim_param	{
                 return json11::Json::object {
                     { "utc"   , utc },
                     { "utcexec" , utcexec },
+                    { "timeout" , timeout },
                     { "node"  , node },
                     { "name"  , name },
                     { "user"  , user },
@@ -1963,6 +1966,7 @@ class sim_param	{
                 if(error.empty()) {
                     if(!p["utc"].is_null()) { utc = p["utc"].number_value(); }
                     if(!p["utcexec"].is_null()) { utcexec = p["utcexec"].number_value(); }
+                    if(!p["timeout"].is_null()) { timeout = p["timeout"].number_value(); }
                     if(!p["node"].is_null()) { node = p["node"].string_value(); }
                     if(!p["name"].is_null()) { name = p["name"].string_value(); }
                     if(!p["user"].is_null()) { user = p["user"].string_value(); }

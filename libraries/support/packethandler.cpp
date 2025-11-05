@@ -744,8 +744,13 @@ namespace Cosmos {
         int32_t PacketHandler::ExternalTask(PacketComm& packet, string &response, Agent* agent)
         {
             // Run command in a thread, return response
+            // Format:
+            // Bytes 0-3: unused?
+            // Bytes 4-7: float timeout
+            // Bytes 8-end: command string
             string source = lookup_node_id_name(agent->cinfo, packet.header.nodeorig);
-            int32_t iretn = agent->task_add(string(packet.data.begin()+4, packet.data.end()), source);
+            float timeout = floatfrom(&packet.data[4], ByteOrder::LITTLEENDIAN);
+            int32_t iretn = agent->task_add(string(packet.data.begin()+8, packet.data.end()), source, timeout);
             response += "Running: " + agent->task_command(iretn) + " in " + agent->task_path(iretn) + " #" + to_unsigned(agent->task_size()) + "\n";
             packet.response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
             return iretn;

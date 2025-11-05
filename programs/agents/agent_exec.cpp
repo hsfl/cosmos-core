@@ -466,7 +466,6 @@ int main(int argc, char *argv[])
                 cmd_queue.load_commands(incoming_dir);
             }
         }
-        cmd_queue.join_event_threads();
         cmd_queue.run_commands(agent, agent->getNode(), logdate_exec);
 
         if (savet.split() > 60.)
@@ -907,7 +906,7 @@ void collect_data_loop() noexcept
 // Moving exec and soh logs cannot occur concurrently.
 void move_and_compress_exec () {
     exec_mutex.lock();
-    cmd_queue.join_event_threads();
+    // cmd_queue.join_event_threads();
     log_move_agent_temp(agent->getNode(), "exec");
     exec_mutex.unlock();
 }
