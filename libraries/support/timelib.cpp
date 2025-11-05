@@ -690,8 +690,8 @@ namespace Cosmos {
 
         //! Create DateTime from MJD
         //! Represent the provided UTC in the requested form:
-        //! - 0: YYYYDDDSSSSS
-        //! - 1: YYYYDDDHHMMSS
+        //! - 0: YYYYJJJSSSSS
+        //! - 1: YYYYMMDDHHMMSS
         //! - 2: Unix time
         //! \param utc UTC time in Modified Julian Day format
         //! \param style Style of output
@@ -704,14 +704,18 @@ namespace Cosmos {
                 mjd = currentmjd();
             }
             date = mjd2cal(mjd);
-            string datetime = to_unsigned(date.year, 4, true);
-            datetime += to_unsigned(date.doy, 3, true);
+            string datetime;
             switch (style)
             {
             case 0:
+                datetime = to_unsigned(date.year, 4, true);
+                datetime += to_unsigned(date.doy, 3, true);
                 datetime += to_unsigned(date.hour*3600 + date.minute*60 + date.second, 5, true);
                 break;
             case 1:
+                datetime = to_unsigned(date.year, 4, true);
+                datetime += to_unsigned(date.month, 2, true);
+                datetime += to_unsigned(date.dom, 2, true);
                 datetime += to_unsigned(date.hour, 2, true);
                 datetime += to_unsigned(date.minute, 2, true);
                 datetime += to_unsigned(date.second, 2, true);
