@@ -536,9 +536,14 @@ struct JsonParser final {
      */
     char get_next_token() {
         consume_garbage();
-        if (failed) return static_cast<char>(0);
+        if (failed)
+        {
+            return static_cast<char>(0);
+        }
         if (i == str.size())
+        {
             return fail("unexpected end of input", static_cast<char>(0));
+        }
 
         return str[i++];
     }
