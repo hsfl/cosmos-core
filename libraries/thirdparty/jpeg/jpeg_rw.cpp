@@ -575,7 +575,7 @@ read_JPEG_file (const char * filename, vector < vector < uint8_t > > &image_buff
  * temporary files are deleted if the program is interrupted.  See libjpeg.doc.
  */
 /*
-int main(){
+int main(int argc, char *argv[]){
 
     //std::cout << "read JPEG" << std::endl;
     printf("read jpeg \n");
