@@ -1,5 +1,5 @@
-#ifndef ENVI_H
-#define ENVI_H
+#ifndef _ENVI_H
+#define _ENVI_H
 
 #include "support/cosmos-errno.h"
 
