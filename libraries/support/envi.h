@@ -1,3 +1,6 @@
+#ifndef ENVI_H
+#define ENVI_H
+
 #include "support/cosmos-errno.h"
 
 #define BSQ 1
@@ -13,7 +16,7 @@
 #define BO_INTEL 0
 #define BO_NETWORK 1
 
-typedef struct envi_hdr
+struct envi_hdr
 {
     size_t planes;
     size_t rows;
@@ -38,7 +41,7 @@ typedef struct envi_hdr
     string hdrname;
     string dataname;
     uint8_t datasize = 0;
-} envi_hdr;
+};
 
 
 int32_t write_envi_hdr(envi_hdr &hdr);
@@ -53,3 +56,5 @@ int32_t read_envi_hdr(string file, envi_hdr &hdr);
 int32_t read_envi_data(string filename, envi_hdr &hdr, vector<vector<vector<double>>> &data);
 int32_t read_envi_data(envi_hdr hdr, vector<vector<double>> &data, size_t plane);
 int32_t read_envi_data(envi_hdr hdr, vector<vector<double>> &data);
+
+#endif // ENVI_H
