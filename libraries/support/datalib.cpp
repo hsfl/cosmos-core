@@ -39,6 +39,7 @@
 #include "support/stringlib.h"
 #include <algorithm>
 #include <sys/stat.h>
+#include <glob.h>
 #ifdef _WIN32
 #include <stdlib.h>
 #define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
@@ -2467,23 +2468,31 @@ bool data_isfile(string path, off_t size)
         return false;
     }
 
-    char *rpath = realpath(path.c_str(), nullptr);
-    if (rpath == nullptr)
-    {
-        return false;
-    }
-    path = rpath;
-    free(rpath);
-
-    if (!stat(path.c_str(), &st) && S_ISREG(st.st_mode) && (!size || (size == st.st_size)))
-    {
-        return true;
-    }
-    else
+    glob_t glob_result;
+    if (glob(path.c_str(), 0, NULL, &glob_result) != 0)
     {
         return false;
     }
 
+    for (size_t i=0; i<glob_result.gl_pathc; ++i)
+    {
+
+        char *rpath = realpath(glob_result.gl_pathv[i], nullptr);
+        if (rpath == nullptr)
+        {
+            continue;
+        }
+        path = rpath;
+        free(rpath);
+
+        if (!stat(path.c_str(), &st) && S_ISREG(st.st_mode) && (!size || (size == st.st_size)))
+        {
+            globfree(&glob_result);
+            return true;
+        }
+    }
+    globfree(&glob_result);
+    return false;
 }
 
 double data_ctime(string path)
