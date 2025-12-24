@@ -4,6 +4,22 @@
 
 int main(int argc, char **argv)
 {
+    const string HYTI2VERSION = "1.01";
+    const string USAGE = "check_check [filename]";
+    if (argc == 2)
+    {
+        if (!strcmp(argv[1], "--version"))
+        {
+            printf("Version: %s\n", HYTI2VERSION.c_str());
+            exit (1);
+        }
+        if (!strcmp(argv[1], "--help"))
+        {
+            printf("Usage: %s\n", USAGE.c_str());
+            exit (1);
+        }
+    }
+
     Log::Checker *check;
     json11::Json input;
     std::istream *dis;
