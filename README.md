@@ -67,6 +67,9 @@ cosmos-core/
 └── install/        # Installation scripts and helpers
 ```
 
+For a more detailed description of the repository structure see 
+[REPO_STRUCTURE.md](https://hsfl.github.io/cosmos-core/REPO_STRUCTURE.md)
+
 ## Released Versions
 
 For more details see [VERSIONS.md](https://hsfl.github.io/cosmos-core/VERSIONS.md)
