@@ -104,6 +104,8 @@ enum class NetworkType : std::uint16_t
 
 #define SOCKET_BUFFER_LENGTH 512  //Max length of buffer
 
+constexpr char SOCKET_LOOPBACK[] = "127.0.0.1";
+
 //! @}
 
 //! \ingroup socketlib
