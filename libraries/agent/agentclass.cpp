@@ -2172,22 +2172,43 @@ int32_t Agent::req_command(string &request, string &response, Agent *agent)
     case PacketComm::TypeId::CommandObcExternalCommand:
     case PacketComm::TypeId::CommandObcExternalTask:
     {
+        // Run command in a thread, return response
+        // Format:
+        // <float timeout> <string command>
         string command = "uptime";
-        if (parms.size() > 0)
+        if (parms.size() < 2)
         {
-            command = parms[0];
-            if (parms.size() > 1)
+            response = "Invalid arguments. Expected: <float timeout> <string command>";
+            return response.size();
+        }
+        float timeout;
+        try
+        {
+            timeout = std::stof(parms[0]);
+        }
+        catch (const std::invalid_argument& e)
+        {
+            response = "Error converting '" + parms[0] + "': Invalid argument - " + e.what();
+            return response.size();
+        }
+        catch (const std::out_of_range& e)
+        {
+            response = "Error converting '" + parms[0] + "': Out of range - " + e.what();
+            return response.size();
+        }
+        command = parms[1];
+        if (parms.size() > 1)
+        {
+            for (uint16_t i=2; i<parms.size(); ++i)
             {
-                for (uint16_t i=1; i<parms.size(); ++i)
-                {
-                    command += " ";
-                    command += parms[i];
-                }
+                command += " ";
+                command += parms[i];
             }
         }
-        packet.data.resize(4);
+        packet.data.resize(4+4);
         uint32_t centi = centisec();
         uint32to(centi, &packet.data[0], ByteOrder::LITTLEENDIAN);
+        floatto(timeout, &packet.data[4], ByteOrder::LITTLEENDIAN);
         packet.data.insert(packet.data.end(), command.begin(), command.end());
         response += " " + to_unsigned(centi) + " " + command;
     }
@@ -5215,9 +5236,9 @@ int32_t Agent::channel_maximum(uint8_t number)
     return channels.channel[number].maximum;
 }
 
-int32_t Agent::task_add(string command, string source)
+int32_t Agent::task_add(string command, string source, float timeout)
 {
-    return tasks.Add(command, source);
+    return tasks.Add(command, source, timeout);
 }
 
 int32_t Agent::task_del(uint32_t deci)

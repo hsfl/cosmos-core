@@ -58,7 +58,7 @@ namespace Cosmos
             ~Task();
             void Start();
             void Runner();
-            int32_t Add(string command, string node="");
+            int32_t Add(string command, string node="", float timeout=60.);
             int32_t Del(uint32_t deci);
             int32_t Iretn(uint16_t number);
             uint32_t Deci(uint16_t number);
@@ -74,6 +74,7 @@ namespace Cosmos
                 double startmjd = 0.;
                 uint8_t state = 0;
                 string command = "";
+                float timeout = 60.;
 //                thread mythread;
                 int32_t iretn = 0;
                 string path = "";
