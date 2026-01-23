@@ -303,12 +303,16 @@ namespace Cosmos {
                 for (filestruc file : data_list_files(txq[dest_node_idx].node_name, "outgoing"))
                 {
                     // dest_node/outgoing/dest_agents
-                    if (file.type == "directory" && !specific_directory.empty())
+                    if (file.type != "directory")
+                    {
+                        continue;
+                    }
+                    if (!specific_directory.empty() && file.name == specific_directory)
                     {
                         // If a specific directory is specified, only scan that directory
                         data_list_files(txq[dest_node_idx].node_name, "outgoing", file.name, file_names);
                     }
-                    else if (file.type == "directory" && specific_directory.empty())
+                    else if (specific_directory.empty())
                     {
                         // Otherwise scan all directories in outgoing
                         data_list_files(txq[dest_node_idx].node_name, "outgoing", file.name, file_names, files_to_scan_per_dir);
