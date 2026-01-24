@@ -833,7 +833,7 @@ namespace Cosmos {
                 tp.chunk_end = tx_out.file_size - 1;
                 tx_out.file_info.push_back(tp);
 
-                // write_meta(tx_out, 0.);
+                write_meta(tx_out, 0.);
 
                 iretn = outgoing_tx_add(tx_out, dest_node);
                 return iretn;
@@ -1104,7 +1104,7 @@ namespace Cosmos {
                 // This sections runs, for example, after a read_meta of a previous run where all data was already sent,
                 // or if all file_info entries were sent.
                 txq[dest_node_idx].outgoing.progress[tx_id].sentdata = true;
-                // write_meta(txq[dest_node_idx].outgoing.progress[tx_id], 0.);
+                write_meta(txq[dest_node_idx].outgoing.progress[tx_id], 0.);
             }
             // Grab next chunk of file's data and push DATA packet
             else
@@ -1145,7 +1145,7 @@ namespace Cosmos {
                         if (txq[dest_node_idx].outgoing.progress[tx_id].total_bytes == 0)
                         {
                             txq[dest_node_idx].outgoing.progress[tx_id].sentdata = true;
-                            // write_meta(txq[dest_node_idx].outgoing.progress[tx_id], 0.);
+                            write_meta(txq[dest_node_idx].outgoing.progress[tx_id], 0.);
                             break;
                         }
                     }
@@ -1194,8 +1194,8 @@ namespace Cosmos {
                         txq[dest_node_idx].outgoing.progress[tx_id].complete = true;
                         break;
                     }
-                    // write_meta(txq[dest_node_idx].outgoing.progress[tx_id]);
                 }
+                write_meta(txq[dest_node_idx].outgoing.progress[tx_id]);
             }
             return SendRetVal::SUCCESS;
         }
@@ -1739,8 +1739,6 @@ namespace Cosmos {
                 {
                     fseek(txq[orig_node_idx].incoming.progress[tx_id].fp, tp.chunk_start, SEEK_SET);
                     fwrite(data.chunk.data(), data.byte_count, 1, txq[orig_node_idx].incoming.progress[tx_id].fp);
-                    // Write latest meta data to disk
-                    // write_meta(txq[orig_node_idx].incoming.progress[tx_id]);
                     if (debug_log != nullptr)
                     {
                         // Leave this commented out since there are a lot of DATA packets flowing
@@ -1938,12 +1936,19 @@ namespace Cosmos {
                     {
                         break;
                     }
+                    bool has_start = start_end_signifier & 0x1;
+                    if (has_start)
+                    {
+                        // If this has the start signifier, then clear out the current file_info list first
+                        // so that the list of chunks to sent out is entirely overwritten by the incoming
+                        // REQDATA packet(s).
+                        txq[orig_node_idx].outgoing.progress[tx_id].file_info.clear();
+                        txq[orig_node_idx].outgoing.progress[tx_id].total_bytes = 0;
+                    }
+
                     // tx_id now points to the valid entry to which we should add the data
                     // Add this chunk to the queue
                     bool updated = add_chunks(txq[orig_node_idx].outgoing.progress[tx_id], reqdata.holes, start_end_signifier);
-                    
-                    // Recalculate chunks
-                    merge_chunks_overlap(txq[orig_node_idx].outgoing.progress[tx_id]);
 
                     // Save meta to disk
                     if (updated)
