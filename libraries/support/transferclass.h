@@ -68,6 +68,9 @@ namespace Cosmos {
              * @return size_t
              */
             size_t get_number_of_packets_sent() const { return num_packets_sent_; }
+        
+        protected:
+            void increment_number_of_packets_sent() { ++num_packets_sent_; }
 
         private:
             //! Internal counter for number of packets sent. It is expected for implementations to increment this.

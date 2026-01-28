@@ -24,6 +24,6 @@ SendRetVal UdpSender::send(PacketComm& packet)
     {
         return SendRetVal::ERROR_ABORT;
     }
-    ++num_packets_sent_;
+    increment_number_of_packets_sent();
     return SendRetVal::SUCCESS;
 }
