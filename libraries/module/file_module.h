@@ -67,6 +67,8 @@ namespace Cosmos
 
             // Whether to keep copies of files that have encountered errors and cancelled
             const bool keep_errored_files = false;
+            // Length of time of inactivity that will stop the active mode (in seconds)
+            const double inactivity_time_threshold = 60.*2;
 
             int32_t mychannel = 0;
             //! Returns from loop if this is set to false

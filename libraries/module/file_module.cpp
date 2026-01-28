@@ -44,9 +44,12 @@ namespace Cosmos
             agent->debug_log.Printf("Starting File Loop\n");
             is_running = true;
 
+            ElapsedTime active_mode_timer;
+
             while(is_running.load(std::memory_order_relaxed))
             {
                 std::this_thread::yield();
+                bool received_packets = false;
                 if (agent->running() != (uint16_t)Agent::State::IDLE)
                 {
                     // Process packets from channel
@@ -57,6 +60,7 @@ namespace Cosmos
                         {
                             break;
                         }
+                        received_packets = true;
                         // Packets for us
                         switch (packet.header.type)
                         {
@@ -247,6 +251,8 @@ namespace Cosmos
                         continue;
                     }
 
+                    auto packets_sent = transfer.get_sender()->get_number_of_packets_sent();
+
                     // Get our own files' transfer packets if transfer is enabled
                     // Perform runs of file packet grabbing
                     for (size_t i = 0; i < contact_nodes.size(); ++i)
@@ -258,6 +264,16 @@ namespace Cosmos
                         {
                             agent->debug_log.Printf("%16.10f Error in get_outgoing_lpackets: %s\n", currentmjd(), cosmos_error_string(iretn).c_str());
                         }
+                    }
+                    // Check activity on RX or TX
+                    if (received_packets || packets_sent != transfer.get_sender()->get_number_of_packets_sent())
+                    {
+                        active_mode_timer.reset();
+                    }
+                    else if (active_mode_timer.split() > inactivity_time_threshold)
+                    {
+                        // Transition out of busy wait back into an idle mode
+                        file_transfer_enabled.store(false, std::memory_order_relaxed);
                     }
                 }
             }

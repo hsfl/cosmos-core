@@ -62,6 +62,16 @@ namespace Cosmos {
              * @return int32_t Returns 0 on success, or an error code on failure that signals to the transfer process what to do next.
              */
             virtual SendRetVal send(PacketComm& packet) = 0;
+
+            /**
+             * @brief Get the number of packets sent out of this sender object.
+             * @return size_t
+             */
+            size_t get_number_of_packets_sent() const { return num_packets_sent_; }
+
+        private:
+            //! Internal counter for number of packets sent. It is expected for implementations to increment this.
+            size_t num_packets_sent_ = 0;
         };
         class Transfer {
         public:
@@ -110,6 +120,8 @@ namespace Cosmos {
             // Getters/setters
             PACKET_CHUNK_SIZE_TYPE get_packet_size();
             int32_t set_packet_size(const PACKET_CHUNK_SIZE_TYPE size);
+
+            const Sender* get_sender() { return sender_; }
 
             // Print out packets for debugging
             void print_file_packet(const PacketComm& packet, uint8_t direction, string type, Log::Logger* debug_log);
