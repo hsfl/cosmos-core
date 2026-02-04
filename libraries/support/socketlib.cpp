@@ -1093,13 +1093,20 @@ int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t
     else
     {
         buffer.clear();
-        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
         {
             nbytes = 0;
         }
         else
         {
-            nbytes = -errno;
+            if (nbytes == 0)
+            {
+                nbytes = GENERAL_ERROR_EOF;
+            }
+            else
+            {
+                nbytes = -errno;
+            }
             secondsleep(channel.timeout-et.split());
             return nbytes;
         }
