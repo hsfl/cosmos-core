@@ -790,6 +790,9 @@ int32_t json_createpiece(cosmosstruc *cinfo, string name, DeviceType ctype, doub
         json_mapdeviceentry(cinfo->device[cidx], cinfo);
         json_toggledeviceentry(cinfo->device[cidx]->didx, ctype, cinfo, true);
     }
+
+    json_updatecosmosstruc(cinfo);
+
     return pidx;
 }
 
@@ -1932,7 +1935,18 @@ int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc
 */
 int32_t json_append(string &jstring, const char *tstring)
 {
-    jstring.append(tstring);
+    if (jstring.back() == '}')
+    {
+        jstring.back() = ',';
+    }
+    if (tstring[0] == '{')
+    {
+        jstring.append(tstring+1);
+    }
+    else
+    {
+        jstring.append(tstring);
+    }
     return 0;
 }
 
@@ -1992,11 +2006,12 @@ int32_t json_join(string &stringina, string stringinb)
 int32_t json_out_character(string &jstring,char character)
 {
     char tstring[2] = {0,0};
-    int32_t iretn = 0;
+//    int32_t iretn = 0;
 
     tstring[0] = character;
-    if ((iretn=json_append(jstring,tstring)) < 0)
-        return iretn;
+    jstring.append(tstring);
+//    if ((iretn=json_append(jstring,tstring)) < 0)
+//        return iretn;
 
     return 0;
 }
@@ -7305,7 +7320,8 @@ int32_t json_load_node(string node, jsonnode &json)
         ifs.close();
         ibuf[fstat.st_size] = 0;
         json_out_node(json.node, node);
-        json.node += ibuf;
+        json_append(json.node, ibuf);
+//        json.node += ibuf;
         free(ibuf);
     }
 
@@ -8543,12 +8559,14 @@ int32_t json_setup_realm(string &realm, cosmosstruc *cinfo)
         if (!data["area"].is_null())
         {
             targ.area = data["area"].number_value();
+            targ.size = gvector(sqrt(targ.area/M_PI), sqrt(targ.area/M_PI), 0.);
         }
 
         if (!data["radius"].is_null())
         {
-            targ.area = 100. * data["radius"].number_value();
-            targ.area = M_PI * targ.area * targ.area;
+            targ.area = data["radius"].number_value();
+            targ.size = gvector(targ.area/REARTHM, targ.area/REARTHM, 0.);
+            targ.area *= M_PI * targ.area;
         }
 
         cinfo->target.push_back(targ);
@@ -9000,6 +9018,8 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("physics_area", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,area), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_AREA);
     json_addentry("physics_moi", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,moi), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_MOI);
     json_addentry("physics_com", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,com), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_LENGTH);
+    json_addentry("physics_maxthrust", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,maxthrust), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_FORCE);
+    json_addentry("physics_maxtorque", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,maxtorque), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_TORQUE);
     json_addentry("physics_mass", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,mass), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_MASS);
     json_addentry("physics_heat", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,heat), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PHYSICS, cinfo);
 
@@ -9629,7 +9649,7 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
         json_addentry("device_cpu_load",didx, UINT16_MAX, (uint8_t *)&device->load, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_cpu_gib",didx, UINT16_MAX, (uint8_t *)&device->gib, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_cpu_storage",didx, UINT16_MAX, (uint8_t *)&device->storage, (uint16_t)JSON_TYPE_FLOAT, cinfo);
-        json_addentry("device_cpu_boot_count",didx, UINT16_MAX, (uint8_t *)&device->boot_count, (uint16_t)JSON_TYPE_UINT32, cinfo);
+        json_addentry("device_cpu_bootcount",didx, UINT16_MAX, (uint8_t *)&device->bootcount, (uint16_t)JSON_TYPE_UINT32, cinfo);
         char tempbuf1[100];
         char tempbuf2[100];
         sprintf(tempbuf1, "device_cpu_utilization_%03u", didx);
@@ -9930,6 +9950,7 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
         json_addentry("device_rw_mom",didx, UINT16_MAX, (uint8_t *)&device->mom, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
         json_addentry("device_rw_mxomg",didx, UINT16_MAX, (uint8_t *)&device->mxomg, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_rw_mxalp",didx, UINT16_MAX, (uint8_t *)&device->mxalp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_rw_mxtrq",didx, UINT16_MAX, (uint8_t *)&device->mxtrq, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_rw_tc",didx, UINT16_MAX, (uint8_t *)&device->tc, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_rw_omg",didx, UINT16_MAX, (uint8_t *)&device->omg, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGULAR_RATE);
         json_addentry("device_rw_alp",didx, UINT16_MAX, (uint8_t *)&device->alp, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGULAR_RATE);
@@ -10313,6 +10334,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_rw_mom",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rw_mxomg",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rw_mxalp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_rw_mxtrq",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rw_tc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rw_omg",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rw_alp",didx, UINT16_MAX, cinfo, state);
@@ -10376,7 +10398,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_cpu_load",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_gib",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_storage",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_cpu_boot_count",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cpu_bootcount",didx, UINT16_MAX, cinfo, state);
         break;
     case DeviceType::DISK:
         json_toggleentry("device_disk_name",didx, UINT16_MAX, cinfo, state);
@@ -11294,7 +11316,7 @@ const char *json_of_beacon(string &jstring, cosmosstruc *cinfo)
     {
         sprintf(tempstring, ",\"device_cpu_utc_%03d\",\"device_cpu_temp_%03d\"", i, i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_cpu_gib_%03d\",\"device_cpu_load_%03d\",\"device_cpu_boot_count_%03d\"",i,i,i);
+        sprintf(tempstring, ",\"device_cpu_gib_%03d\",\"device_cpu_load_%03d\",\"device_cpu_bootcount_%03d\"",i,i,i);
         result += tempstring;
     }
     result += "}";
@@ -11418,7 +11440,7 @@ string json_list_of_soh(cosmosstruc *cinfo)
     string result;
     char tempstring[200];
 
-    result = "{\"node_utc\",\"node_name\",\"node_lastevent\",\"node_lasteventutc\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_powmode\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
+    result = "{\"node_utc\",\"node_name\",\"node_lastevent\",\"node_lasteventutc\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_powmode\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\",\"node_target_idx\"";
 
     for (uint16_t i=0; i<cinfo->devspec.telem_cnt; ++i)
     {
@@ -11426,36 +11448,6 @@ string json_list_of_soh(cosmosstruc *cinfo)
         result += ",\"device_telem_type_" + to_unsigned(i, 3, true) + "\"";
         result += ",\"device_telem_name_" + to_unsigned(i, 3, true) + "\"";
         result += ",\"device_telem_" + TelemTypeName[cinfo->devspec.telem[i].type] + "_" + to_unsigned(i, 3, true) + "\"";
-        //        switch (cinfo->devspec.telem[i]].type)
-        //        {
-        //        case 0:
-        //            result += ",\"device_telem_vuint8_" + to_unsigned(i, 3, true) + "\"";
-        //            break;
-        //        case 1:
-        //            result += ",\"device_telem_vint8_" + to_unsigned(i, 3, true) + "\"";
-        //            break;
-        //        case 2:
-        //            result += ",\"device_telem_vuint16_" + to_unsigned(i, 3, true) + "\"";
-        //            break;
-        //        case 3:
-        //            result += ",\"device_telem_vint16_" + to_unsigned(i, 3, true) + "\"";
-        //            break;
-        //        case 4:
-        //            result += ",\"device_telem_vuint32_" + to_unsigned(i, 3, true) + "\"";
-        //            break;
-        //        case 5:
-        //            result += ",\"device_telem_vint32_" + to_unsigned(i, 3, true) + "\"";
-        //            break;
-        //        case 6:
-        //            result += ",\"device_telem_vfloat_" + to_unsigned(i, 3, true) + "\"";
-        //            break;
-        //        case 7:
-        //            result += ",\"device_telem_vdouble_" + to_unsigned(i, 3, true) + "\"";
-        //            break;
-        //        case 8:
-        //            result += ",\"device_telem_vstring_" + to_unsigned(i, 3, true) + "\"";
-        //            break;
-        //        }
     }
 
     for (uint16_t i=0; i<cinfo->devspec.pload_cnt; ++i)
@@ -11516,7 +11508,7 @@ string json_list_of_soh(cosmosstruc *cinfo)
     {
         sprintf(tempstring, ",\"device_cpu_utc_%03d\",\"device_cpu_temp_%03d\"", i, i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_cpu_gib_%03d\",\"device_cpu_load_%03d\",\"device_cpu_boot_count_%03d\"",i,i,i);
+        sprintf(tempstring, ",\"device_cpu_gib_%03d\",\"device_cpu_load_%03d\",\"device_cpu_bootcount_%03d\"",i,i,i);
         result += tempstring;
     }
 
@@ -11835,7 +11827,7 @@ string json_list_of_fullsoh(cosmosstruc *cinfo)
         result += tempstring;
         sprintf(tempstring, ",\"device_cpu_amp_%03d\",\"device_cpu_volt_%03d\",\"device_cpu_power_%03d\"", i, i, i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_cpu_gib_%03d\",\"device_cpu_load_%03d\",\"device_cpu_boot_count_%03d\"",i,i,i);
+        sprintf(tempstring, ",\"device_cpu_gib_%03d\",\"device_cpu_load_%03d\",\"device_cpu_bootcount_%03d\"",i,i,i);
         result += tempstring;
     }
 
@@ -12539,6 +12531,8 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                     json_out_1d(jstring, "device_rw_mom",j, cinfo);
                     // json_out_character(jstring, '\n');
                     json_out_1d(jstring, "device_rw_mxalp",j, cinfo);
+                    // json_out_character(jstring, '\n');
+                    json_out_1d(jstring, "device_rw_mxtrq",j, cinfo);
                     // json_out_character(jstring, '\n');
                     json_out_1d(jstring, "device_rw_mxomg",j, cinfo);
                     // json_out_character(jstring, '\n');
@@ -13448,7 +13442,7 @@ void create_databases(cosmosstruc *cinfo)
     {
         rwstruc rws = cinfo->devspec.rw[i];
         //        devicestruc d = cinfo->devspec.rw[i]];
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\n",i,rws.cidx,rws.align.d.x,rws.align.d.y,rws.align.d.z,rws.align.w,rws.mom.col[0],rws.mom.col[1],rws.mom.col[2],rws.mxomg,rws.mxalp);
+        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\n",i,rws.cidx,rws.align.d.x,rws.align.d.y,rws.align.d.z,rws.align.w,rws.mom.col[0],rws.mom.col[1],rws.mom.col[2],rws.mxomg,rws.mxalp,rws.mxtrq);
     }
     fclose(op);
 
@@ -14073,6 +14067,12 @@ int32_t update_target(Convert::locstruc source, targetstruc &target)
     // Closing speed is length of ds in 1 second minus length of ds now.
     target.close = length_rv(rv_sub(ds,dv)) - length_rv(ds);
     target.utc = targetloc.utc;
+
+    // Attitude the satellite has to have to look at the target
+    rvector targ_z = (rv_sub(target.loc.pos.eci.s, source.pos.eci.s));
+    // targ_z = source.pos.geoc.s * -0.1;
+
+    target.loc.att.icrf.s = q_irotate_for(rv_normal(targ_z), rv_normal(rv_cross(rv_normal(targ_z), source.pos.eci.v)), rv_unitz(), rv_unity());
     return 0;
 }
 
@@ -14085,36 +14085,39 @@ int32_t update_metrics(cosmosstruc *currentinfo)
     }
     for (uint16_t id=0; id<currentinfo->devspec.cam.size(); ++id)
     {
+        rvector boresight = transform_q(q_conjugate(currentinfo->node.loc.att.icrf.s),currentinfo->devspec.cam[id].los);
         double h = currentinfo->node.loc.pos.geod.s.h;
         double nadirradius = h * currentinfo->devspec.cam[id].fov / 2.;
-        Convert::cartpos cpointing;
-        Convert::sat2geoc(currentinfo->devspec.cam[id].los, currentinfo->node.loc, cpointing.s);
-        Convert::geoidpos gpointing;
-        Convert::geoc2geod(cpointing, gpointing);
+        double slant = acos(dot_rv(rv_normal(boresight), -rv_normal(currentinfo->node.loc.pos.eci.s)));
+        double dr = nadirradius / cos(slant);
+        double dr2 = dr * dr;
+        // Convert::cartpos cpointing;
+        // Convert::sat2geoc(currentinfo->devspec.cam[id].los, currentinfo->node.loc, cpointing.s);
+        // Convert::geoidpos gpointing;
+        // Convert::geoc2geod(cpointing, gpointing);
         for (uint16_t it=0; it<currentinfo->target.size(); ++it)
         {
             currentinfo->target[it].cover[id].area = 0.;
             currentinfo->target[it].cover[id].percent = 0.;
-            // Must be at least 5 degrees
-            if (currentinfo->target[it].elto > 0.087)
+            currentinfo->target[it].cover[id].elevation = currentinfo->target[it].elto;
+            currentinfo->target[it].cover[id].elstd = 0.;
+            currentinfo->target[it].cover[id].azimuth = currentinfo->target[it].azto;
+            currentinfo->target[it].cover[id].azstd = 0.;
+            currentinfo->target[it].cover[id].resolution = currentinfo->target[it].range * currentinfo->devspec.cam[id].ifov;
+            currentinfo->target[it].cover[id].resstd = 0.;
+            currentinfo->target[it].cover[id].specmin = currentinfo->devspec.cam[id].specmin;
+            currentinfo->target[it].cover[id].specmax = currentinfo->devspec.cam[id].specmax;
+            // Must be at least 0 degrees
+            if (currentinfo->target[it].elto > 0.0)
             {
-                currentinfo->target[it].cover[id].specmin = currentinfo->devspec.cam[id].specmin;
-                currentinfo->target[it].cover[id].specmax = currentinfo->devspec.cam[id].specmax;
-                currentinfo->target[it].cover[id].area = 0.;
-                double dr = nadirradius / sin(currentinfo->target[it].elto);
-                double dr2 = dr * dr;
-                double sep;
-                Convert::geod2sep(gpointing.s, currentinfo->target[it].loc.pos.geod.s, sep);
+                rvector sat2targ = rv_sub (currentinfo->target[it].loc.pos.eci.s, currentinfo->node.loc.pos.eci.s) ;
+                double sep = currentinfo->target[it].range * acos(dot_rv(rv_normal(sat2targ), rv_normal(boresight)));
+                // Convert::geod2sep(gpointing.s, currentinfo->target[it].loc.pos.geod.s, sep);
                 double sep2 = sep * sep;
                 double tr = sqrt(currentinfo->target[it].area / DPI);
                 double tr2 = tr * tr;
                 if (sep < dr + tr)
                 {
-                    currentinfo->target[it].cover[id].elevation = currentinfo->target[it].elto;
-                    currentinfo->target[it].cover[id].azimuth = currentinfo->target[it].azto;
-                    currentinfo->target[it].cover[id].resolution = currentinfo->target[it].range * currentinfo->devspec.cam[id].ifov;
-                    currentinfo->target[it].cover[id].specmin = currentinfo->devspec.cam[id].specmin;
-                    currentinfo->target[it].cover[id].specmax = currentinfo->devspec.cam[id].specmax;
                     if (sep > fabs(tr - dr))
                     {
                         currentinfo->target[it].cover[id].area = dr2 * acos((sep2 + dr2 - tr2) / (2 * sep * dr)) + tr2 * acos((sep2 + tr2 - dr2) / (2 * sep * tr));
@@ -14132,6 +14135,10 @@ int32_t update_metrics(cosmosstruc *currentinfo)
                     else
                     {
                         currentinfo->target[it].cover[id].percent = 1.;
+                    }
+                    if (currentinfo->target[it].cover[id].percent > 0.)
+                    {
+                        ++currentinfo->target[it].cover[id].count;
                     }
                 }
             }
@@ -14615,6 +14622,37 @@ bool device_has_property(uint16_t deviceType, string prop)
 string json_memory_usage()
 {
     string output;
+#ifdef COSMOS_WIN_OS
+        HANDLE heap = GetProcessHeap();
+        if (heap == NULL) {
+            return output;
+        }
+
+        PROCESS_HEAP_ENTRY entry;
+        entry.lpData = nullptr;
+
+        size_t total_allocated = 0;
+        size_t total_free = 0;
+        size_t block_count = 0;
+
+        while (HeapWalk(heap, &entry)) {
+            if (entry.wFlags & PROCESS_HEAP_ENTRY_BUSY) {
+                total_allocated += entry.cbData;
+            } else if (entry.wFlags & PROCESS_HEAP_ENTRY_MOVEABLE) {
+                total_free += entry.cbData;
+            }
+            ++block_count;
+        }
+
+        if (GetLastError() != ERROR_NO_MORE_ITEMS) {
+            return output;
+        }
+
+        // std::cout << "Heap statistics:\n";
+        // std::cout << "  Allocated memory: " << total_allocated << " bytes\n";
+        // std::cout << "  Free memory:      " << total_free << " bytes\n";
+        // std::cout << "  Total blocks:     " << block_count << "\n";
+#else
     struct mallinfo m = mallinfo();
     output += to_label("arena", m.arena) + "\n";
     output += to_label("ordblks", m.ordblks) + "\n";
@@ -14625,6 +14663,7 @@ string json_memory_usage()
     output += to_label("fsmblks", m.fsmblks) + "\n";
     output += to_label("uordblks", m.uordblks) + "\n";
     output += to_label("fordblks", m.fordblks);
+#endif
     return output;
 }
 

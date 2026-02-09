@@ -237,6 +237,7 @@ int32_t socket_publish(socket_bus& bus, uint16_t port)
         }
 
         bus[(bus.size() - 1)].flags = ifra->ifr_flags;
+        bus[(bus.size() - 1)].mtu = ifra->ifr_mtu;
 
         if ((bus[(bus.size() - 1)].flags & IFF_POINTOPOINT) || (bus[(bus.size() - 1)].flags & IFF_UP) == 0)
         {
@@ -426,6 +427,8 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
         struct timeval tv;
         tv.tv_sec = usectimeo/1000000;
         tv.tv_usec = usectimeo%1000000;
+        channel.tv.tv_sec = tv.tv_sec;
+        channel.tv.tv_nsec = (tv.tv_usec) * 1000;
         iretn = setsockopt(channel.cudp,SOL_SOCKET,SO_RCVTIMEO,(char*)&tv,sizeof(tv));
 #endif
     }
@@ -578,6 +581,11 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
     strncpy(channel.address,address,17);
     channel.type = ntype;
     channel.addrlen = sizeof(struct sockaddr_in);
+    struct ifreq ifr;
+    if (ioctl(channel.cudp, SIOCGIFFLAGS, &ifr) == 0)
+    {
+        channel.mtu = ifr.ifr_mtu;
+    }
 
     return 0;
 }
@@ -593,17 +601,6 @@ int32_t socket_open(socket_bus& bus, uint16_t port, uint32_t usectimeout)
     {
         return COSMOS_AGENT_ERROR_DISCOVERY;
     }
-    //    for (size_t i=0; i<bus.size(); ++i)
-    //    {
-    //        socket_channel tchan;
-    //        if ((socket_open(&tchan, NetworkType::UDP, ifaces[i].baddress, 3956, SOCKET_TALK, true, 100000)) < 0) return (gige_list);
-
-    //        if ((setsockopt(tchan.cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
-    //        {
-    //            close(tchan.cudp);
-    //            continue;
-    //        }
-    //    }
     return 0;
 }
 
@@ -987,6 +984,7 @@ vector<socket_channel> socket_find_addresses(NetworkType ntype, uint16_t port)
                 continue;
             }
             tiface.flags = ifra->ifr_flags;
+            tiface.mtu = ifra->ifr_mtu;
 
             //                if ((ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || ((ifra->ifr_flags & (IFF_BROADCAST)) == 0 && (ifra->ifr_flags & (IFF_POINTOPOINT)) == 0))
             if ((ifra->ifr_flags & IFF_POINTOPOINT) || (ifra->ifr_flags & IFF_UP) == 0)
@@ -1095,13 +1093,20 @@ int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t
     else
     {
         buffer.clear();
-        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
         {
             nbytes = 0;
         }
         else
         {
-            nbytes = -errno;
+            if (nbytes == 0)
+            {
+                nbytes = GENERAL_ERROR_EOF;
+            }
+            else
+            {
+                nbytes = -errno;
+            }
             secondsleep(channel.timeout-et.split());
             return nbytes;
         }
@@ -1134,13 +1139,81 @@ int32_t socket_recv(socket_channel &channel, vector<uint8_t> &buffer, size_t max
     return nbytes;
 }
 
-int32_t socket_post(socket_bus &channel, const string buffer, int flags)
+int32_t socket_recvmmsg(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags)
+{
+    static size_t cmaxlen = 0;
+    int32_t nbytes;
+    static int32_t nmsg = 0;
+    static int32_t cmsg = 0;
+    static struct mmsghdr msgvec[250];
+    static struct iovec iov[250];
+    static vector<uint8_t> buffers[250];
+    static struct sockaddr_in addrs[250] = {};
+
+    if (maxlen != cmaxlen)
+    {
+        cmaxlen = maxlen;
+        buffer.resize(maxlen);
+        for (uint16_t i=0; i<250; ++i)
+        {
+            buffers[i].resize(maxlen);
+            iov[i].iov_base = buffers[i].data();
+            iov[i].iov_len = maxlen;
+            msgvec[i].msg_hdr.msg_iov = &iov[i];
+            msgvec[i].msg_hdr.msg_iovlen = 1;
+            msgvec[i].msg_hdr.msg_control = nullptr;
+            msgvec[i].msg_hdr.msg_controllen = 0;
+            msgvec[i].msg_hdr.msg_flags = 0;
+            msgvec[i].msg_hdr.msg_name = &addrs[i];
+            msgvec[i].msg_hdr.msg_namelen = sizeof(struct sockaddr_in);
+        }
+    }
+
+    ElapsedTime et;
+    if (cmsg < nmsg)
+    {
+        buffer.resize(buffers[cmsg].size());
+        memcpy(buffer.data(), buffers[cmsg].data(), msgvec[cmsg].msg_len);
+        nbytes = msgvec[cmsg].msg_len;
+        ++cmsg;
+    }
+    else
+    {
+        cmsg = 0;
+        if ((nmsg = recvmmsg(channel.cudp, msgvec, 250, flags, &channel.tv)) > -1)
+        {
+            if (nmsg)
+            {
+                buffer.resize(buffers[cmsg].size());
+                memcpy(buffer.data(), buffers[cmsg].data(), msgvec[cmsg].msg_len);
+                nbytes = msgvec[cmsg].msg_len;
+                ++cmsg;
+            }
+        }
+        else
+        {
+            buffer.clear();
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+            {
+                nbytes = 0;
+            }
+            else
+            {
+                nbytes = -errno;
+            }
+            secondsleep(channel.timeout-et.split());
+        }
+    }
+    return nbytes;
+}
+
+int32_t socket_post(socket_bus &channel, const string &buffer, int flags)
 {
     vector<uint8_t> data(buffer.begin(), buffer.end());
     return socket_post(channel, data, flags);
 }
 
-int32_t socket_post(socket_bus &bus, const vector<uint8_t> buffer, int flags)
+int32_t socket_post(socket_bus &bus, const vector<uint8_t> &buffer, int flags)
 {
     vector<uint8_t> data(buffer.begin(), buffer.end());
     for (socket_channel channel : bus)
@@ -1154,13 +1227,13 @@ int32_t socket_post(socket_bus &bus, const vector<uint8_t> buffer, int flags)
     return 0;
 }
 
-int32_t socket_post(socket_channel &channel, const string buffer, int flags)
+int32_t socket_post(socket_channel &channel, const string &buffer, int flags)
 {
     vector<uint8_t> data(buffer.begin(), buffer.end());
     return socket_post(channel, data, flags);
 }
 
-int32_t socket_post(socket_channel &channel, const vector<uint8_t> buffer, int flags)
+int32_t socket_post(socket_channel &channel, const vector<uint8_t> &buffer, int flags)
 {
     int32_t nbytes;
 #if defined(COSMOS_WIN_OS)
@@ -1174,7 +1247,7 @@ int32_t socket_post(socket_channel &channel, const vector<uint8_t> buffer, int f
     return nbytes;
 }
 
-int32_t socket_sendto(socket_bus &bus, const string buffer, int flags)
+int32_t socket_sendto(socket_bus &bus, const string &buffer, int flags)
 {
     for (socket_channel channel : bus)
     {
@@ -1187,7 +1260,7 @@ int32_t socket_sendto(socket_bus &bus, const string buffer, int flags)
     return 0;
 }
 
-int32_t socket_sendto(socket_bus &bus, const vector<uint8_t> buffer, int flags)
+int32_t socket_sendto(socket_bus &bus, const vector<uint8_t> &buffer, int flags)
 {
     for (socket_channel channel : bus)
     {
@@ -1200,13 +1273,13 @@ int32_t socket_sendto(socket_bus &bus, const vector<uint8_t> buffer, int flags)
     return 0;
 }
 
-int32_t socket_sendto(socket_channel &channel, const string buffer, int flags)
+int32_t socket_sendto(socket_channel &channel, const string &buffer, int flags)
 {
     vector<uint8_t> data(buffer.begin(), buffer.end());
     return socket_sendto(channel, data, flags);
 }
 
-int32_t socket_sendto(socket_channel &channel, const vector<uint8_t> buffer, int flags)
+int32_t socket_sendto(socket_channel &channel, const vector<uint8_t> &buffer, int flags)
 {
     int32_t nbytes;
 #if defined(COSMOS_WIN_OS)
@@ -1220,7 +1293,7 @@ int32_t socket_sendto(socket_channel &channel, const vector<uint8_t> buffer, int
     return nbytes;
 }
 
-int32_t socket_send(socket_channel &channel, const vector<uint8_t> buffer, int flags)
+int32_t socket_send(socket_channel &channel, const vector<uint8_t> &buffer, int flags)
 {
     int32_t nbytes;
 #if defined(COSMOS_WIN_OS)

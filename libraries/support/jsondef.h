@@ -1877,6 +1877,8 @@ class sim_param	{
             double utc = 0.; //TODO: replace for mjd
             //! Time event was executed.
             double utcexec = 0.;
+            //! Time until event times out (seconds)
+            double timeout = 30.;
             //! Node for event
             //            char node[COSMOS_MAX_NAME+1] = "";
             string node;
@@ -1930,6 +1932,7 @@ class sim_param	{
                 return json11::Json::object {
                     { "utc"   , utc },
                     { "utcexec" , utcexec },
+                    { "timeout" , timeout },
                     { "node"  , node },
                     { "name"  , name },
                     { "user"  , user },
@@ -1963,6 +1966,7 @@ class sim_param	{
                 if(error.empty()) {
                     if(!p["utc"].is_null()) { utc = p["utc"].number_value(); }
                     if(!p["utcexec"].is_null()) { utcexec = p["utcexec"].number_value(); }
+                    if(!p["timeout"].is_null()) { timeout = p["timeout"].number_value(); }
                     if(!p["node"].is_null()) { node = p["node"].string_value(); }
                     if(!p["name"].is_null()) { name = p["name"].string_value(); }
                     if(!p["user"].is_null()) { user = p["user"].string_value(); }
@@ -3159,6 +3163,8 @@ union as a ::devicestruc.
             float mxomg = 0.f;
             //! Maximum alpha in radians/second/second.
             float mxalp = 0.f;
+            //! Maximum tau in newton-meters.
+            float mxtrq = 0.f;
             //! Acceleration Time Constant
             float tc = 0.f;
             //! Current angular velocity
@@ -3180,6 +3186,7 @@ union as a ::devicestruc.
                     { "mom"   , mom },
                     { "mxomg" , mxomg },
                     { "mxalp" , mxalp },
+                    { "mxtrq" , mxtrq },
                     { "tc"	, tc },
                     { "omg"   , omg },
                     { "alp"   , alp },
@@ -3200,7 +3207,8 @@ union as a ::devicestruc.
                     if(!parsed["align"].is_null()) { align.from_json(parsed["align"].dump()); }
                     if(!parsed["mom"].is_null()) { mom.from_json(parsed["mom"].dump()); }
                     if(!parsed["mxomg"].is_null()) { mxomg = parsed["mxomg"].number_value(); }
-                    if(!parsed["bdmxalpot"].is_null()) { mxalp = parsed["mxalp"].number_value(); }
+                    if(!parsed["mxalp"].is_null()) { mxalp = parsed["mxalp"].number_value(); }
+                    if(!parsed["mxtrq"].is_null()) { mxtrq = parsed["mxtrq"].number_value(); }
                     if(!parsed["tc"].is_null()) { tc = parsed["tc"].number_value(); }
                     if(!parsed["omg"].is_null()) { omg = parsed["omg"].number_value(); }
                     if(!parsed["alp"].is_null()) { alp = parsed["alp"].number_value(); }
@@ -3300,7 +3308,7 @@ union as a ::devicestruc.
             float gib = 0.f;
 
             //! Number of reboots
-            uint32_t boot_count = 0;
+            uint32_t bootcount = 0;
 
             //! Root storage
             float storage = 0.f;
@@ -3317,7 +3325,7 @@ union as a ::devicestruc.
                     { "maxgib" , maxgib },
                     { "gib"	, gib },
                     { "storage"	, storage },
-                    { "boot_count", static_cast<int>(boot_count) },
+                    { "boot_count", static_cast<int>(bootcount) },
                 };
             }
 
@@ -3336,7 +3344,7 @@ union as a ::devicestruc.
                     if(!parsed["maxgib"].is_null()) { maxgib = parsed["maxgib"].number_value(); }
                     if(!parsed["gib"].is_null()) { gib = parsed["gib"].number_value(); }
                     if(!parsed["storage"].is_null()) { storage = parsed["storage"].number_value(); }
-                    if(!parsed["boot_count"].is_null()) { boot_count = parsed["boot_count"].long_value(); }
+                    if(!parsed["boot_count"].is_null()) { bootcount = parsed["boot_count"].long_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -3878,7 +3886,8 @@ union as a ::devicestruc.
                     { "effbase", effbase },
                     { "effslope", effslope },
                     { "maxpower", maxpower },
-                    { "power"  , power}
+                    { "power"  , power},
+                    { "temp"  , temp}
                 };
             }
 
@@ -3896,6 +3905,7 @@ union as a ::devicestruc.
                     if(!parsed["effslope"].is_null()) { effslope = parsed["effslope"].number_value(); }
                     if(!parsed["maxpower"].is_null()) { maxpower = parsed["maxpower"].number_value(); }
                     if(!parsed["power"].is_null()) { power = parsed["power"].number_value(); }
+                    if(!parsed["temp"].is_null()) { temp = parsed["temp"].number_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -4491,7 +4501,7 @@ union as a ::devicestruc.
             //! Maximum spectral wavelength
             float specmax = 1e-6f;
             //! Line of Sight
-            rvector los = {0., 0., -1.};
+            rvector los = {0., 0., 1.};
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -4846,6 +4856,8 @@ union as a ::devicestruc.
             Vector fpush;
             Vector moi = Vector(1.,1.,1.);
             Vector com;
+            double maxthrust;
+            double maxtorque;
 
             //! Vector of all structures in node.
             vector <strucstruc> strucs;
@@ -4903,6 +4915,8 @@ union as a ::devicestruc.
                     { "thrust" , thrust },
                     { "moi" , moi },
                     { "com" , com },
+                    { "maxthrust" , maxthrust },
+                    { "maxtorque" , maxtorque },
                     { "vertex_cnt" , vertex_cnt },
 //                    { "normal_cnt" , normal_cnt },
                     { "triangle_cnt" , triangle_cnt },
@@ -4953,6 +4967,8 @@ union as a ::devicestruc.
                     if(!parsed["thrust"].is_null())	{ thrust.from_json(parsed["thrust"].dump()); }
                     if(!parsed["moi"].is_null())	{ moi.from_json(parsed["moi"].dump()); }
                     if(!parsed["com"].is_null())	{ com.from_json(parsed["com"].dump()); }
+                    if(!parsed["maxthrust"].is_null())	{ maxthrust = parsed["maxthrust"].number_value(); }
+                    if(!parsed["maxtorque"].is_null())	{ maxtorque = parsed["maxtorque"].number_value(); }
                     if(!parsed["vertex_cnt"].is_null())	{ vertex_cnt = parsed["vertex_cnt"].long_value(); }
                     if(!parsed["triangle_cnt"].is_null())	{ triangle_cnt = parsed["triangle_cnt"].long_value(); }
                     if(!parsed["face_cnt"].is_null())	{ face_cnt = parsed["face_cnt"].long_value(); }

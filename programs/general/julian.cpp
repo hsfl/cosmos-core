@@ -22,6 +22,9 @@
 #define TCENTI 13
 #define TDECI 14
 #define TNSECOND 15
+#define TDATETIME0 16
+#define TDATETIME1 17
+#define TDATETIME2 18
 
 int main(int argc, char *argv[])
 {
@@ -132,8 +135,29 @@ int main(int argc, char *argv[])
                 ttype = TCENTI;
                 break;
             case 'D':
-                // Time in deciseconds
-                ttype = TDECI;
+                if (strlen(argv[i]) == 3)
+                {
+                    switch (argv[i][2])
+                    {
+                    case '0':
+                        ttype = TDATETIME0;
+                        break;
+                    case '1':
+                        ttype = TDATETIME1;
+                        break;
+                    case '2':
+                        ttype = TDATETIME2;
+                        break;
+                    default:
+                        ttype = TDATETIME0;
+                        break;
+                    }
+                }
+                else
+                {
+                    // Time in deciseconds
+                    ttype = TDECI;
+                }
                 break;
             case 'z':
                 ttype = TZENITH;
@@ -165,24 +189,24 @@ int main(int argc, char *argv[])
             mytm = localtime(&thetime);
             mjd += mytm->tm_gmtoff / 86400.;
             break;
-//        case 1:
-//            thetime = utc2unixseconds(currentmjd());
-//            mytm = gmtime(&thetime);
-//            break;
+            //        case 1:
+            //            thetime = utc2unixseconds(currentmjd());
+            //            mytm = gmtime(&thetime);
+            //            break;
         case 2:
             mjd = Convert::utc2gps(mjd);
-//            thetime = utc2unixseconds(Convert::utc2gps(currentmjd()));
-//            mytm = gmtime(&thetime);
+            //            thetime = utc2unixseconds(Convert::utc2gps(currentmjd()));
+            //            mytm = gmtime(&thetime);
             break;
         case 3:
             mjd = Convert::utc2tt(mjd);
-//            thetime = utc2unixseconds(Convert::utc2tt(currentmjd()));
-//            mytm = gmtime(&thetime);
+            //            thetime = utc2unixseconds(Convert::utc2tt(currentmjd()));
+            //            mytm = gmtime(&thetime);
             break;
         case 4:
             mjd = Convert::utc2tt(mjd) - 32.184 / 86400.;
-//            thetime = utc2unixseconds(Convert::utc2tt(currentmjd()) - 32.184 / 86400.);
-//            mytm = gmtime(&thetime);
+            //            thetime = utc2unixseconds(Convert::utc2tt(currentmjd()) - 32.184 / 86400.);
+            //            mytm = gmtime(&thetime);
             break;
         }
 
@@ -262,6 +286,11 @@ int main(int argc, char *argv[])
         case TDECI:
             uvalue = decisec(mjd);
             printf("%010u\n",uvalue);
+            break;
+        case TDATETIME0:
+        case TDATETIME1:
+        case TDATETIME2:
+            printf("%s\n", utc2datetime(mjd, ttype-TDATETIME0).c_str());
             break;
         case TMJD:
             printf("%.15g\n",mjd);

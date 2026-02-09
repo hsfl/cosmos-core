@@ -64,7 +64,7 @@ namespace Cosmos {
     \return A handle to the camera to be used for all subsequent
     calls.
 */
-        gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_msec, uint32_t socket_usec, uint32_t streambps)
+        gige_handle *gige_open(const char address[18],uint8_t privilege, uint32_t heartbeat_msec, uint32_t socket_usec, uint32_t streambps, uint16_t packet_size)
         {
             int32_t iretn = 0;
             int32_t nbytes;
@@ -100,6 +100,17 @@ namespace Cosmos {
             }
             handle->privilege = privilege;
 
+            // Set packet size
+
+            iretn = gige_writereg(handle, GIGE_REG_STREAM_CHANNEL_PACKET_SIZE, packet_size-8);
+            if (iretn < 0)
+            {
+                close(handle->command.cudp);
+                delete(handle);
+                return nullptr;
+            }
+            handle->packet_size = packet_size-8;
+
             // Set Heartbeat Timeout
             if ((iretn = gige_writereg(handle,GIGE_REG_GVCP_HEARTBEAT_TIMEOUT,heartbeat_msec)) < 0)
             {
@@ -116,8 +127,8 @@ namespace Cosmos {
             if ((iretn=socket_open(&handle->stream, NetworkType::UDP, "", 0, SOCKET_LISTEN,true,socket_usec)) < 0)
             {
                 close(handle->command.cudp);
-                return nullptr;
                 delete(handle);
+                return nullptr;
             }
 
             uint32_t n=134217728;
@@ -158,15 +169,18 @@ namespace Cosmos {
             }
 
             uint32_t bsize;
-            for (bsize=512; bsize<GIGE_MAX_PACKET; bsize+=100)
-            {
-                if (bsize > GIGE_MAX_PACKET) bsize = GIGE_MAX_PACKET;
-                iretn = gige_writereg(handle,GIGE_REG_SCPS,0xc0000000+bsize);
-                iretn = gige_readreg(handle,GIGE_REG_SCPS)%65536;
-                nbytes=recvfrom(handle->stream.cudp,(char *)bufferin,GIGE_MAX_PACKET,0,static_cast<struct sockaddr *>(nullptr),static_cast<socklen_t *>(nullptr));
-                if (nbytes < 0) break;
-            }
-            handle->bestsize = bsize - 100;
+//            for (bsize=512; bsize<GIGE_MAX_PACKET; bsize+=100)
+//            {
+//                if (bsize > GIGE_MAX_PACKET) bsize = GIGE_MAX_PACKET;
+//                iretn = gige_writereg(handle,GIGE_REG_SCPS,bsize);
+//                iretn = gige_readreg(handle,GIGE_REG_SCPS);
+//                iretn = gige_writereg(handle,GIGE_REG_SCPS,0xc0000000+bsize);
+//                iretn = gige_readreg(handle,GIGE_REG_SCPS)%65536;
+//                nbytes=recvfrom(handle->stream.cudp,(char *)bufferin,GIGE_MAX_PACKET,0,static_cast<struct sockaddr *>(nullptr),static_cast<socklen_t *>(nullptr));
+//                if (nbytes < 0) break;
+//            }
+            // handle->bestsize = bsize - 100;
+            handle->bestsize = gige_readreg(handle,GIGE_REG_SCPS);
 
             if ((iretn=gige_writereg(handle,GIGE_REG_SCPS,(uint32_t)handle->bestsize)) < 0)
             {
@@ -221,7 +235,7 @@ the CCP register and closing all sockets.
 
             handle->command.addrlen = sizeof(handle->command.caddr);
 
-            ncount = 100;
+            ncount = 200;
             do
             {
                 nbytes = recvfrom(handle->command.cudp,(char *)handle->cbyte,12,0,(struct sockaddr *)&handle->command.caddr,(socklen_t *)&handle->command.addrlen);
@@ -232,9 +246,15 @@ the CCP register and closing all sockets.
             handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ByteOrder::BIGENDIAN);
             handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ByteOrder::BIGENDIAN);
 
-            if (nbytes != 12) return (GIGE_ERROR_NACK);
+            if (nbytes != 12)
+            {
+                return (GIGE_ERROR_NACK);
+            }
 
-            if (handle->cack.ack_id != handle->req_id) return (GIGE_ERROR_NACK);
+            if (handle->cack.ack_id != handle->req_id)
+            {
+                return (GIGE_ERROR_NACK);
+            }
 
             return 0;
         }
@@ -559,7 +579,7 @@ the CCP register and closing all sockets.
  * \param ysize Number of pixels in y direction.
  * \return Zero, or negative error.
  */
-        int32_t phx_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t xbin, uint32_t ybin)
+        int32_t phx_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t xbin, uint32_t ybin, uint32_t test_pattern)
         {
             int32_t iretn = 0;
 
@@ -599,8 +619,9 @@ the CCP register and closing all sockets.
             {
                 return iretn;
             }
-            if ((iretn=gige_writereg(handle,PHXReg::PHXPixelFormatReg, GigeFormat::RGB8)) < 0) return iretn;            // Set to 24 bit mode
-            handle->bpp = 3;
+            if ((iretn=gige_writereg(handle,PHXReg::PHXPixelFormatReg, GigeFormat::BayerRG12)) < 0) return iretn;            // Set to 24 bit mode
+            if ((iretn=gige_writereg(handle,PHXReg::PHXTestImageSelectorReg, test_pattern)) < 0) return iretn;            // Set to 24 bit mode
+            handle->bpp = 2;
 
             // Set shutter to manual
             gige_writereg(handle, PHXReg::PHXAcquisitionModeReg, GigeAcquisitionMode::Continuous); // Set FFC to manual
@@ -608,11 +629,15 @@ the CCP register and closing all sockets.
             handle->binwidth = xbin;
             handle->binheight = ybin;
 
+            // Limit speed
+            if ((iretn=gige_writereg(handle,PHXDeviceLinkThroughputLimitMode, 1)) < 0) return iretn;
+            if ((iretn=gige_writereg(handle,PHXDeviceLinkThroughputLimit,handle->streambps)) < 0) return iretn;
+
             return 0;
         }
 
 
-        int32_t phx_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize)
+        int32_t phx_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize, uint16_t test)
         {
             int32_t iretn = 0;
             uint32_t tbytes;
@@ -624,20 +649,21 @@ the CCP register and closing all sockets.
             if (bufferin == nullptr)
                 return (-errno);
 
+            gige_writereg(handle, PHXReg::PHXTestImageSelectorReg, test);
             gige_writereg(handle,GIGE_REG_SCDA, gige_address_to_value(handle->stream.address));
 
             iretn = gige_writereg(handle,GIGE_REG_SCP,handle->stream.cport);
             if ((iretn=gige_writereg(handle,GIGE_REG_SCPS,bsize)) < 0)
                 return iretn;
-            if ((iretn=gige_writereg(handle,PHXReg::PHXAcquisitionStartReg,1)) < 0)
-                return iretn;
             pbytes = gige_readreg(handle,PHXReg::PHXWidthReg) * gige_readreg(handle,PHXReg::PHXHeightReg) * frames * handle->bpp;
 
             tbytes = 0;
-            uint32_t elapsed=0;
-            uint32_t tframes=500000 + 2 * 1e6 * pbytes / handle->streambps;
+            ElapsedTime et;
+            double tseconds = 1.5 + 1.1 * pbytes / handle->streambps;
             mjd = currentmjd(0.);
-            while (tbytes < pbytes && elapsed<tframes)
+            if ((iretn=gige_writereg(handle,PHXReg::PHXAcquisitionStartReg,1)) < 0)
+                return iretn;
+            while (tbytes < pbytes && et.split()<tseconds)
             {
                 if ((iretn=recvfrom(handle->stream.cudp,(char *)bufferin,bsize,0,static_cast<struct sockaddr *>(nullptr),static_cast<socklen_t *>(nullptr))) > 0)
                 {
@@ -653,8 +679,8 @@ the CCP register and closing all sockets.
                         break;
                     }
                 }
-                elapsed = (uint32_t)(1e6*86400.*(currentmjd(0.)-mjd)+.5);
             }
+            printf("Finished: %u/%u bytes, %.1f/%.1f seconds\n", tbytes, pbytes, et.split(), tseconds);
 
             iretn = gige_writereg(handle,PHXReg::PHXAcquisitionStopReg,1);
             iretn = gige_writereg(handle,GIGE_REG_SCP,0);
@@ -1407,6 +1433,7 @@ the CCP register and closing all sockets.
             {
                 return 0;
             }
+            return 0;
         }
 
         string gige_read_string(gige_handle *handle, string name)

@@ -348,9 +348,10 @@ Agent::Agent(string realm_name,
                 "    ExternalTask command parameters\n"
                 "    TestRadio start step count bytes\n"
                 "    ListDirectory node:agent\n"
-                "    TransferFile node:agent:file\n"
+                "    TransferFile node agent file\n"
                 "    TransferNode node\n"
                 "    TransferRadio\n"
+                "    TransferDirectory node outgoing_subdirectory\n"
                 "    InternalRequest request parameters\n"
                 "    Heartbeat\n"
                 "    Ping {string}\n"
@@ -1458,7 +1459,7 @@ int32_t Agent::req_get_time(string &request, string &response, Agent* agent)
         }
         else if (args[1] == "human")
         {
-            response = utc2iso8601();
+            response = mjd2iso8601();
         }
         else if (args[1] == "met")
         {
@@ -2171,22 +2172,43 @@ int32_t Agent::req_command(string &request, string &response, Agent *agent)
     case PacketComm::TypeId::CommandObcExternalCommand:
     case PacketComm::TypeId::CommandObcExternalTask:
     {
+        // Run command in a thread, return response
+        // Format:
+        // <float timeout> <string command>
         string command = "uptime";
-        if (parms.size() > 0)
+        if (parms.size() < 2)
         {
-            command = parms[0];
-            if (parms.size() > 1)
+            response = "Invalid arguments. Expected: <float timeout> <string command>";
+            return response.size();
+        }
+        float timeout;
+        try
+        {
+            timeout = std::stof(parms[0]);
+        }
+        catch (const std::invalid_argument& e)
+        {
+            response = "Error converting '" + parms[0] + "': Invalid argument - " + e.what();
+            return response.size();
+        }
+        catch (const std::out_of_range& e)
+        {
+            response = "Error converting '" + parms[0] + "': Out of range - " + e.what();
+            return response.size();
+        }
+        command = parms[1];
+        if (parms.size() > 1)
+        {
+            for (uint16_t i=2; i<parms.size(); ++i)
             {
-                for (uint16_t i=1; i<parms.size(); ++i)
-                {
-                    command += " ";
-                    command += parms[i];
-                }
+                command += " ";
+                command += parms[i];
             }
         }
-        packet.data.resize(4);
+        packet.data.resize(4+4);
         uint32_t centi = centisec();
         uint32to(centi, &packet.data[0], ByteOrder::LITTLEENDIAN);
+        floatto(timeout, &packet.data[4], ByteOrder::LITTLEENDIAN);
         packet.data.insert(packet.data.end(), command.begin(), command.end());
         response += " " + to_unsigned(centi) + " " + command;
     }
@@ -2263,30 +2285,26 @@ int32_t Agent::req_command(string &request, string &response, Agent *agent)
     break;
     case PacketComm::TypeId::CommandFileTransferFile:
     {
-        string node = agent->cinfo->node.name;
-        string agentname = agent->cinfo->agent0.name;
+        string node = "destination";
+        string agentname = "subfolder";
         string file = "";
-        if (parms.size() > 0)
+        if (parms.size() < 3)
         {
-            node = parms[0];
-            if (parms.size() > 1)
-            {
-                agentname = parms[1];
-                if (parms.size() > 2)
-                {
-                    file = parms[2];
-                }
-            }
+            response = "Invalid arguments. Requires node, agent, and file name";
+            return response.size();
         }
-        packet.data.resize(1);
-        packet.data[0] = parms[0].size();
+        node = parms[0];
+        agentname = parms[1];
+        file = parms[2];
 
+        packet.data.resize(0);
         packet.data.push_back((uint8_t)node.size());
-        packet.data.insert(packet.data.end(), node.begin(), node.end());
         packet.data.push_back((uint8_t)agentname.size());
-        packet.data.insert(packet.data.end(), agentname.begin(), agentname.end());
         packet.data.push_back((uint8_t)file.size());
+        packet.data.insert(packet.data.end(), node.begin(), node.end());
+        packet.data.insert(packet.data.end(), agentname.begin(), agentname.end());
         packet.data.insert(packet.data.end(), file.begin(), file.end());
+        response = "Requesting " + node + "/outgoing/" + agentname + "/" + file + " to be transferred.";
     }
     break;
     case PacketComm::TypeId::CommandFileTransferNode:
@@ -2368,6 +2386,33 @@ int32_t Agent::req_command(string &request, string &response, Agent *agent)
         response = "Stopping file transfer for remote node";
     }
     break;
+    case PacketComm::TypeId::CommandFileSendFileResponses:
+    {
+        // No args
+        packet.data.clear();
+        response = "Requesting node to send response-type file protocol packets";
+    }
+    break;
+    case PacketComm::TypeId::CommandFileTransferDirectory:
+    {
+        string node = "destination";
+        string outgoing_subdirectory = "subfolder";
+        if (parms.size() < 2)
+        {
+            response = "Invalid arguments. Requires node, and the subdirectory name under the outgoing folder";
+            return response.size();
+        }
+        node = parms[0];
+        outgoing_subdirectory = parms[1];
+
+        packet.data.resize(0);
+        packet.data.push_back((uint8_t)node.size());
+        packet.data.push_back((uint8_t)outgoing_subdirectory.size());
+        packet.data.insert(packet.data.end(), node.begin(), node.end());
+        packet.data.insert(packet.data.end(), outgoing_subdirectory.begin(), outgoing_subdirectory.end());
+        response = "Requesting " + node + "/outgoing/" + outgoing_subdirectory + " to be transferred.";
+    }
+    break;
     case PacketComm::TypeId::CommandObcInternalRequest:
     {
         string command = "status";
@@ -2396,7 +2441,7 @@ int32_t Agent::req_command(string &request, string &response, Agent *agent)
     break;
     case PacketComm::TypeId::CommandObcPing:
     {
-        string ping = utc2iso8601(currentmjd());
+        string ping = mjd2iso8601(currentmjd());
         if (parms.size() > 0)
         {
             ping = parms[0];
@@ -5191,9 +5236,9 @@ int32_t Agent::channel_maximum(uint8_t number)
     return channels.channel[number].maximum;
 }
 
-int32_t Agent::task_add(string command, string source)
+int32_t Agent::task_add(string command, string source, float timeout)
 {
-    return tasks.Add(command, source);
+    return tasks.Add(command, source, timeout);
 }
 
 int32_t Agent::task_del(uint32_t deci)

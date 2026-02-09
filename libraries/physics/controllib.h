@@ -22,7 +22,7 @@
 //! \defgroup controllib_functions Attitude Control Library functions
 //! @{
 
-rvector calc_control_torque(double lag, Convert::qatt tatt, Convert::qatt catt, rvector moi);
+rvector calc_control_torque(double maxtorque, Vector moi, Convert::qatt tatt, Convert::qatt catt);
 
 //! @}
 

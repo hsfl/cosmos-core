@@ -1,1 +1,1 @@
-{"nodename":"mother","type":"HEX65W80H","maxthrust":0.005,"detector":{"name":"lwir","fov":0.061,"ifov":0.00012,"specmin":4.0,"specmax":12.0}}
+{"nodename":"mother","type":"HEX65W80H","maxtorque":0.005,"maxthrust":0.005,"detector":{"name":"lwir","fov":0.061,"ifov":0.00012,"specmin":4.0,"specmax":12.0}}

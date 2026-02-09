@@ -395,6 +395,8 @@ namespace Cosmos {
             uint8_t sbuf[600]={0};
             //! Request ID
             uint16_t req_id;
+            //! Packet Size
+            uint16_t packet_size;
             //! Flow rate
             uint32_t streambps;
             //! Best packet size
@@ -424,6 +426,7 @@ namespace Cosmos {
             map <string, XMLStringReg> xmlstringregs;
             map <string, XMLIntReg> xmlintregs;
             map <string, XMLValue> xmlvalues;
+            int32_t error;
         };
 
         struct gige_data
@@ -442,7 +445,7 @@ namespace Cosmos {
         //! @{
 
         vector<gige_acknowledge_ack> gige_discover();
-        gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_msec, uint32_t socket_usec, uint32_t streambps);
+        gige_handle *gige_open(const char address[18], uint8_t privilege, uint32_t heartbeat_msec, uint32_t socket_usec, uint32_t streambps, uint16_t packet_size=1400);
         int gige_writereg(gige_handle *handle, uint32_t address, uint32_t data);
         uint32_t gige_readreg(gige_handle *handle, uint32_t address);
         uint32_t gige_readmem(gige_handle *handle, uint32_t address, uint32_t size);
@@ -617,6 +620,11 @@ namespace Cosmos {
         //!
         enum PHXReg
         {
+            PHXIspBayerPattern = 0x10400084, // N785
+            PHXPixelColorFilter = 0x10400080, // N784
+            PHXADCBitDepth = 0x104000D4, // N813
+            PHXDeviceLinkThroughputLimitMode = 0x101001F0, // N27
+            PHXDeviceLinkThroughputLimit = 0x101001f4, // N27
             PHXDeviceResetReg = 0x10100028, // N49
             PHXSensorWidthReg = 0x10400050, // N799
             PHXSensorHeightReg = 0x10400054, // N800
@@ -632,8 +640,8 @@ namespace Cosmos {
             PHXAcquisitionFrameCount = 0x1030000C // N119
         };
 
-        int32_t phx_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t xbin=1, uint32_t ybin=1);
-        int32_t phx_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize);
+        int32_t phx_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t xbin=1, uint32_t ybin=1, uint32_t test_pattern=0);
+        int32_t phx_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize, uint16_t test=0);
 
         double gige_read_float(gige_handle *handle, string name);
         uint64_t gige_read_uint32(gige_handle *handle, string name);

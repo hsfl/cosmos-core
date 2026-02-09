@@ -313,37 +313,46 @@ namespace Cosmos {
         //! \param node_name Name of the receiving node
         //! \param agent_name Name of the receiving agent
         //! \return n/a
-        void serialize_metafile(vector<PACKET_BYTE>& pdata, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc, const string& file_name, PACKET_FILE_SIZE_TYPE file_size, const string& node_name, const string& agent_name)
+        void serialize_metafile(vector<PACKET_BYTE>& pdata, const tx_progress& tx)
         {
             constexpr uint8_t MAXSTRLEN = sizeof(uint8_t);
             pdata.resize(
                 MAXSTRLEN                           // node_name_len
-                + node_name.size()                  // node_name
+                + tx.node_name.size()               // node_name
                 + sizeof(PACKET_TX_ID_TYPE)         // tx_id
                 + sizeof(PACKET_FILE_CRC_TYPE)      // file_crc
+                + sizeof(uint8_t)                   // sentmeta flag
+                + sizeof(uint8_t)                   // sentdata flag
+                + sizeof(uint8_t)                   // complete flag
                 + MAXSTRLEN                         // agent_name_len
-                + agent_name.size()                 // agent_name
+                + tx.agent_name.size()              // agent_name
                 + MAXSTRLEN                         // file_name_len
-                + file_name.size()                  // file_name
+                + tx.file_name.size()               // file_name
                 + sizeof(PACKET_FILE_SIZE_TYPE));   // file_size
             size_t offset = 0;
-            pdata[offset] = node_name.size();
+            pdata[offset] = tx.node_name.size();
             offset += MAXSTRLEN;
-            std::copy_n(node_name.begin(), node_name.size(), &pdata[offset]);
-            offset += node_name.size();
-            pdata[offset] = tx_id;
+            std::copy_n(tx.node_name.begin(), tx.node_name.size(), &pdata[offset]);
+            offset += tx.node_name.size();
+            pdata[offset] = tx.tx_id;
             offset += sizeof(PACKET_TX_ID_TYPE);
-            memcpy(&pdata[offset], &file_crc, sizeof(PACKET_FILE_CRC_TYPE));
+            memcpy(&pdata[offset], &tx.file_crc, sizeof(PACKET_FILE_CRC_TYPE));
             offset += sizeof(PACKET_FILE_CRC_TYPE);
-            pdata[offset] = agent_name.size();
+            pdata[offset] = tx.sentmeta ? 1 : 0;
+            offset += sizeof(uint8_t);
+            pdata[offset] = tx.sentdata ? 1 : 0;
+            offset += sizeof(uint8_t);
+            pdata[offset] = tx.complete ? 1 : 0;
+            offset += sizeof(uint8_t);
+            pdata[offset] = tx.agent_name.size();
             offset += MAXSTRLEN;
-            std::copy_n(agent_name.begin(), agent_name.size(), &pdata[offset]);
-            offset += agent_name.size();
-            pdata[offset] = file_name.size();
+            std::copy_n(tx.agent_name.begin(), tx.agent_name.size(), &pdata[offset]);
+            offset += tx.agent_name.size();
+            pdata[offset] = tx.file_name.size();
             offset += MAXSTRLEN;
-            std::copy_n(file_name.begin(), file_name.size(), &pdata[offset]);
-            offset += file_name.size();
-            uint32to(file_size, &pdata[offset], ByteOrder::LITTLEENDIAN);
+            std::copy_n(tx.file_name.begin(), tx.file_name.size(), &pdata[offset]);
+            offset += tx.file_name.size();
+            uint32to(tx.file_size, &pdata[offset], ByteOrder::LITTLEENDIAN);
         }
 
         //! Extracts the necessary fields from a .meta file.
@@ -364,6 +373,12 @@ namespace Cosmos {
             offset += sizeof(PACKET_TX_ID_TYPE);
             memcpy(&meta.file_crc, &pdata[offset], sizeof(PACKET_FILE_CRC_TYPE));
             offset += sizeof(PACKET_FILE_CRC_TYPE);
+            meta.sentmeta = pdata[offset] != 0; // sentmeta flag
+            offset += sizeof(uint8_t);
+            meta.sentdata = pdata[offset] != 0; // sentdata flag
+            offset += sizeof(uint8_t);
+            meta.complete = pdata[offset] != 0; // complete flag
+            offset += sizeof(uint8_t);
             meta.agent_name_len = pdata[offset];
             offset += MAXSTRLEN;
             meta.agent_name.resize(meta.agent_name_len);

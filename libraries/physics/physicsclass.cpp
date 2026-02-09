@@ -1158,8 +1158,8 @@ int32_t Structure::add_hex(double width, double height, ExternalPanelType type)
         top.push_back(Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), height/2.));
         bottom.push_back(Vector(width/2*cos(angle+D2PI/12.), width/2*sin(angle+D2PI/12.), -height/2.));
     }
-    add_panel("top", top);
-    add_panel("bottom", bottom);
+    add_panel("external+z", top);
+    add_panel("external-z", bottom);
 
     for (uint16_t i=0; i<6; ++i)
     {
@@ -1207,8 +1207,8 @@ int32_t Structure::add_oct(double width, double height, ExternalPanelType type)
         for (float angle=0.; angle<D2PI; angle+=D2PI/8.)
         {
             add_panel("external"+to_unsigned(DEGOF(angle), 3, true), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.));
-            add_panel("top", top);
-            add_panel("bottom", bottom);
+            add_panel("external+z", top);
+            add_panel("external-z", bottom);
             //            add_triangle(Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), height/2.), Vector(0., 0., height/2.), Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), height/2.), .01, true, .4);
             //            add_triangle(Vector(width/2*cos(angle-D2PI/16.), width/2*sin(angle-D2PI/16.), -height/2.), Vector(0., 0., -height/2.), Vector(width/2*cos(angle+D2PI/16.), width/2*sin(angle+D2PI/16.), -height/2.), .01, true, .4);
         }
@@ -1788,6 +1788,7 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
 
 int32_t State::Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype)
 {
+    int32_t iretn;
     dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
     dtj = dt / 86400.;
 
@@ -1802,15 +1803,98 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     {
         if (currentinfo.node.phys.strucs[i].name.find("panel") != string::npos)
         {
-            json_addpiece(&currentinfo, i, DeviceType::PVSTRG, i);
+            json_createpiece(&currentinfo, i, DeviceType::PVSTRG, i);
+            // json_addpiece(&currentinfo, i, DeviceType::TSEN, i);
         }
         else
         {
-            json_addpiece(&currentinfo, i, DeviceType::NONE);
+            json_createpiece(&currentinfo, i, DeviceType::NONE);
         }
-        piecestruc piece;
     }
+
+    // CPU
+    json_createpiece(&currentinfo, "obc_cpu", DeviceType::CPU);
+
+    // Disk
+    json_createpiece(&currentinfo, "obc_disk", DeviceType::DISK);
+
+    // Thruster
+    iretn = json_createpiece(&currentinfo, "adcs_thrust", DeviceType::THST);
+    // currentinfo.devspec.thst[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unitz(-1.), rv_unitx());
+
+    // Reaction wheels
+    iretn = json_createpiece(&currentinfo, "adcs_rw_x", DeviceType::RW);
+    // currentinfo.devspec.rw[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    iretn = json_createpiece(&currentinfo, "adcs_rw_y", DeviceType::RW);
+    // currentinfo.devspec.rw[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
+    iretn = json_createpiece(&currentinfo, "adcs_rw_z", DeviceType::RW);
+    // currentinfo.devspec.rw[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+
+    // Torque rods
+    iretn = json_createpiece(&currentinfo, "adcs_mtr_x", DeviceType::MTR);
+    // currentinfo.devspec.mtr[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    iretn = json_createpiece(&currentinfo, "adcs_mtr_y", DeviceType::MTR);
+    // currentinfo.devspec.mtr[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
+    iretn = json_createpiece(&currentinfo, "adcs_mtr_z", DeviceType::MTR);
+    // currentinfo.devspec.mtr[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+
+    // GPS
+    json_createpiece(&currentinfo, "adcs_gps", DeviceType::GPS);
+
+    // Magnetometer
+    iretn = json_createpiece(&currentinfo, "adcs_mag", DeviceType::MAG);
+    currentinfo.devspec.mag[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+
+    // Gyros
+    iretn = json_createpiece(&currentinfo, "adcs_gyro_x", DeviceType::GYRO);
+    // currentinfo.devspec.gyro[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    iretn = json_createpiece(&currentinfo, "adcs_gyro_y", DeviceType::GYRO);
+    // currentinfo.devspec.gyro[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
+    iretn = json_createpiece(&currentinfo, "adcs_gyro_z", DeviceType::GYRO);
+    // currentinfo.devspec.gyro[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+
+    // Star trackers
+    iretn = json_createpiece(&currentinfo, "adcs_stt_x+", DeviceType::STT);
+    // currentinfo.devspec.stt[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    iretn = json_createpiece(&currentinfo, "adcs_stt_x-", DeviceType::STT);
+    // currentinfo.devspec.stt[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(-1.0), rv_unity());
+
+    // Sun and Earth sensors
+    iretn = json_createpiece(&currentinfo, "adcs_xyzsen_sun", DeviceType::XYZSEN);
+    //        currentinfo.devspec.xyzsen[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(-1.0), rv_unity());
+    iretn = json_createpiece(&currentinfo, "adcs_xyzsen_earth", DeviceType::XYZSEN);
+    //        currentinfo.devspec.xyzsen[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+
+
+    // Detectors
+    json_createpiece(&currentinfo, "camera1", DeviceType::CAM);
+    json_createpiece(&currentinfo, "camera2", DeviceType::CAM);
+    json_createpiece(&currentinfo, "camera3", DeviceType::CAM);
+    json_createpiece(&currentinfo, "camera4", DeviceType::CAM);
+    // for (camstruc det : dets)
+    // {
+    //     json_createpiece(&currentinfo, det.name, DeviceType::CAM);
+    //     currentinfo.devspec.cam[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].volt = 5.;
+    //     currentinfo.devspec.cam[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].amp = 20. / det.volt;
+    //     currentinfo.devspec.cam[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].state = 0;
+    //     currentinfo.devspec.cam[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].fov = det.fov;
+    //     currentinfo.devspec.cam[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].ifov = det.ifov;
+    //     currentinfo.devspec.cam[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].specmin = det.specmin;
+    //     currentinfo.devspec.cam[currentinfo.device[currentinfo.pieces[iretn].cidx]->didx].specmax = det.specmax;
+    // }
+
+    // EPS
+    json_createpiece(&currentinfo, "battery", DeviceType::BATT);
+
+    // TSEN
+    uint16_t devcnt = currentinfo.device.size();
+    for (uint16_t i=0; i<devcnt; ++i)
+    {
+        json_createpiece(&currentinfo, "tsen_" + currentinfo.pieces[currentinfo.device[i]->pidx].name, DeviceType::TSEN);
+    }
+
     json_map_node(&currentinfo);
+    json_updatecosmosstruc(&currentinfo);
 
     currentinfo.mass = currentinfo.node.phys.mass;
 
@@ -2242,6 +2326,19 @@ int32_t State::Reset(double nextutc)
 
 int32_t InertialAttitudePropagator::Init()
 {
+    currentinfo->node.loc_req.att.lvlh.utc = currentutc;
+    currentinfo->node.loc_req.att.lvlh.s = q_eye();
+    currentinfo->node.loc_req.att.lvlh.v = rv_zero();
+    currentinfo->node.loc_req.att.lvlh.a = rv_zero();
+    initialloc.att = currentinfo->node.loc_req.att;
+    currentinfo->node.loc.att.lvlh.utc = currentutc;
+    currentinfo->node.loc.att.lvlh.s = currentinfo->node.loc_req.att.lvlh.s;
+    currentinfo->node.loc.att.lvlh.v = currentinfo->node.loc_req.att.lvlh.v;
+    currentinfo->node.loc.att.lvlh.a = currentinfo->node.loc_req.att.lvlh.a;
+    ++currentinfo->node.loc.att.lvlh.pass;
+    att_lvlh2icrf(currentinfo->node.loc);
+    AttAccel(currentinfo->node.loc, currentinfo->node.phys);
+    att_icrf(currentinfo->node.loc);
 
     return  0;
 }
@@ -2302,6 +2399,17 @@ int32_t GeoAttitudePropagator::Propagate(double nextutc)
 
 int32_t IterativeAttitudePropagator::Init()
 {
+    currentinfo->node.loc_req.att.lvlh.utc = currentutc;
+    currentinfo->node.loc_req.att.lvlh.s = q_eye();
+    currentinfo->node.loc_req.att.lvlh.v = rv_zero();
+    currentinfo->node.loc_req.att.lvlh.a = rv_zero();
+    initialloc.att = currentinfo->node.loc_req.att;
+    currentinfo->node.loc.att.lvlh.utc = currentutc;
+    currentinfo->node.loc.att.lvlh.s = currentinfo->node.loc_req.att.lvlh.s;
+    currentinfo->node.loc.att.lvlh.v = currentinfo->node.loc_req.att.lvlh.v;
+    currentinfo->node.loc.att.lvlh.a = currentinfo->node.loc_req.att.lvlh.a;
+    ++currentinfo->node.loc.att.lvlh.pass;
+    att_lvlh2icrf(currentinfo->node.loc);
     AttAccel(currentinfo->node.loc, currentinfo->node.phys);
 
     return  0;
@@ -2327,7 +2435,11 @@ int32_t IterativeAttitudePropagator::Propagate(double nextutc)
     while ((nextutc - currentutc) > dtj / 2.)
     {
         currentutc += dtj;
-        q1 = q_axis2quaternion_rv(rv_smult(dt, currentinfo->node.loc.att.icrf.v));
+        // Calculate new a from ftorque
+        currentinfo->node.phys.ctorque = currentinfo->node.phys.ftorque;
+        AttAccel(currentinfo->node.loc, currentinfo->node.phys);
+        // Calculate new s from v and a
+        q1 = q_axis2quaternion_rv(rv_smult(dt, currentinfo->node.loc.att.icrf.v + currentinfo->node.loc.att.icrf.a * (dt/2.)));
         currentinfo->node.loc.att.icrf.s = q_fmult(q1, currentinfo->node.loc.att.icrf.s);
         normalize_q(&currentinfo->node.loc.att.icrf.s);
         // Calculate new v from da
@@ -2599,6 +2711,29 @@ int32_t ThermalPropagator::Propagate(double nextutc)
             currentinfo->node.phys.heat += triangle.heat;
         }
 
+        // Translate from triangles to actual devices
+        for (auto &piece : currentinfo->pieces)
+        {
+            piece.temp = 0;
+            uint16_t count = 0;
+            for (uint32_t &findex : currentinfo->node.phys.strucs[piece.struc_idx].face_idx)
+            {
+                for (uint32_t &tindex : currentinfo->node.phys.faces[findex].triangle_idx)
+                {
+                    piece.temp += currentinfo->node.phys.triangles[tindex].temp;
+                    ++count;
+                }
+            }
+            if (count)
+            {
+                piece.temp /= count;
+                if (piece.cidx < currentinfo->device.size())
+                {
+                    currentinfo->device[piece.cidx]->temp = piece.temp;
+                }
+            }
+        }
+
         currentinfo->node.phys.temp = heatratio / currentinfo->node.phys.hcap;
         temperature = currentinfo->node.phys.temp;
     }
@@ -2835,10 +2970,11 @@ int32_t MetricGenerator::Propagate(double nextutc)
     {
         double h = currentinfo->node.loc.pos.geod.s.h;
         double nadirradius = h * currentinfo->devspec.cam[id].fov / 2.;
-        cartpos cpointing;
-        sat2geoc(currentinfo->devspec.cam[id].los, currentinfo->node.loc, cpointing.s);
-        geoidpos gpointing;
-        geoc2geod(cpointing, gpointing);
+        rvector boresight = transform_q(q_conjugate(currentinfo->node.loc.att.icrf.s),currentinfo->devspec.cam[id].los);
+        // cartpos cpointing;
+        // sat2geoc(currentinfo->devspec.cam[id].los, currentinfo->node.loc, cpointing.s);
+        // geoidpos gpointing;
+        // geoc2geod(cpointing, gpointing);
         for (uint16_t it=0; it<currentinfo->target.size(); ++it)
         {
             // Must be at least 5 degrees
@@ -2851,7 +2987,8 @@ int32_t MetricGenerator::Propagate(double nextutc)
                 double dr = nadirradius / sin(currentinfo->target[it].elto);
                 double dr2 = dr * dr;
                 double sep;
-                geod2sep(gpointing.s, currentinfo->target[it].loc.pos.geod.s, sep);
+                sep = acos(dot_rv(rv_normal(boresight), -rv_normal(currentinfo->node.loc.pos.eci.s)));
+                // geod2sep(gpointing.s, currentinfo->target[it].loc.pos.geod.s, sep);
                 double sep2 = sep * sep;
                 double tr = sqrt(currentinfo->target[it].area / DPI);
                 double tr2 = tr * tr;
@@ -2940,7 +3077,7 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
     {
         // Add lat to event list
         eventstruc cevent;
-        cevent.name = "LATA" + to_signed(DEGOF(lat), 4, true);
+        cevent.name = "LATA" + to_signed(std::round(DEGOF(lat)), 4, true);
         cevent.type = EVENT_TYPE_LATA;
         cevent.value = lat;
         cevent.utc = currentutc;
@@ -2971,7 +3108,7 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
     {
         // Add lat to event list
         eventstruc cevent;
-        cevent.name = "LATD" + to_signed(DEGOF(lat), 4, true);
+        cevent.name = "LATD" + to_signed(std::round(DEGOF(lat)), 4, true);
         cevent.type = EVENT_TYPE_LATD;
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
@@ -3129,7 +3266,7 @@ int32_t OrbitalEventGenerator::check_land_event(bool force_end)
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
         cevent.dtime = 0.;
-        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_LAND;
+        cevent.flag = (5 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_LAND;
         if (in_land)
         {
             cevent.flag |= EVENT_FLAG_LAND;
@@ -3161,7 +3298,7 @@ int32_t OrbitalEventGenerator::check_land_event(bool force_end)
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
         cevent.dtime = cevent.utc - land_start;
-        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
+        cevent.flag = (5 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
         if (in_land)
         {
             cevent.flag |= EVENT_FLAG_LAND;
@@ -3201,7 +3338,7 @@ int32_t OrbitalEventGenerator::check_umbra_event(bool force_end)
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
         cevent.dtime = 0.;
-        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_UMBRA;
+        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_COLOR_WHITE | EVENT_FLAG_UMBRA;
         if (in_land)
         {
             cevent.flag |= EVENT_FLAG_LAND;
@@ -3233,7 +3370,7 @@ int32_t OrbitalEventGenerator::check_umbra_event(bool force_end)
         cevent.utc = currentutc;
         cevent.utcexec = cevent.utc;
         cevent.dtime = cevent.utc - umbra_start;
-        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
+        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_COLOR_WHITE | EVENT_FLAG_EXIT;
         if (in_land)
         {
             cevent.flag |= EVENT_FLAG_LAND;
@@ -3268,7 +3405,7 @@ int32_t OrbitalEventGenerator::check_target_events(bool force_end)
     {
         if (target->type == NODE_TYPE_GROUNDSTATION)
         {
-            iretn += check_gs_aos_event(*target, force_end);
+            iretn += check_gs_event(*target, force_end);
         }
         else if (target->type == NODE_TYPE_TARGET)
         {
@@ -3278,7 +3415,7 @@ int32_t OrbitalEventGenerator::check_target_events(bool force_end)
     return iretn;
 }
 
-int32_t OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool force_end)
+int32_t OrbitalEventGenerator::check_gs_event(const targetstruc& gs, bool force_end)
 {
     // Find target sight acquisition/loss
     // Groundstation is in line-of-sight if elto (elevation from target to sat) is positive
@@ -3300,14 +3437,22 @@ int32_t OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool fo
         {
             in_gs = true;
             eventstruc gs_aos_event;
-            gs_aos_event.name = GS_EVENT_STRING[i] + "AOS_" + gs.name;
+            // gs_aos_event.name = GS_EVENT_STRING[i] + "_AOS:" + gs.name;
+            gs_aos_event.name = AOS_EVENT_STRING[i] + gs.name;
             gs_aos_event.type = GS_EVENT_CODE[i];
-            gs_aos_event.utc = gsAOS[i].first;
-            gs_aos_event.dtime = currentutc - gsAOS[i].first;
+            gs_aos_event.utc = currentutc;
+            gs_aos_event.dtime = 0.;
             gs_aos_event.value = gsAOS[i].second;
             gs_aos_event.az = gs.azto;
             gs_aos_event.el = gs.elto;
-            gs_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_GS | EVENT_FLAG_COLOR_GREEN;
+            if (gs_aos_event.type == EVENT_TYPE_GS)
+            {
+                gs_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_GS | EVENT_FLAG_COLOR_GREEN | (3 * EVENT_SCALE_PRIORITY);
+            }
+            else
+            {
+                gs_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_GS | EVENT_FLAG_COLOR_GREEN | (4 * EVENT_SCALE_PRIORITY);
+            }
             if (in_land)
             {
                 gs_aos_event.flag |= EVENT_FLAG_LAND;
@@ -3325,7 +3470,7 @@ int32_t OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool fo
                 gs_aos_event.flag |= EVENT_FLAG_TARG;
             }
             currentinfo->event.push_back(gs_aos_event);
-            gsAOS[i].first = currentutc;
+            gsAOS[i].first = gs_aos_event.utc;
         }
         // LoS
         else if ((force_end || DEGOF(gs.elto) <= i*5.) && gsAOS[i].first != 0.)
@@ -3333,14 +3478,22 @@ int32_t OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool fo
             in_gs = false;
             // Add event to event list
             eventstruc gs_aos_event;
-            gs_aos_event.name = GS_EVENT_STRING[i] + "LOS_" + gs.name;
+            // gs_aos_event.name = GS_EVENT_STRING[i] + "_LOS:" + gs.name;
+            gs_aos_event.name = LOS_EVENT_STRING[i] + gs.name;
             gs_aos_event.type = GS_EVENT_CODE[i];
-            gs_aos_event.utc = gsAOS[i].first;
+            gs_aos_event.utc = currentutc;
             gs_aos_event.dtime = currentutc - gsAOS[i].first;
             gs_aos_event.value = gsAOS[i].second;
             gs_aos_event.az = gs.azto;
             gs_aos_event.el = gs.elto;
-            gs_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT | EVENT_FLAG_COLOR_GREEN;
+            if (gs_aos_event.type == EVENT_TYPE_GS)
+            {
+                gs_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT | EVENT_FLAG_COLOR_GREEN | (3 * EVENT_SCALE_PRIORITY);
+            }
+            else
+            {
+                gs_aos_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT | EVENT_FLAG_COLOR_GREEN | (4 * EVENT_SCALE_PRIORITY);
+            }
             if (in_land)
             {
                 gs_aos_event.flag |= EVENT_FLAG_LAND;
@@ -3378,7 +3531,7 @@ int32_t OrbitalEventGenerator::check_gs_aos_event(const targetstruc& gs, bool fo
         in_gs =true;
         // Add event to event list
         eventstruc gs_aos_event;
-        gs_aos_event.name = GS_EVENT_STRING[DEGMAX] + "_" + gs.name;
+        gs_aos_event.name = "MAX_" + gs.name; // + "_" + GS_EVENT_STRING[DEGMAX];
         gs_aos_event.type = GS_EVENT_CODE[DEGMAX];
         gs_aos_event.utc = gsAOS[DEGMAX].first;
         gs_aos_event.dtime = 0;

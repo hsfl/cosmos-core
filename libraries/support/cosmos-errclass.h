@@ -51,7 +51,7 @@ namespace Cosmos {
         //! \ingroup error
         //! \defgroup error_functions Errno support functions
         //! @{
-        string cosmos_error_string(int32_t cosmos_errno);
+        string cosmos_error_string(int32_t cosmos_errno, string message="");
 
         //! @}
     }

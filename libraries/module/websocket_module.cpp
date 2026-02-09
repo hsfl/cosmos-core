@@ -40,7 +40,7 @@ namespace Module
         }
 
         // open up a socket for sending data to destination
-        iretn = socket_open(sock_out, NetworkType::TCP, ipv4_addr.c_str(), port, SOCKET_TALK, SOCKET_NONBLOCKING);
+        iretn = socket_open(sock_out, NetworkType::TCP, ipv4_addr.c_str(), port, SOCKET_TALK, SOCKET_BLOCKING);
         if (iretn < 0)
         {
             agent->debug_log.Printf("Error in socket_open out, iretn:%d, %s\n", iretn, mychannel_name.c_str());
@@ -107,31 +107,14 @@ namespace Module
     {
         agent->debug_log.Printf("Starting %s loop.\n", mychannel_name.c_str());
         is_running = true;
-        while(is_running)
-        {
-            // Comm - External
-            Receive();
-
-            // Comm - Internal
-            Transmit();
-            
-
-            // Control
-            if (agent->channel_age(mychannel) >= 30.)
-            {
-                agent->channel_enable(mychannel, 0);
-            }
-            else if (agent->channel_enabled(mychannel) < 2)
-            {
-                agent->channel_enable(mychannel, 1);
-            }
-
-            std::this_thread::yield();
-        }
+        receive_thread = std::thread([=] { Receive(); });
+        transmit_thread = std::thread([=] { Transmit(); });
+        // Wait for the threads to finish
+        receive_thread.join();
+        transmit_thread.join();
 
         socket_close(sock_in);
         socket_close(sock_out);
-
         return;
     }
 
@@ -143,53 +126,73 @@ namespace Module
     void WebsocketModule::Receive()
     {
         PacketComm packet;
-        if (
-            // In TCP Mode, only sock_out is set up
-            ((tcp_mode && socket_recvfrom(sock_out, packet.packetized, 10000) <= 0)
-            // In UDP Mode, recv from sock_in
-            || socket_recvfrom(sock_in, packet.packetized, 10000) <= 0)
-            )
-        {
-            return;
-        }
+        bool isActive = false;
+        while(is_running) {
 
-        agent->channel_touch(mychannel);
-        agent->channel_increment(mychannel, packet.packetized.size());
+            // Control
+            if (agent->channel_age(mychannel) >= 30.)
+            {
+                agent->channel_enable(mychannel, 0);
+                isActive = false;
+            }
+            else if (agent->channel_enabled(mychannel) < 2)
+            {
+                agent->channel_enable(mychannel, 1);
+                isActive = true;
+            }
 
-        bool iret = true;
-        switch(unpacketize_function)
-        {
-        case PacketizeFunction::Raw:
-            iret = packet.RawUnPacketize();
-            break;
-        case PacketizeFunction::SLIP:
-            iret = packet.SLIPUnPacketize();
-            break;
-        case PacketizeFunction::ASM:
-            iret = packet.ASMUnPacketize();
-            break;
-        case PacketizeFunction::AX25:
-            iret = packet.AX25UnPacketize();
-            break;
-        case PacketizeFunction::HDLC:
-            iret = packet.HDLCUnPacketize();
-            break;
-        case PacketizeFunction::None:
-            packet.data = packet.packetized;
-            break;
-        default:
-            return;
-        }
-        if (!iret)
-        {
-            return;
-        }
-        switch(packet.header.nodedest)
-        {
-        // TODO: consider generic packet forwarding to other nodes
-        default:
-            agent->monitor_unwrapped(mychannel, packet, "Receive");
-            agent->channel_push(0, packet);
+            if (
+                // In TCP Mode, only sock_out is set up
+                ((tcp_mode && socket_recvfrom(sock_out, packet.packetized, 10000) <= 0)
+                // In UDP Mode, recv from sock_in
+                || socket_recvfrom(sock_in, packet.packetized, 10000) <= 0)
+                )
+            {
+                if (!isActive)
+                {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                }
+                continue;
+            }
+
+            agent->channel_touch(mychannel);
+            agent->channel_increment(mychannel, packet.packetized.size());
+
+            bool iret = true;
+            switch(unpacketize_function)
+            {
+            case PacketizeFunction::Raw:
+                iret = packet.RawUnPacketize();
+                break;
+            case PacketizeFunction::SLIP:
+                iret = packet.SLIPUnPacketize();
+                break;
+            case PacketizeFunction::ASM:
+                iret = packet.ASMUnPacketize();
+                break;
+            case PacketizeFunction::AX25:
+                iret = packet.AX25UnPacketize();
+                break;
+            case PacketizeFunction::HDLC:
+                iret = packet.HDLCUnPacketize();
+                break;
+            case PacketizeFunction::None:
+                packet.data = packet.packetized;
+                break;
+            default:
+                continue;
+            }
+            if (!iret)
+            {
+                continue;
+            }
+            switch(packet.header.nodedest)
+            {
+            // TODO: consider generic packet forwarding to other nodes
+            default:
+                agent->monitor_unwrapped(mychannel, packet, "Receive");
+                agent->channel_push(0, packet); // Note, this call is a bottleneck
+            }
         }
     }
 
@@ -198,47 +201,55 @@ namespace Module
         PacketComm packet;
         bool iret = true;
         packet.packetized.clear();
-        if (agent->channel_pull(mychannel, packet) <= 0)
-        {
-            return;
-        }
-        // Packetize with COSMOS packet formatting if necessary
-        switch(packetize_function)
-        {
-        case PacketizeFunction::Raw:
-            iret = packet.RawPacketize();
-            break;
-        case PacketizeFunction::SLIP:
-            iret = packet.SLIPPacketize();
-            break;
-        case PacketizeFunction::ASM:
-            iret = packet.ASMPacketize();
-            break;
-        case PacketizeFunction::AX25:
-            iret = packet.AX25Packetize(dest_call, sour_call, flagcount, dest_stat, sour_stat, cont, prot);
-            break;
-        case PacketizeFunction::HDLC:
-            iret = packet.HDLCPacketize();
-            break;
-        case PacketizeFunction::None:
-            packet.packetized = packet.data;
-            break;
-        default:
-            return;
-        }
-        // Guard against empty or uninitialized vector
-        if (packet.packetized.empty() || !iret)
-        {
-            return;
-        }
-        agent->monitor_unwrapped(mychannel, packet, "Transmit");
-        if (tcp_mode)
-        {
-            socket_send(sock_out, packet.packetized);
-        }
-        else
-        {
-            socket_sendto(sock_out, packet.packetized);
+        while(is_running) {
+            if (agent->channel_pull(mychannel, packet) <= 0)
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                continue;
+            }
+            // Packetize with COSMOS packet formatting if necessary
+            switch(packetize_function)
+            {
+            case PacketizeFunction::Raw:
+                iret = packet.RawPacketize();
+                break;
+            case PacketizeFunction::SLIP:
+                iret = packet.SLIPPacketize();
+                break;
+            case PacketizeFunction::ASM:
+                iret = packet.ASMPacketize();
+                break;
+            case PacketizeFunction::AX25:
+                iret = packet.AX25Packetize(dest_call, sour_call, flagcount, dest_stat, sour_stat, cont, prot);
+                break;
+            case PacketizeFunction::HDLC:
+                iret = packet.HDLCPacketize();
+                break;
+            case PacketizeFunction::None:
+                packet.packetized = packet.data;
+                break;
+            default:
+                continue;
+            }
+            // Guard against empty or uninitialized vector
+            if (packet.packetized.empty() || !iret)
+            {
+                continue;
+            }
+            agent->monitor_unwrapped(mychannel, packet, "Transmit");
+            if (tcp_mode)
+            {
+                socket_send(sock_out, packet.packetized);
+            }
+            else
+            {
+                int32_t iretn = socket_sendto(sock_out, packet.packetized);
+                if (iretn < 0)
+                {
+                    agent->debug_log.Printf("Error in socket_sendto out, iretn:%d, %s\n", iretn, mychannel_name.c_str());
+                    exit(0);
+                }
+            }
         }
     }
 

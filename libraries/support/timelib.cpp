@@ -34,6 +34,7 @@
 #include "support/timelib.h"
 #include "support/datalib.h"
 #include "support/ephemlib.h"
+#include "support/stringlib.h"
 #include "math/mathlib.h"
 
 namespace Cosmos {
@@ -118,6 +119,19 @@ namespace Cosmos {
             sprintf(time_string, "%04d-%02d-%02dT%02d%02d%02d", year, month, day, hour, minute, second);
 
             return string(time_string);
+        }
+
+        //! TIme difference.
+        //! Return difference between local time and UTC in days.
+        //! \return UTC - Local in days
+        double tmdiff(double mjd)
+        {
+            time_t thetime = (time_t)utc2unixseconds(mjd);
+            struct tm *localt = localtime(&thetime);
+            // struct tm *gmt = gmtime(thetime);
+
+            double timediff = localt->tm_gmtoff / 86400.;
+            return timediff;
         }
 
         //! Unix time to UTC
@@ -642,9 +656,9 @@ namespace Cosmos {
  * \param utc Coordinated Universal Time expressed in Modified Julian Days. If 0., then use current time.
  * \return C++ String containing the ISO 8601 date.
  */
-        string utc2iso8601(double utc)
+        string mjd2iso8601(double utc, double offset)
         {
-            char buffer[25];
+            char buffer[30];
             int32_t iy=0, im=0, id=0, ihh, imm, iss;
             double fd=0.;
 
@@ -660,9 +674,57 @@ namespace Cosmos {
             imm = (int32_t)(1440 * fd);
             fd -= imm / 1440.;
             iss = (int32_t)(86400 * fd);
-            sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02dZ", iy, im, id, ihh, imm, iss);
+            if (offset == 0.)
+            {
+                sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02dZ", iy, im, id, ihh, imm, iss);
+            }
+            else
+            {
+                int16_t hr = offset * 24;
+                int16_t mn = (fabs(offset * 24 - hr) * 60);
+                sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02d%+02d:%02d", iy, im, id, ihh, imm, iss, hr, mn);
+            }
 
             return string(buffer);
+        }
+
+        //! Create DateTime from MJD
+        //! Represent the provided UTC in the requested form:
+        //! - 0: YYYYJJJSSSSS
+        //! - 1: YYYYMMDDHHMMSS
+        //! - 2: Unix time
+        //! \param utc UTC time in Modified Julian Day format
+        //! \param style Style of output
+        //! \return UTC in requested format
+        string utc2datetime(double mjd, uint16_t style)
+        {
+            calstruc date;
+            if (mjd < 1.)
+            {
+                mjd = currentmjd();
+            }
+            date = mjd2cal(mjd);
+            string datetime;
+            switch (style)
+            {
+            case 0:
+                datetime = to_unsigned(date.year, 4, true);
+                datetime += to_unsigned(date.doy, 3, true);
+                datetime += to_unsigned(date.hour*3600 + date.minute*60 + date.second, 5, true);
+                break;
+            case 1:
+                datetime = to_unsigned(date.year, 4, true);
+                datetime += to_unsigned(date.month, 2, true);
+                datetime += to_unsigned(date.dom, 2, true);
+                datetime += to_unsigned(date.hour, 2, true);
+                datetime += to_unsigned(date.minute, 2, true);
+                datetime += to_unsigned(date.second, 2, true);
+                break;
+            case 2:
+                datetime = to_unixtime(mjd);
+                break;
+            }
+            return datetime;
         }
 
         double iso86012utc(string date)
@@ -681,8 +743,8 @@ namespace Cosmos {
         }
 
         // just call utc2iso8601(double utc)
-        string mjd2iso8601(double mjd){
-            return utc2iso8601(mjd);
+        string utc2iso8601(double mjd, double offset){
+            return mjd2iso8601(mjd);
         }
 
 

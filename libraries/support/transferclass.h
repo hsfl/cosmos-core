@@ -44,6 +44,38 @@
 
 namespace Cosmos {
     namespace Support {
+        enum class SendRetVal : int32_t {
+            QUIT = 1,           //!< Success, but stop is requested
+            SUCCESS = 0,        //!< Success, continue as normal
+            ERROR_ABORT = -1,   //!< Error occurred, return from the current function
+        };
+        /**
+         * @brief Virtual interface to send packets.
+         */
+        class Sender {
+        public:
+            virtual ~Sender() = default;
+            /**
+             * @brief Send a packet.
+             * 
+             * @param packet The packet to send. It is expected for implementations to handle the packet's serialization.
+             * @return int32_t Returns 0 on success, or an error code on failure that signals to the transfer process what to do next.
+             */
+            virtual SendRetVal send(PacketComm& packet) = 0;
+
+            /**
+             * @brief Get the number of packets sent out of this sender object.
+             * @return size_t
+             */
+            size_t get_number_of_packets_sent() const { return num_packets_sent_; }
+        
+        protected:
+            void increment_number_of_packets_sent() { ++num_packets_sent_; }
+
+        private:
+            //! Internal counter for number of packets sent. It is expected for implementations to increment this.
+            size_t num_packets_sent_ = 0;
+        };
         class Transfer {
         public:
             // For specifying what types of packets to get from get_outgoing_packets()
@@ -55,7 +87,7 @@ namespace Cosmos {
             //! Returned by receive_packet() if there was something of concern requring the receive to send out a response-type packet of some sort (e.g., REQMETA, REQDATA, etc.)
             static const int32_t RESPONSE_REQUIRED = 1;
 
-            Transfer();
+            Transfer(Sender* sender) : sender_(sender) {}
             // int32_t Init(string node, string agent, uint16_t chunk_size);
             int32_t Init(cosmosstruc *cinfo, bool keep_errored_files);
             int32_t Init(cosmosstruc *cinfo, Log::Logger* debug_log, bool keep_errored_files);
@@ -63,14 +95,13 @@ namespace Cosmos {
             int32_t outgoing_tx_add(tx_progress &tx_out, const string dest_node_name);
             int32_t outgoing_tx_add(const string dest_node, const string dest_agent, const string file_name);
             int32_t outgoing_tx_load();
-            int32_t outgoing_tx_load(const string node_name);
-            int32_t outgoing_tx_load(const uint8_t node_id);
+            int32_t outgoing_tx_load(const string node_name, const string& specific_directory="");
+            int32_t outgoing_tx_load(const uint8_t node_id, const string& specific_directory="");
             int32_t outgoing_tx_recount(const string node_name);
             int32_t outgoing_tx_recount(const uint8_t node_id);
-            int32_t incoming_tx_recount(const string node_name);
-            int32_t incoming_tx_recount(const uint8_t node_id);
-            int32_t send_outgoing_lpackets(const uint8_t dest_node_id, Agent* agent, const uint8_t channel_id, uint32_t max_packets_to_queue, double timeout);
-            int32_t send_outgoing_rpackets(const uint8_t orig_node_id, Agent* agent, const uint8_t channel_id, double timeout);
+            int32_t incoming_tx_recount(const size_t orig_node_idx);
+            int32_t send_outgoing_lpackets(const uint8_t dest_node_id);
+            int32_t send_outgoing_rpackets(const uint8_t orig_node_id);
             int32_t receive_packet(const PacketComm& packet);
 
             // Various publicly available requests
@@ -87,13 +118,16 @@ namespace Cosmos {
             int32_t reset_queue(string node_name);
             int32_t reset_queue(uint8_t node_id, uint8_t direction);
             int32_t close_file_pointers(uint8_t node_id, uint8_t direction);
+            int32_t save_progress(uint8_t node_id);
 
             // Getters/setters
             PACKET_CHUNK_SIZE_TYPE get_packet_size();
             int32_t set_packet_size(const PACKET_CHUNK_SIZE_TYPE size);
 
+            const Sender* get_sender() { return sender_; }
+
             // Print out packets for debugging
-            void print_file_packet(PacketComm packet, uint8_t direction, string type, Log::Logger* debug_log);
+            void print_file_packet(const PacketComm& packet, uint8_t direction, string type, Log::Logger* debug_log);
 
 
         private:
@@ -105,6 +139,9 @@ namespace Cosmos {
             PACKET_NODE_ID_TYPE self_node_id;
             /// Maps a node_id to an index into txq. <node_id, txq_index>. Use node_id_to_txq_idx instead of trying to access the map directly with []operator.
             map<PACKET_NODE_ID_TYPE, size_t> node_id_to_txq_map;
+
+            /// Sender interface for sending packets
+            Sender* sender_;
 
             /// Vector of nodes to transfer files in/out. Heart of the file transfer manager.
             vector<tx_queue> txq;
@@ -125,14 +162,16 @@ namespace Cosmos {
 
             // Private queue manipulation functions
             int32_t outgoing_tx_del(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1, const bool remove_file=true);
+            SendRetVal outgoing_tx_data(const uint8_t dest_node_id, const size_t dest_node_idx, const PACKET_TX_ID_TYPE tx_id);
+            int32_t outgoing_tx_reqdata(const uint8_t orig_node_id, const size_t orig_node_idx, const PACKET_TX_ID_TYPE tx_id);
             PACKET_TX_ID_TYPE check_tx_id(const tx_entry &txentry, const PACKET_TX_ID_TYPE tx_id);
             int32_t incoming_tx_add(const string node_name, const PACKET_TX_ID_TYPE tx_id, PACKET_FILE_CRC_TYPE file_crc);
             int32_t incoming_tx_add(const string node_name, const packet_struct_metadata& meta);
             int32_t incoming_tx_add(tx_progress &tx_in);
             int32_t incoming_tx_update(const packet_struct_metadata &meta);
-            int32_t incoming_tx_del(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1);
-            int32_t incoming_tx_complete(const uint8_t node_id, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1, bool delete_file=false);
-            int32_t incoming_tx_data(packet_struct_data& data, uint8_t node_id, size_t orig_node_idx);
+            int32_t incoming_tx_del(const uint8_t orig_node_idx, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1);
+            int32_t incoming_tx_complete(const size_t orig_node_idx, const PACKET_TX_ID_TYPE tx_id=PROGRESS_QUEUE_SIZE-1, bool delete_file=false);
+            int32_t incoming_tx_data(packet_struct_data& data, size_t orig_node_idx);
 
             // Reuse to write the META
             vector<uint8_t> meta_file_data;
@@ -143,6 +182,7 @@ namespace Cosmos {
 
             static const size_t INVALID_TXQ_IDX = (size_t)-1;
             size_t node_id_to_txq_idx(const uint8_t node_id);
+            PACKET_NODE_ID_TYPE txq_idx_to_node_id(const size_t node_idx);
 
             // Whether to keep copies of files that encountered errors and were cancelled
             bool keep_errored_files = false;

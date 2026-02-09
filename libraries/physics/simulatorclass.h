@@ -30,7 +30,16 @@ namespace Cosmos
                 Paused,
                 Running
                 };
+            
+            struct pointing_info 
+            {
+                //! LVLH attitude
+                qatt pointing;
+                //! Index of the target that the node is currently assigned
+                int32_t target_idx;
+            };
 
+            //! Vector holding all objects to be propagated by the simulator
             typedef vector<Physics::State*> StateList;
 
             int32_t Init(double idt=1., string realm="propagate", double iutc=0.);
@@ -57,7 +66,7 @@ namespace Cosmos
             int32_t GetError();
             int32_t Propagate(double nextutc=0.);
             int32_t Propagate(vector<vector<cosmosstruc> > &results, uint32_t runcount);
-            int32_t Target(map<uint32_t, vector<qatt> > &pschedule);
+            int32_t Target(map<uint32_t, vector<pointing_info> > &pschedule);
             int32_t Target();
             int32_t Target(vector<vector<cosmosstruc> > &results);
             int32_t Metric();

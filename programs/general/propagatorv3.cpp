@@ -37,7 +37,7 @@ string satfile = "sats.dat";
 string targetfile = "targets.dat";
 string tlefile = "tle.dat";
 string pointingfile;
-map<uint32_t, vector<qatt>> pschedule;
+map<uint32_t, vector<Physics::Simulator::pointing_info>> pschedule;
 double runcount = 1500;
 vector <cartpos> lvlhoffset;
 socket_bus data_channel_out;
@@ -233,8 +233,9 @@ int main(int argc, char *argv[])
                     if (postevent)
                     {
                         json11::Json jobj = json11::Json::object({
-                            {"mtype", "event"},
+                            {"type", "event"},
                             {"node_name", sim->cnodes[i]->currentinfo.node.name},
+                            {"utc", event.utc},
                             {"event_utc", event.utc},
                             {"event_name", event.name},
                             {"event_type", static_cast<int>(event.type)},
@@ -247,8 +248,8 @@ int main(int argc, char *argv[])
                         iretn = socket_post(data_channel_out, output.c_str());
 
                         // Post SOH
-                        string jstring;
-                        agent->post(Agent::AgentMessage::EVENT, jobj.dump());
+                        // string jstring;
+                        // agent->post(Agent::AgentMessage::EVENT, jobj.dump());
                     }
                 }
             }
@@ -297,8 +298,11 @@ int main(int argc, char *argv[])
                 sim->cnodes[i]->currentinfo.devspec.cpu[0].maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/1073741824.);
                 sim->cnodes[i]->currentinfo.devspec.cpu[0].maxload = deviceCpu.getCpuCount();
                 json11::Json jobj = json11::Json::object({
-                    {"type", "node"},
-                    {"node", sim->cnodes[i]->currentinfo.node.name},
+                    {"type", "soh"},
+                    {"utc", sim->cnodes[i]->currentinfo.node.utc},
+                    {"node_name", sim->cnodes[i]->currentinfo.node.name},
+                    {"pvstrg", sim->cnodes[i]->currentinfo.devspec.pvstrg},
+                    {"tsen", sim->cnodes[i]->currentinfo.devspec.tsen},
                     {"ecipos", sim->cnodes[i]->currentinfo.node.loc.pos.eci},
                     {"alphatt", sim->cnodes[i]->currentinfo.node.loc.att.icrf},
                     {"powerin", sim->cnodes[i]->currentinfo.node.phys.powgen},
@@ -311,8 +315,9 @@ int main(int argc, char *argv[])
                 send_telem_to_cosmos_web(&sim->cnodes[i]->currentinfo);
 
                 // Post SOH
-                string jstring;
-                agent->post(Agent::AgentMessage::SOH, json_of_list(jstring, sim->cnodes[i]->sohstring, &sim->cnodes[i]->currentinfo));
+                // string jstring;
+                // agent->post(Agent::AgentMessage::SOH, json_of_list(jstring, sim->cnodes[i]->sohstring, &sim->cnodes[i]->currentinfo));
+                agent->post(Agent::AgentMessage::SOH, output);
             }
         }
         //        if (printevent)
@@ -330,14 +335,14 @@ int main(int argc, char *argv[])
         {
             sim->Target();
         }
-        sim->cnodes[0]->currentinfo.node.loc.att.lvlh.pass++;
-        att_lvlh(&sim->cnodes[0]->currentinfo.node.loc);
-        rvector vvec = transform_q(sim->cnodes[0]->currentinfo.node.loc.att.geoc.s,rv_smult(10,rv_normal(sim->cnodes[0]->currentinfo.node.loc.pos.geoc.v)));
-        rvector svec = transform_q(sim->cnodes[0]->currentinfo.node.loc.att.geoc.s,rv_smult(10,rv_normal(sim->cnodes[0]->currentinfo.node.loc.pos.geoc.s)));
+        // sim->cnodes[0]->currentinfo.node.loc.att.lvlh.pass++;
+        // att_lvlh(&sim->cnodes[0]->currentinfo.node.loc);
+        // rvector vvec = transform_q(sim->cnodes[0]->currentinfo.node.loc.att.geoc.s,rv_smult(10,rv_normal(sim->cnodes[0]->currentinfo.node.loc.pos.geoc.v)));
+        // rvector svec = transform_q(sim->cnodes[0]->currentinfo.node.loc.att.geoc.s,rv_smult(10,rv_normal(sim->cnodes[0]->currentinfo.node.loc.pos.geoc.s)));
         sim->Metric();
         if (summarize)
         {
-            for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+            for (uint16_t i=0; i<sim->cnodes.size(); ++i)
             {
                 for (uint16_t j=0; j<sim->targets.size(); ++j)
                 {
@@ -469,154 +474,186 @@ int main(int argc, char *argv[])
     }
     if (summarize)
     {
+        FILE *tfp;
+        string basename = satfile.substr(0,satfile.length()-4);
+
         // Heading
-        printf("file\ttype\tnode");
+        string header;
+        header = "node";
         for (uint16_t j=0; j<sim->targets.size(); ++j)
         {
-            printf("\tT%02u", j);
+            header += "\tT" + to_unsigned(j, 2, true);
         }
-        printf("\n");
+        header += "\tTotal";
 
         // Count
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        tfp = fopen((basename+"_target_count.txt").c_str(), "w");
+        fprintf(tfp, "%s\n", header.c_str());
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
-            printf("%s\tcount", satfile.c_str());
-            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            fprintf(tfp, "%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            uint32_t total = 0;
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
-                printf("\t%u", summaries[i][j].count);
+                fprintf(tfp, "\t%u", summaries[i][j].count);
+                total += summaries[i][j].count;
             }
-            printf("\n");
+            fprintf(tfp, "\t%u\n", total);
         }
+        fclose(tfp);
 
         // Area
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        tfp = fopen((basename+"_target_area.txt").c_str(), "w");
+        fprintf(tfp, "%s\n", header.c_str());
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
-            printf("%s\tarea", satfile.c_str());
-            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            fprintf(tfp, "%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            double total = 0.;
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
-                if (summaries[i][j].count > 1)
-                {
-                    summaries[i][j].area /= summaries[i][j].count;
-                }
-                printf("\t%0.0f", summaries[i][j].area);
+                fprintf(tfp, "\t%0.0f", summaries[i][j].area);
+                total += summaries[i][j].area;
             }
-            printf("\n");
+            fprintf(tfp, "\t%0.0f\n", total);
         }
+        fclose(tfp);
 
         // Percent
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        tfp = fopen((basename+"_target_percent.txt").c_str(), "w");
+        fprintf(tfp, "%s\n", header.c_str());
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
-            printf("%s\tpercent", satfile.c_str());
-            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            fprintf(tfp, "%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            double total = 0.;
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
                 summaries[i][j].percent *= 100.;
-                if (summaries[i][j].count > 1)
-                {
-                    summaries[i][j].percent /= summaries[i][j].count;
-                }
-                printf("\t%0.2f", summaries[i][j].percent);
+                fprintf(tfp, "\t%0.2f", summaries[i][j].percent);
+                total += summaries[i][j].percent;
             }
-            printf("\n");
+            fprintf(tfp, "\t%0.0f\n", total);
         }
+        fclose(tfp);
 
         // Mean Resolution
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        tfp = fopen((basename+"_target_resmean.txt").c_str(), "w");
+        fprintf(tfp, "%s\n", header.c_str());
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
-            printf("%s\tresmean", satfile.c_str());
-            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            fprintf(tfp, "%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            double total = 0.;
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
                 if (summaries[i][j].count > 1)
                 {
                     summaries[i][j].resstd = sqrt((summaries[i][j].resstd - summaries[i][j].resolution * summaries[i][j].resolution / summaries[i][j].count) / (summaries[i][j].count - 1));
                     summaries[i][j].resolution /= summaries[i][j].count;
+                    total += summaries[i][j].percent;
                 }
-                printf("\t%0.2f", summaries[i][j].resolution);
+                fprintf(tfp, "\t%0.2f", summaries[i][j].resolution);
             }
-            printf("\n");
+            fprintf(tfp, "\t%0.0f\n", total);
         }
+        fclose(tfp);
 
         // StDev Resolution
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        tfp = fopen((basename+"_target_resstd.txt").c_str(), "w");
+        fprintf(tfp, "%s\n", header.c_str());
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
-            printf("%s\tresstd", satfile.c_str());
-            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            fprintf(tfp, "%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            double total = 0.;
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
-                printf("\t%0.2f", summaries[i][j].resstd);
+                fprintf(tfp, "\t%0.2f", summaries[i][j].resstd);
+                total += summaries[i][j].resstd;
             }
-            printf("\n");
+            fprintf(tfp, "\t%0.0f\n", total);
         }
+        fclose(tfp);
 
         // Mean Azimuth
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        tfp = fopen((basename+"_target_azmean.txt").c_str(), "w");
+        fprintf(tfp, "%s\n", header.c_str());
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
-            printf("%s\tazmean", satfile.c_str());
-            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            fprintf(tfp, "%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            double total = 0.;
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
                 if (summaries[i][j].count > 1)
                 {
                     summaries[i][j].azstd = sqrt((summaries[i][j].azstd - summaries[i][j].azimuth * summaries[i][j].azimuth / summaries[i][j].count) / (summaries[i][j].count - 1));
                     summaries[i][j].azimuth /= summaries[i][j].count;
+                    total += summaries[i][j].azimuth;
                 }
-                printf("\t%0.2f", summaries[i][j].azimuth);
+                fprintf(tfp, "\t%0.2f", summaries[i][j].azimuth);
             }
-            printf("\n");
+            fprintf(tfp, "\t%0.0f\n", total);
         }
+        fclose(tfp);
 
         // StDev Azimuth
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        tfp = fopen((basename+"_target_azstd.txt").c_str(), "w");
+        fprintf(tfp, "%s\n", header.c_str());
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
-            printf("%s\tazstd", satfile.c_str());
-            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            fprintf(tfp, "%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            double total = 0.;
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
-                printf("\t%0.2f", summaries[i][j].azstd);
+                fprintf(tfp, "\t%0.2f", summaries[i][j].azstd);
+                total += summaries[i][j].azstd;
             }
-            printf("\n");
+            fprintf(tfp, "\t%0.0f\n", total);
         }
+        fclose(tfp);
 
         // Mean Elevation
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        tfp = fopen((basename+"_target_elmean.txt").c_str(), "w");
+        fprintf(tfp, "%s\n", header.c_str());
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
-            printf("%s\telmean", satfile.c_str());
-            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            fprintf(tfp, "%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            double total = 0.;
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
                 if (summaries[i][j].count > 1)
                 {
                     summaries[i][j].elstd = sqrt((summaries[i][j].elstd - summaries[i][j].elevation * summaries[i][j].elevation / summaries[i][j].count) / (summaries[i][j].count - 1));
                     summaries[i][j].elevation /= summaries[i][j].count;
+                    total += summaries[i][j].elevation;
                 }
-                printf("\t%0.2f", summaries[i][j].elevation);
+                fprintf(tfp, "\t%0.2f", summaries[i][j].elevation);
             }
-            printf("\n");
+            fprintf(tfp, "\t%0.0f\n", total);
         }
+        fclose(tfp);
 
         // StDev Elevation
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        tfp = fopen((basename+"_target_elstd.txt").c_str(), "w");
+        fprintf(tfp, "%s\n", header.c_str());
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
-            printf("%s\telstd", satfile.c_str());
-            printf("\t%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            fprintf(tfp, "%s", sim->cnodes[i]->currentinfo.node.name.c_str());
+            double total = 0.;
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
-                printf("\t%0.2f", summaries[i][j].elstd);
+                fprintf(tfp, "\t%0.2f", summaries[i][j].elstd);
+                total += summaries[i][j].elstd;
             }
-            printf("\n");
+            fprintf(tfp, "\t%0.0f\n", total);
         }
-        printf("\n");
+        fprintf(tfp, "\n");
+        fclose(tfp);
 
         // Heading
-        printf("file\ttype");
-        for (uint16_t j=0; j<11; ++j)
+        header = "type";
+        for (uint16_t j=0; j<10; ++j)
         {
-            printf("\tBin%02u", j);
+            header += "\tBin" + to_unsigned(j, 1, true);
         }
-        printf("\n");
+        header += "\tB10";
 
         vector<double> histbin(11, 0.);
         vector<uint32_t> histcnt(11, 0);
@@ -624,7 +661,7 @@ int main(int argc, char *argv[])
 
         // Count
         binmax = 0.;
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
@@ -635,21 +672,28 @@ int main(int argc, char *argv[])
             }
         }
 
-        binmax /= 9.5;
+        binmax /= 10.;
         histcnt[0] = 0;
         for (uint16_t i=0; i<10; ++i)
         {
             histbin[i+1] = binmax * ( 0.5 + i);
             histcnt[i+1] = 0;
         }
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
                 if (summaries[i][j].count)
                 {
                     uint16_t bin = summaries[i][j].count / binmax;
-                    ++histcnt[bin];
+                    if (bin < 11)
+                    {
+                        ++histcnt[bin];
+                    }
+                    else
+                    {
+                        ++histcnt[10];
+                    }
                 }
                 else
                 {
@@ -657,22 +701,26 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        printf("%s\tcount_bin", satfile.c_str());
+
+        FILE *sfp = fopen((basename+"_summary.txt").c_str(), "w");
+        fprintf(sfp, "%s\n", header.c_str());
+
+        fprintf(sfp, "count_bin");
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%0.2f", histbin[i]);
+            fprintf(sfp, "\t%0.2f", histbin[i]);
         }
-        printf("\n");
-        printf("%s\tcount_value", satfile.c_str());
+        fprintf(sfp, "\n");
+        fprintf(sfp, "count_value");
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%u", histcnt[i]);
+            fprintf(sfp, "\t%u", histcnt[i]);
         }
-        printf("\n");
+        fprintf(sfp, "\n");
 
         // Area
         binmax = 0.;
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
@@ -683,21 +731,28 @@ int main(int argc, char *argv[])
             }
         }
 
-        binmax /= 9.5;
+        binmax /= 10.;
         histcnt[0] = 0;
         for (uint16_t i=0; i<10; ++i)
         {
             histbin[i+1] = binmax * ( 0.5 + i);
             histcnt[i+1] = 0;
         }
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
                 if (summaries[i][j].count)
                 {
                     uint16_t bin = summaries[i][j].area / binmax;
-                    ++histcnt[bin];
+                    if (bin < 11)
+                    {
+                        ++histcnt[bin];
+                    }
+                    else
+                    {
+                        ++histcnt[10];
+                    }
                 }
                 else
                 {
@@ -705,22 +760,22 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        printf("%s\tarea_bin", satfile.c_str());
+        fprintf(sfp, "area_bin");
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%0.2f", histbin[i]);
+            fprintf(sfp, "\t%0.2f", histbin[i]);
         }
-        printf("\n");
-        printf("%s\tarea_value", satfile.c_str());
+        fprintf(sfp, "\n");
+        fprintf(sfp, "area_value");
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%u", histcnt[i]);
+            fprintf(sfp, "\t%u", histcnt[i]);
         }
-        printf("\n");
+        fprintf(sfp, "\n");
 
         // Percent
         binmax = 0.;
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
@@ -731,21 +786,28 @@ int main(int argc, char *argv[])
             }
         }
 
-        binmax /= 9.5;
+        binmax /= 10.;
         histcnt[0] = 0;
         for (uint16_t i=0; i<10; ++i)
         {
             histbin[i+1] = binmax * ( 0.5 + i);
             histcnt[i+1] = 0;
         }
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
                 if (summaries[i][j].count)
                 {
                     uint16_t bin = summaries[i][j].percent / binmax;
-                    ++histcnt[bin];
+                    if (bin < 11)
+                    {
+                        ++histcnt[bin];
+                    }
+                    else
+                    {
+                        ++histcnt[10];
+                    }
                 }
                 else
                 {
@@ -753,22 +815,22 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        printf("%s\tpercent_bin", satfile.c_str());
+        fprintf(sfp, "percent_bin");
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%0.2f", histbin[i]);
+            fprintf(sfp, "\t%0.2f", histbin[i]);
         }
-        printf("\n");
-        printf("%s\tpercent_value", satfile.c_str());
+        fprintf(sfp, "\n");
+        fprintf(sfp, "percent_value");
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%u", histcnt[i]);
+            fprintf(sfp, "\t%u", histcnt[i]);
         }
-        printf("\n");
+        fprintf(sfp, "\n");
 
         // Mean Resolution
         binmax = 0.;
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
@@ -779,21 +841,28 @@ int main(int argc, char *argv[])
             }
         }
 
-        binmax /= 9.5;
+        binmax /= 10.;
         histcnt[0] = 0;
         for (uint16_t i=0; i<10; ++i)
         {
             histbin[i+1] = binmax * ( 0.5 + i);
             histcnt[i+1] = 0;
         }
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
                 if (summaries[i][j].count)
                 {
                     uint16_t bin = summaries[i][j].resolution / binmax;
-                    ++histcnt[bin];
+                    if (bin < 11)
+                    {
+                        ++histcnt[bin];
+                    }
+                    else
+                    {
+                        ++histcnt[10];
+                    }
                 }
                 else
                 {
@@ -801,22 +870,22 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        printf("%s\tresolution_bin", satfile.c_str());
+        fprintf(sfp, "resolution_bin");
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%0.2f", histbin[i]);
+            fprintf(sfp, "\t%0.2f", histbin[i]);
         }
-        printf("\n");
-        printf("%s\tresolution_value", satfile.c_str());
+        fprintf(sfp, "\n");
+        fprintf(sfp, "resolution_value");
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%u", histcnt[i]);
+            fprintf(sfp, "\t%u", histcnt[i]);
         }
-        printf("\n");
+        fprintf(sfp, "\n");
 
         // Stdev Resolution
         binmax = 0.;
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
@@ -827,21 +896,28 @@ int main(int argc, char *argv[])
             }
         }
 
-        binmax /= 9.5;
+        binmax /= 10.;
         histcnt[0] = 0;
         for (uint16_t i=0; i<10; ++i)
         {
             histbin[i+1] = binmax * ( 0.5 + i);
             histcnt[i+1] = 0;
         }
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
                 if (summaries[i][j].count)
                 {
                     uint16_t bin = summaries[i][j].resstd / binmax;
-                    ++histcnt[bin];
+                    if (bin < 11)
+                    {
+                        ++histcnt[bin];
+                    }
+                    else
+                    {
+                        ++histcnt[10];
+                    }
                 }
                 else
                 {
@@ -849,22 +925,22 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        printf("%s\tresstd_bin", satfile.c_str());
+        fprintf(sfp, "resstd_bin");
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%0.2f", histbin[i]);
+            fprintf(sfp, "\t%0.2f", histbin[i]);
         }
-        printf("\n");
-        printf("%s\tresstd_value", satfile.c_str());
+        fprintf(sfp, "\n");
+        fprintf(sfp, "resstd_value");
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%u", histcnt[i]);
+            fprintf(sfp, "\t%u", histcnt[i]);
         }
-        printf("\n");
+        fprintf(sfp, "\n");
 
         // Mean Azimuth
         binmax = 0.;
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
@@ -875,21 +951,28 @@ int main(int argc, char *argv[])
             }
         }
 
-        binmax /= 9.5;
+        binmax /= 10.;
         histcnt[0] = 0;
         for (uint16_t i=0; i<10; ++i)
         {
             histbin[i+1] = binmax * ( 0.5 + i);
             histcnt[i+1] = 0;
         }
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
                 if (summaries[i][j].count)
                 {
                     uint16_t bin = summaries[i][j].azimuth / binmax;
-                    ++histcnt[bin];
+                    if (bin < 11)
+                    {
+                        ++histcnt[bin];
+                    }
+                    else
+                    {
+                        ++histcnt[10];
+                    }
                 }
                 else
                 {
@@ -897,22 +980,22 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        printf("%s\tazimuth_bin", satfile.c_str());
+        fprintf(sfp, "azimuth_bin");
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%0.2f", histbin[i]);
+            fprintf(sfp, "\t%0.2f", histbin[i]);
         }
-        printf("\n");
-        printf("%s\tazimuth_value", satfile.c_str());
+        fprintf(sfp, "\n");
+        fprintf(sfp, "azimuth_value");
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%u", histcnt[i]);
+            fprintf(sfp, "\t%u", histcnt[i]);
         }
-        printf("\n");
+        fprintf(sfp, "\n");
 
         // Stdev Azimuth
         binmax = 0.;
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
@@ -923,21 +1006,28 @@ int main(int argc, char *argv[])
             }
         }
 
-        binmax /= 9.5;
+        binmax /= 10.;
         histcnt[0] = 0;
         for (uint16_t i=0; i<10; ++i)
         {
             histbin[i+1] = binmax * ( 0.5 + i);
             histcnt[i+1] = 0;
         }
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
                 if (summaries[i][j].count)
                 {
                     uint16_t bin = summaries[i][j].azstd / binmax;
-                    ++histcnt[bin];
+                    if (bin < 11)
+                    {
+                        ++histcnt[bin];
+                    }
+                    else
+                    {
+                        ++histcnt[10];
+                    }
                 }
                 else
                 {
@@ -945,22 +1035,22 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        printf("%s\tazstd_bin", satfile.c_str());
+        fprintf(sfp, "azstd_bin");
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%0.2f", histbin[i]);
+            fprintf(sfp, "\t%0.2f", histbin[i]);
         }
-        printf("\n");
-        printf("%s\tazstd_value", satfile.c_str());
+        fprintf(sfp, "\n");
+        fprintf(sfp, "azstd_value");
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%u", histcnt[i]);
+            fprintf(sfp, "\t%u", histcnt[i]);
         }
-        printf("\n");
+        fprintf(sfp, "\n");
 
         // Mean Elevation
         binmax = 0.;
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
@@ -971,21 +1061,28 @@ int main(int argc, char *argv[])
             }
         }
 
-        binmax /= 9.5;
+        binmax /= 10.;
         histcnt[0] = 0;
         for (uint16_t i=0; i<10; ++i)
         {
             histbin[i+1] = binmax * ( 0.5 + i);
             histcnt[i+1] = 0;
         }
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
                 if (summaries[i][j].count)
                 {
                     uint16_t bin = summaries[i][j].elevation / binmax;
-                    ++histcnt[bin];
+                    if (bin < 11)
+                    {
+                        ++histcnt[bin];
+                    }
+                    else
+                    {
+                        ++histcnt[10];
+                    }
                 }
                 else
                 {
@@ -993,22 +1090,22 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        printf("%s\televation_bin", satfile.c_str());
+        fprintf(sfp, "elevation_bin");
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%0.2f", histbin[i]);
+            fprintf(sfp, "\t%0.2f", histbin[i]);
         }
-        printf("\n");
-        printf("%s\televation_value", satfile.c_str());
+        fprintf(sfp, "\n");
+        fprintf(sfp, "elevation_value");
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%u", histcnt[i]);
+            fprintf(sfp, "\t%u", histcnt[i]);
         }
-        printf("\n");
+        fprintf(sfp, "\n");
 
         // Stdev Elevation
         binmax = 0.;
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
@@ -1019,21 +1116,28 @@ int main(int argc, char *argv[])
             }
         }
 
-        binmax /= 9.5;
+        binmax /= 10.;
         histcnt[0] = 0;
         for (uint16_t i=0; i<10; ++i)
         {
             histbin[i+1] = binmax * ( 0.5 + i);
             histcnt[i+1] = 0;
         }
-        for (uint16_t i=1; i<sim->cnodes.size(); ++i)
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
             for (uint16_t j=0; j<sim->targets.size(); ++j)
             {
                 if (summaries[i][j].count)
                 {
                     uint16_t bin = summaries[i][j].elstd / binmax;
-                    ++histcnt[bin];
+                    if (bin < 11)
+                    {
+                        ++histcnt[bin];
+                    }
+                    else
+                    {
+                        ++histcnt[10];
+                    }
                 }
                 else
                 {
@@ -1041,18 +1145,19 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        printf("%s\telstd_bin", satfile.c_str());
+        fprintf(sfp, "elstd_bin");
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%0.2f", histbin[i]);
+            fprintf(sfp, "\t%0.2f", histbin[i]);
         }
-        printf("\n");
-        printf("%s\telstd_value", satfile.c_str());
+        fprintf(sfp, "\n");
+        fprintf(sfp, "elstd_value");
         for (uint16_t i=0; i<11; ++i)
         {
-            printf("\t%u", histcnt[i]);
+            fprintf(sfp, "\t%u", histcnt[i]);
         }
-        printf("\n");
+        fprintf(sfp, "\n");
+        fclose(sfp);
 
     }
 }
@@ -1170,12 +1275,13 @@ int32_t parse_control(string args)
         {
             do
             {
-                vector<qatt> patt;
+                vector<Physics::Simulator::pointing_info> patt;
                 qatt catt;
+                int32_t target_idx;
                 fscanf(iff, "%lf", &catt.utc);
-                while(fscanf(iff, ",%lf,%lf,%lf,%lf", &catt.s.d.x, &catt.s.d.y, &catt.s.d.z, &catt.s.w) == 4)
+                while(fscanf(iff, ",%lf,%lf,%lf,%lf,%d", &catt.s.d.x, &catt.s.d.y, &catt.s.d.z, &catt.s.w, &target_idx) == 5)
                 {
-                    patt.push_back(catt);
+                    patt.push_back({catt, target_idx});
                 }
                 if (patt.size())
                 {

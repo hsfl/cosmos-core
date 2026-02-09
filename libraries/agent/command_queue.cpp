@@ -37,108 +37,12 @@ namespace Cosmos
 {
     namespace Support
     {
-        namespace Command
-        {
-            int32_t Shell(string command_line, string outpath, string inpath, string errpath)
-            {
-                int32_t iretn=0;
-                int devin, devout, deverr;
-                int prev_stdin, prev_stdout, prev_stderr;
-
-                if (command_line.empty())
-                {
-                    return GENERAL_ERROR_EMPTY;
-                }
-
-                if (outpath.empty())
-                {
-                    devout = dup(STDOUT_FILENO);
-                }
-                else
-                {
-                    devout = open(outpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
-                }
-                // Redirect.
-                prev_stdout = dup(STDOUT_FILENO);
-                dup2(devout, STDOUT_FILENO);
-                close(devout);
-
-                if (inpath.empty())
-                {
-                    devin = open("/dev/null", O_RDWR);
-                }
-                else
-                {
-                    devin = open(inpath.c_str(), O_RDONLY, 00666);
-                }
-                prev_stdin = dup(STDIN_FILENO);
-                dup2(devin, STDIN_FILENO);
-                close(devin);
-
-                prev_stderr = dup(STDERR_FILENO);
-                if (errpath.empty())
-                {
-                    deverr = devout;
-                }
-                else
-                {
-                    deverr = open(errpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
-                }
-                dup2(deverr, STDERR_FILENO);
-                close(deverr);
-
-                // Execute the command.
-                iretn = system(command_line.c_str());
-
-                // Reset standard file handles
-                dup2(prev_stdin, STDIN_FILENO);
-                dup2(prev_stdout, STDOUT_FILENO);
-                dup2(prev_stderr, STDERR_FILENO);
-                close(prev_stdin);
-                close(prev_stdout);
-                close(prev_stderr);
-
-                return iretn;
-            }
-        }
-
         // *************************************************************************
         // Class: CommandQueue
         // *************************************************************************
 
 
-        CommandQueue::~CommandQueue () { join_event_threads(); }
-
-        // Before moving log files, we must join the event threads and ensure that each
-        // event spawned is not currently active.
-        size_t CommandQueue::join_event_threads()
-        {
-            //            static auto join_event = [] (thread &t) {
-            //                t.join();
-            //            };
-
-            //            std::for_each(event_threads.begin(), event_threads.end(), join_event);
-            //            event_threads.clear();
-            size_t count = 0;
-            for(uint16_t i=0; i<event_threads.size(); ++i)
-            {
-                if (event_threads[i].joinable())
-                {
-                    event_threads[i].join();
-                    ++count;
-                }
-            }
-
-            if (count == event_threads.size())
-            {
-                event_threads.clear();
-                return count;
-            }
-            else
-            {
-                return event_threads.size();
-            }
-        }
+        CommandQueue::~CommandQueue () {}
 
         //! Run the given Request Event
         /*!
@@ -180,7 +84,7 @@ namespace Cosmos
                     printf("CMD: failed to move request result to [%s] for %d\n", outpath.c_str(), errno);
                 }
                 // log to event file
-                log_write(node_name, "exec", logdate_exec, "event", cmd.get_event_string().c_str());
+                log_write(node_name, "exec", logdate_exec, "", "event", cmd.get_event_string().c_str(), "outgoing");
             }
             return iretn;
         }
@@ -192,11 +96,12 @@ namespace Cosmos
                 EVENT_FLAG_ACTUAL is set to true, and this updated command information is
                 logged to the OUTPUT directory.
 
+                \param  agent Pointer to Agent object (for task addition)
                 \param	cmd	Reference to event to run
                 \param	nodename	Name of node
                 \param	logdate_exec	Time of execution (for logging purposes)
             */
-        int32_t CommandQueue::run_command(Event& cmd, string node_name, double logdate_exec)
+        int32_t CommandQueue::run_command(Agent* agent, Event& cmd, string node_name, double logdate_exec)
         {
             queue_changed = true;
 
@@ -205,53 +110,16 @@ namespace Cosmos
             cmd.set_actual();
 
             string outpath = data_type_path(node_name, "temp", "exec", logdate_exec, "out");
-            char command_line[100];
-            strcpy(command_line, cmd.get_data().c_str());
-            printf("CMD: running command [%s] in [%s]\n", command_line, outpath.c_str());
-
-            // We keep track of all threads spawned to join before moving log files.
-            event_threads.push_back(thread([=] ()
-            {
-                int devn, prev_stdin, prev_stdout, prev_stderr;
-                if (outpath.empty()) {
-                    devn = open("/dev/null", O_RDWR);
-                }
-                else {
-                    devn = open(outpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
-                }
-
-                prev_stdin = dup(STDIN_FILENO);
-                prev_stdout = dup(STDOUT_FILENO);
-                prev_stderr = dup(STDERR_FILENO);
-
-                // Redirect all output our executed command.
-                dup2(devn, STDIN_FILENO);
-                dup2(devn, STDOUT_FILENO);
-                dup2(devn, STDERR_FILENO);
-                close(devn);
-
-                // Execute the command.
-                size_t ret = system(command_line);
-                if (ret == 0)
-                {
-                    queue_changed = true;
-                }
-
-                dup2(prev_stdin, STDIN_FILENO);
-                dup2(prev_stdout, STDOUT_FILENO);
-                dup2(prev_stderr, STDERR_FILENO);
-                close(prev_stdin);
-                close(prev_stdout);
-                close(prev_stderr);
-                if (!outpath.empty())
-                {
-                    log_move_file(outpath, string_replace(outpath, "temp", "outgoing"), true);
-                    printf("CMD: moving command result to [%s]\n", string_replace(outpath, "temp", "outgoing").c_str());
-                }
-            }));
-
+            printf("CMD: running command [%s] in [%s]\n", cmd.get_data().c_str(), outpath.c_str());
             // log to event file
-            log_write(node_name, "exec", logdate_exec, "event", cmd.get_event_string().c_str());
+            log_write(node_name, "exec", logdate_exec, "", "event", cmd.get_event_string().c_str(), "outgoing");
+            int32_t iretn = agent->task_add(cmd.get_data(), node_name, cmd.timeout);
+            if (iretn < 0)
+            {
+                printf("CMD: failed to run command [%s] for %d\n", cmd.get_data().c_str(), iretn);
+                return iretn;
+            }
+
             return 0;
         }
 
@@ -270,8 +138,8 @@ namespace Cosmos
         {
             for(std::list<Event>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
             {
-                // if command is not solo, or event_threads queue is empty
-                if (event_threads.empty() || (!ii->is_solo() && !queue_blocked))
+                // if command is not solo
+                if (!ii->is_solo() && !queue_blocked)
                 {
                     if (ii->is_solo())
                     {
@@ -302,7 +170,7 @@ namespace Cosmos
                                         agent->cinfo->node.lasteventutc = currentmjd();
                                         if (ii->type == EVENT_TYPE_COMMAND)
                                         {
-                                            run_command(*ii, node_name, logdate_exec);
+                                            run_command(agent, *ii, node_name, logdate_exec);
                                             logdate_exec += 1./864000.;
                                         }
                                         else if (ii->type == EVENT_TYPE_REQUEST)
@@ -325,7 +193,7 @@ namespace Cosmos
                                 {
                                     if (ii->type == EVENT_TYPE_COMMAND)
                                     {
-                                        run_command(*ii, node_name, logdate_exec);
+                                        run_command(agent, *ii, node_name, logdate_exec);
                                         logdate_exec += 1./864000.;
                                     }
                                     else if (ii->type == EVENT_TYPE_REQUEST)
@@ -353,7 +221,7 @@ namespace Cosmos
                         {
                             if (ii->type == EVENT_TYPE_COMMAND)
                             {
-                                run_command(*ii, node_name, logdate_exec);
+                                run_command(agent, *ii, node_name, logdate_exec);
                                 logdate_exec += 1./864000.;
                             }
                             else if (ii->type == EVENT_TYPE_REQUEST)

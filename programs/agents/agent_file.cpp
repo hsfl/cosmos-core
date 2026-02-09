@@ -43,6 +43,7 @@
 #include "module/file_module.h"
 #include "module/websocket_module.h"
 #include "support/packethandler.h"
+#include "support/filesenderimpl/UdpSender.h"
 
 
 Agent* agent;
@@ -50,6 +51,7 @@ beatstruc remote_agent;
 // Reusable packet object
 PacketComm packet;
 PacketHandler packethandler;
+UdpSender udp_sender;
 // Avoid joining threads that haven't been started or have already been joined
 bool threads_started = false;
 // Reserved auto node ids
@@ -128,7 +130,7 @@ void Loop()
         // Find remote file agent
         while (!find_file_agent())
         {
-            secondsleep(4.);
+            secondsleep(2.);
         }
 
         // Start comm and file subagents
@@ -249,6 +251,11 @@ void handle_incoming_packets()
                 }
             }
         }
+        else if (packet.header.nodedest == remote_node_id)
+        {
+            agent->channel_push("COMM", packet);
+        }
+        break;
     }
 }
 
@@ -273,7 +280,8 @@ void init_agent(int argc, char *argv[])
     }
 
     // Set channels
-    agent->channel_add("COMM", Support::Channel::PACKETCOMM_DATA_SIZE, Support::Channel::PACKETCOMM_PACKETIZED_SIZE, 18000., 1000);
+    // agent->channel_add("COMM", Support::Channel::PACKETCOMM_DATA_SIZE, Support::Channel::PACKETCOMM_PACKETIZED_SIZE, 18000., 50000);
+    agent->channel_add("COMM", Support::Channel::PACKETCOMM_DATA_SIZE, Support::Channel::PACKETCOMM_PACKETIZED_SIZE, 1e7, 50000);
 
     // Initialize the packethandler, which helps handle and route packets
     packethandler.init(agent);
@@ -395,7 +403,8 @@ int32_t start_subagents(Agent *agent)
     // File subagent
     // For file transfers
     {
-        file_module = new Cosmos::Module::FileModule();
+        file_module = new Cosmos::Module::FileModule(&udp_sender, false);
+        udp_sender.init("192.168.150.123", 8101);
         iretn = file_module->Init(agent, { remote_agent.node });
         if (iretn < 0)
         {
@@ -405,13 +414,13 @@ int32_t start_subagents(Agent *agent)
         else
         {
             file_thread = thread([=] { file_module->Loop(); });
-            secondsleep(3.);
+            secondsleep(1.);
             printf("%f FILE: Thread started\n", agent->uptime.split());
             fflush(stdout);
         }
         // Set radios to use and in the order of the use priority, highest to lowest
-        uint8_t COMM = agent->channel_number("COMM");
-        file_module->set_radios({COMM});
+        // uint8_t COMM = agent->channel_number("COMM");
+        // file_module->set_radios({COMM});
     }
 
     // Websocket subagent
@@ -427,7 +436,7 @@ int32_t start_subagents(Agent *agent)
         else
         {
             websocket_thread = std::thread([=] { websocket_module->Loop(); });
-            secondsleep(3.);
+            secondsleep(1.);
             printf("%f COMM: Thread started\n", agent->uptime.split());
             fflush(stdout);
         }

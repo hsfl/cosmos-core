@@ -88,28 +88,36 @@ namespace Cosmos {
         //! \param maximum Maximum size of ::channelstruc::quu.
         int32_t Channel::Add(string name, uint16_t datasize, uint16_t rawsize, float byte_rate, uint16_t maximum)
         {
+            size_t channel_idx = std::numeric_limits<size_t>::max();
             for (uint8_t i=0; i<channel.size(); ++i)
             {
                 if (channel[i].name == name)
                 {
-                    return i;
+                    channel_idx = i;
+                    break;
                 }
             }
+            channel_idx = std::min(channel_idx, channel.size()-1);
+            if (channel_idx < channel.size()-1)
+            {
+                // If the channel already exists, we will update it instead of adding a new one.
+                return Update(name, datasize, rawsize, byte_rate, maximum);
+            }
             channel.resize(channel.size()+1);
-            channel.back().name = name;
-            channel.back().datasize = datasize;
+            channel[channel_idx].name = name;
+            channel[channel_idx].datasize = datasize;
             if (rawsize)
             {
-                channel.back().rawsize = rawsize;
+                channel[channel_idx].rawsize = rawsize;
             }
             else
             {
-                channel.back().rawsize = datasize;
+                channel[channel_idx].rawsize = datasize;
             }
-            channel.back().byte_rate = byte_rate;
-            channel.back().maximum = maximum;
-            channel.back().mtx = new std::recursive_mutex;
-            return channel.size() - 1;
+            channel[channel_idx].byte_rate = byte_rate;
+            channel[channel_idx].maximum = maximum;
+            channel[channel_idx].mtx = new std::recursive_mutex;
+            return channel_idx;
         }
 
         //! \brief Update existing channel.
@@ -496,7 +504,15 @@ namespace Cosmos {
                 }
                 iretn = channel[number].quu.size();
                 channel[number].mtx->unlock();
-                secondsleep(packet.wrapped.size() / channel[number].byte_rate);
+                double throttle_time = packet.wrapped.size() / channel[number].byte_rate;
+                if (throttle_time > 1e-3)
+                {
+                    // Throttle based on channel byte rate, but only if the sleep
+                    // time is greater than a certain threshold. Otherwise, thread
+                    // context switching will incur undesireable performance penalties
+                    // and channel byte rates will not be adhered to.
+                    secondsleep(throttle_time);
+                }
             }
             return iretn;
         }

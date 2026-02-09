@@ -7,17 +7,34 @@
 #include "agent/agentclass.h"
 #include "support/packetcomm.h"
 #include "support/transferclass.h"
+#include <atomic>
 
 namespace Cosmos
 {
 
     namespace Module
     {
+        /**
+         * @brief A default implementation of the Sender interface that sends packets to a Channel.
+         */
+        class ChannelSender : public Cosmos::Support::Sender
+        {
+        public:
+            ChannelSender(Agent* agent) : agent_(agent) {}
+            Cosmos::Support::SendRetVal send(PacketComm &packet) override;
+            void set_outgoing_channels(const vector<uint8_t> &channels)
+            {
+                channels_ = channels;
+            }
+        private:
+            Agent* agent_;
+            vector<uint8_t> channels_;
+        };
+
         class FileModule
         {
         public:
-            FileModule();
-            FileModule(bool keep_errored_files) : keep_errored_files{keep_errored_files} {}
+            FileModule(Sender* sender, bool keep_errored_files) : transfer(sender), keep_errored_files{keep_errored_files} {}
             /**
              * @brief Initialize FileModule
              * 
@@ -27,61 +44,36 @@ namespace Cosmos
              */
             int32_t Init(Agent *agent, const vector<string> file_transfer_contact_nodes);
             void Loop();
+
+            /**
+             * @brief Stops the loop.
+             */
+            void soft_shutdown();
             
             /**
-             * @brief Shutdown the FileModule.
+             * @brief Shutdown the FileModule. Closes all file pointers.
             */
             void shutdown();
 
-            //! Sets the radios in radios_channel_number to use in order of their priority
-            void set_radios(vector<uint8_t> radios);
+            //! The transfer class, holds all info about ongoing transfers.
+            //! Direct manipulation of this object is not thread safe.
+            Transfer transfer;
 
         private:
-            //! The transfer class, holds all info about ongoing transfers
-            Transfer transfer;
-            //! Vector of radios that are available to use, sorted by use priority, highest priority first
-            vector<bool> radios_available;
-            //! Maps index of available_radios to a radio channel number, sorted by use priority, highest priority first
-            vector<uint8_t> radios_channel_number;
-            // Current radio in use to send packets out of
-            uint8_t out_radio = 0;
-            bool file_transfer_enabled = false;
+            std::atomic<bool> file_transfer_enabled{false};
             bool file_transfer_respond = false;
             //! The nodes that this node has file transfer capabilities with
             vector<uint8_t> contact_nodes;
 
-            //! The speed of packet queueing (packets/sec)
-            //! Internally keeps track of the queueing rate of the system,
-            //! used to determine how quickly and much to queue packets.
-            double packet_rate = 500.;
-            //! Don't let system weirdnesses let packet_rate below this value (packets/sec)
-            const double PACKET_RATE_LOWER_BOUND = 20.;
-            //! The timer to used to help determine the packet_rate
-            ElapsedTime queueing_timer;
-            //! About the amount of time (in seconds) to wish to continually stream out of a radio for before doing other logic.
-            //! TODO: Consider having a separate listening thread to not need stuff like this.
-            double continual_stream_time = 5.;
-
             // Whether to keep copies of files that have encountered errors and cancelled
             const bool keep_errored_files = false;
+            // Length of time of inactivity that will stop the active mode (in seconds)
+            const double inactivity_time_threshold = 60.*2;
 
             int32_t mychannel = 0;
             //! Returns from loop if this is set to false
-            bool is_running = false;
+            std::atomic<bool> is_running{false};
             Agent *agent;
-
-            /**
-             * @brief Sets the availability of a radio
-             * 
-             * This calls determine_out_radio() after changing radio availabilities to determine newest available radio.
-             * 
-             * @param radio Radio to set availability for
-             * @param availability bool
-             */
-            void set_radio_availability(uint8_t radio, bool availability);
-            //! Sets the out_radio according to priority, called by set_radio_availability()
-            void determine_out_radio();
-            //! Reads file directory into transfer
         };
     }
     

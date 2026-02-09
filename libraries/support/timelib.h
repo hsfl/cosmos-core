@@ -139,6 +139,7 @@ namespace Cosmos {
         double currentmjd(double offset);
         uint64_t get_unix_time(uint64_t offset=0);
         string get_local_time();
+        double tmdiff(double mjd);
 
         // gregorian calendar (year, month, day) to another format
         double cal2mjd(calstruc date);
@@ -155,7 +156,8 @@ namespace Cosmos {
         timespec utc2timespec(double utc=0.);
         double utc2unixseconds(double utc=0.);
         string utc2unixdate(double utc=0.);
-        string utc2iso8601(double mjd=0.);
+        string utc2iso8601(double mjd=0., double offset=0.);
+        string utc2datetime(double mjd=0., uint16_t style=0);
         double iso86012utc(string date);
         double iso86012mjd(string date);
 
@@ -175,7 +177,7 @@ namespace Cosmos {
         string mjdToGregorianFormat(double mjd);
         string  mjdToGregorianDDMMMYYYY(double mjd);
         string  mjdToGregorianDDMmmYYYY(double mjd);
-        string  mjd2iso8601(double mjd);
+        string  mjd2iso8601(double mjd=0., double offset=0.);
         double  mjd2jd(double mjd);
         double  jd2mjd(double jd);
         string mjd2tlef(double mjd);

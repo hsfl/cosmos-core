@@ -39,6 +39,7 @@
 #include "support/stringlib.h"
 #include <algorithm>
 #include <sys/stat.h>
+#include <glob.h>
 #ifdef _WIN32
 #include <stdlib.h>
 #define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
@@ -931,13 +932,18 @@ int32_t data_list_nodes(vector<string>& nodes)
 */
 string data_name(double mjd, string type, string node, string agent, string extra)
 {
-    string name;
+    string name = "";
 
     int32_t year, month;
     double jday, day;
 
-    mjd2ymd(mjd,year,month,day,jday);
-    name = to_unsigned(decisec(mjd), 10, true);
+    if (mjd != 0.)
+    {
+        mjd2ymd(mjd,year,month,day,jday);
+        timeval tv = utc2unix(mjd);
+        uint64_t unix_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+        name += ("_" + std::to_string(unix_ms));
+    }
     if (!node.empty())
     {
         name += ("_" + node);
@@ -2315,15 +2321,32 @@ bool data_isdir(string path, bool create_flag)
     }
 
     char *rpath = realpath(path.c_str(), nullptr);
-    if (rpath == nullptr)
+    if (!create_flag)
     {
-        return false;
+        if (rpath != nullptr)
+        {
+            path = rpath;
+        }
+        free(rpath);
+        rpath = nullptr;
+        if (!stat(path.c_str(), &st) && S_ISDIR(st.st_mode))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
-    path = rpath;
-    free(rpath);
-
-    if (create_flag)
+    else
     {
+        if (rpath != nullptr)
+        {
+            path = rpath;
+        }
+        free(rpath);
+        rpath = nullptr;
+
         vector<string> dirs = string_split(path, "/");
         string tpath;
         if (path[0] == '/')
@@ -2445,23 +2468,31 @@ bool data_isfile(string path, off_t size)
         return false;
     }
 
-    char *rpath = realpath(path.c_str(), nullptr);
-    if (rpath == nullptr)
-    {
-        return false;
-    }
-    path = rpath;
-    free(rpath);
-
-    if (!stat(path.c_str(), &st) && S_ISREG(st.st_mode) && (!size || (size == st.st_size)))
-    {
-        return true;
-    }
-    else
+    glob_t glob_result;
+    if (glob(path.c_str(), 0, NULL, &glob_result) != 0)
     {
         return false;
     }
 
+    for (size_t i=0; i<glob_result.gl_pathc; ++i)
+    {
+
+        char *rpath = realpath(glob_result.gl_pathv[i], nullptr);
+        if (rpath == nullptr)
+        {
+            continue;
+        }
+        path = rpath;
+        free(rpath);
+
+        if (!stat(path.c_str(), &st) && S_ISREG(st.st_mode) && (!size || (size == st.st_size)))
+        {
+            globfree(&glob_result);
+            return true;
+        }
+    }
+    globfree(&glob_result);
+    return false;
 }
 
 double data_ctime(string path)
@@ -2592,7 +2623,7 @@ int32_t data_execute(string cmd, string& result, float timer, string shell)
     // Create the child process.
 
     bSuccess = CreateProcess(NULL,
-                             (LPSTR)cmd.c_str(),                // command line
+                             (LPWSTR)cmd.c_str(),                // command line
                              NULL,               // process security attributes
                              NULL,               // primary thread security attributes
                              TRUE,               // handles are inherited

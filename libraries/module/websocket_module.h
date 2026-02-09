@@ -105,6 +105,9 @@ namespace Cosmos
             uint16_t myrawsize = 0;
             float mydataspeed = 0;
 
+            std::thread receive_thread;
+            std::thread transmit_thread;
+
             //! Returns from loop if this is set to false
             bool is_running = false;
 

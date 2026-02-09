@@ -27,15 +27,17 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+#include "support/configCosmos.h"
 #include "device/general/gige_lib.h"
 #include "agent/agentclass.h"
 #include "support/datalib.h"
 #include "time.h"
+#include "support/envi.h"
 
 #define A35COUNT 1
 
-
-uint8_t image[110000000];
+string makeFilename(string argument, string extra="");
+vector <uint8_t> image;
 
 int main(int argc, char *argv[])
 {
@@ -53,15 +55,21 @@ int main(int argc, char *argv[])
     uint32_t exposure=1;
 	uint32_t gain=1;
 	uint32_t binning=1;
+    uint32_t test = 0;
+    uint16_t psize = 1450;
 	char ipaddress[20];
 
 	switch (argc)
 	{
-	case 6:
-		binning=atol(argv[5]);
-	case 5:
-		gain = atol(argv[4]);
-	case 4:
+    case 8:
+        binning=atol(argv[7]);
+    case 7:
+        gain = atol(argv[6]);
+    case 6:
+        test = atol(argv[5]);
+    case 5:
+        psize = atol(argv[4]);
+    case 4:
 		exposure = atol(argv[3]);
 	case 3:
 		extra = argv[2];
@@ -69,7 +77,7 @@ int main(int argc, char *argv[])
 		strcpy(ipaddress, argv[1]);
 		break;
 	default:
-		printf("Usage: gigesnap ipaddress [extraname [exposure [gain [binning]]]]\n");
+        printf("Usage: gigesnap ipaddress [extraname [exposure [psize [gain [binning]]]]]\n");
 		exit (1);
 		break;
 	}
@@ -124,16 +132,19 @@ int main(int argc, char *argv[])
 
 
 
-	if ((handle=gige_open(ipaddress,0x02,40000,5000,7500000)) == NULL)
+    if ((handle=gige_open(ipaddress,0x02,40000,5000,40000000, psize)) == NULL)
 	{
-		if((handle = gige_open(gige_value_to_address(gige_list[0].address),0x02,40000,5000,7500000)) == NULL)
+        if((handle = gige_open(gige_value_to_address(gige_list[0].address),0x02,40000,5000,8000000, psize)) == NULL)
 		{
 			printf("Couldn't open camera\n");
 			exit(1);
 		}
-	}
+    }
 
-	iretn = gige_readreg(handle,GIGE_REG_CCP);
+    iretn = gige_readreg(handle,GIGE_REG_SCPS);
+    printf("Read GIGE_REG_STREAM_CHANNEL_PACKET_SIZE %d\n",iretn);
+
+    iretn = gige_readreg(handle,GIGE_REG_CCP);
     printf("Read CCP: %u\n",iretn);
 
 	iretn = gige_readreg(handle,GIGE_REG_DEVICE_MAC_HIGH);
@@ -154,54 +165,55 @@ int main(int argc, char *argv[])
 	iretn = gige_readreg(handle,GIGE_REG_GVCP_HEARTBEAT_TIMEOUT);
     printf("Read GVCP_HEARTBEAT_TIMEOUT %u\n",iretn);
 
-	iretn = gige_readreg(handle,GIGE_REG_PRIMARY_APPLICATION_IP_ADDRESS);
-    printf("Read PRIMARY_APPLICATION_IP_ADDRESS %x\n",iretn);
+//    iretn = gige_readreg(handle,GIGE_REG_PRIMARY_APPLICATION_IP_ADDRESS);
+//    printf("Read PRIMARY_APPLICATION_IP_ADDRESS %x\n",iretn);
 
-    iretn = gige_readmem(handle,GIGE_REG_FIRST_URL,512);
-	char *ptr = (char *)handle->cack_mem.data;
-	do
-	{
-		ptr++;
-	} while (*ptr != ':');
-	char *ptr1 = ++ptr;
+//    iretn = gige_readmem(handle,GIGE_REG_FIRST_URL,512);
+//	char *ptr = (char *)handle->cack_mem.data;
+//	do
+//	{
+//		ptr++;
+//	} while (*ptr != ':');
+//	char *ptr1 = ++ptr;
 
-	do
-	{
-		ptr++;
-	} while (*ptr != ';');
+//	do
+//	{
+//		ptr++;
+//	} while (*ptr != ';');
 
-	char fname[100];
-	strncpy(fname,ptr1,ptr-ptr1);
-	fname[ptr-ptr1] = 0;
-	uint32_t faddress, fsize;
-	sscanf((char *)ptr,";%x;%x",&faddress,&fsize);
-	printf("Read GIGE_REG_FIRST_URL %u %s;%u;%u\n",iretn,fname,faddress,fsize);
+//	char fname[100];
+//	strncpy(fname,ptr1,ptr-ptr1);
+//	fname[ptr-ptr1] = 0;
+//	uint32_t faddress, fsize;
+//	sscanf((char *)ptr,";%x;%x",&faddress,&fsize);
+//	printf("Read GIGE_REG_FIRST_URL %u %s;%u;%u\n",iretn,fname,faddress,fsize);
 
-	iretn = gige_readmem(handle,GIGE_REG_SECOND_URL,512);
-	printf("Read GIGE_REG_FIRST_SECOND %u %s\n",iretn,handle->cack_mem.data);
+//	iretn = gige_readmem(handle,GIGE_REG_SECOND_URL,512);
+//	printf("Read GIGE_REG_FIRST_SECOND %u %s\n",iretn,handle->cack_mem.data);
 
-	fp = fopen(fname,"w");
-	uint32_t count=0;
-	for (uint32_t i=0; i<fsize/536; ++i)
-	{
-		iretn = gige_readmem(handle,faddress+count,536);
-		fwrite((void *)handle->cack_mem.data,iretn,1,fp);
-		count += iretn;
-		printf("Read GIGE_REG_XML %u %d\r",iretn,count);
-	}
-	iretn = gige_readmem(handle,faddress+count,fsize-count);
-	fwrite((void *)handle->cack_mem.data,iretn,1,fp);
-	count += iretn;
-	printf("Read GIGE_REG_XML %u %d\n",iretn,count);
-	fclose(fp);
+//	fp = fopen(fname,"w");
+//	uint32_t count=0;
+//	for (uint32_t i=0; i<fsize/536; ++i)
+//	{
+//		iretn = gige_readmem(handle,faddress+count,536);
+//		fwrite((void *)handle->cack_mem.data,iretn,1,fp);
+//		count += iretn;
+//		printf("Read GIGE_REG_XML %u %d\r",iretn,count);
+//	}
+//	iretn = gige_readmem(handle,faddress+count,fsize-count);
+//	fwrite((void *)handle->cack_mem.data,iretn,1,fp);
+//	count += iretn;
+//	printf("Read GIGE_REG_XML %u %d\n",iretn,count);
+//	fclose(fp);
 
 
 	// configure camera- moved up to reflect accurate data down below
     iretn = gige_readmem(handle, GIGE_REG_MODEL_NAME, GIGE_MAX_MODEL_NAME);
     printf("Model: %s\n", (char *)handle->cack_mem.data);
 	bsize = handle->bestsize;
-	if( strncmp((char *)handle->cack_mem.data, "FLIR AX5", 8) == 0 )
+    if (strncmp((char *)handle->cack_mem.data, "FLIR AX5", 8) == 0 )
 	{
+        printf("Using FLIR AX5\n");
 		iretn = gige_readreg(handle,A35_PIXELFORMAT);
 		//		printf("Read A35_PIXELFORMAT %d\n",iretn);
 
@@ -213,14 +225,15 @@ int main(int argc, char *argv[])
 
         iretn = a35_config(handle, width, height, A35_SENSORVIDEOSTANDARD_30HZ);
 		expbytes = width * height * exposure * 2;
-		tbytes = a35_image(handle, exposure, image, bsize);
+        image.resize(expbytes);
+        tbytes = a35_image(handle, exposure, image.data(), bsize);
 
 		if (expbytes == tbytes)
 		{
             fringename = data_type_path("hiakasat", "temp", "gige", currentmjd(0.), "imgfringe", extra);
 			FILE *fp = fopen(fringename.c_str(), "w");
 			fprintf(fp, "Fringes\n");
-			uint16_t *cube = (uint16_t *)image;
+            uint16_t *cube = (uint16_t *)image.data();
 			float mean[336][256];
 			float high[336];
 			float fringe[256];
@@ -229,15 +242,15 @@ int main(int argc, char *argv[])
 				high[icol]=0.;
 				for (uint32_t irow=0; irow<256; ++irow)
 				{
-					mean[icol][irow] = 0.;
+                    mean[irow][icol] = 0.;
 					for (uint32_t ilayer=0; ilayer<exposure; ++ilayer)
 					{
-						mean[icol][irow] += cube[ilayer*336*256+irow*336+icol];
+                        mean[irow][icol] += cube[ilayer*336*256+irow*336+icol];
 					}
-					mean[icol][irow] /= (float)exposure;
-					if (mean[icol][irow] > high[icol])
+                    mean[irow][icol] /= (float)exposure;
+                    if (mean[irow][icol] > high[icol])
 					{
-						high[icol] = mean[icol][irow];
+                        high[icol] = mean[irow][icol];
 						printf("[%d,%d] %f\r",icol,irow,high[icol]);
 					}
 				}
@@ -249,7 +262,7 @@ int main(int argc, char *argv[])
 				fringe[irow] = 0.;
 				for (uint32_t icol=0; icol<336; ++icol)
 				{
-					fringe[irow] += mean[icol][irow] / mean[icol][0];
+                    fringe[irow] += mean[irow][icol] / mean[icol][0];
 				}
 				fringe[irow] /= 336.;
 				fprintf(fp,"%.4g\n",fringe[irow]);
@@ -261,62 +274,111 @@ int main(int argc, char *argv[])
 	}
     else if (strncmp((char *)handle->cack_mem.data, "PHX050S", 7) == 0 )
     {
-        iretn = gige_readreg(handle,PHXReg::PHXPixelFormatReg);
-        printf("Read PHXPIXELFORMAT %d\n",iretn);
-
+        printf("Using PHX050S\n");
         width = gige_readreg(handle,PHXReg::PHXWidthReg);
-        printf("Read PHX_WIDTH %d\n",width);
-
         height = gige_readreg(handle,PHXReg::PHXHeightReg);
-        printf("Read PHX_HEIGHT %d\n",height);
 
-        iretn = phx_config(handle, width, height);
+        iretn = phx_config(handle, width, height, 1, 1, 1);
         if (iretn < 0)
         {
             printf("Error configuring: %s\n", cosmos_error_string(iretn).c_str());
         }
         expbytes = width * height * exposure * handle->bpp;
-        tbytes =  phx_image(handle, exposure, image, bsize);
+        image.resize(expbytes);
+        tbytes =  phx_image(handle, exposure, image.data(), bsize);
 
         if (expbytes <= tbytes)
         {
             FILE *fp;
-            fp = fopen("phx_test.img","wb");
-            fwrite((void *)image,tbytes,1,fp);
+            string fname = makeFilename("data", extra);
+            fp = fopen(fname.c_str(),"w");
+            fwrite((void *)image.data(),tbytes,1,fp);
             fclose(fp);
 
-            fp = fopen("phx_test", "w");
-            uint16_t *cube = (uint16_t *)image;
-            vector<vector<float>> mean;
-            mean.resize(width);
-            vector<float> high;
-            high.resize(width);
-            for (uint32_t icol=0; icol<width; ++icol)
+            envi_hdr ehdr;
+            ehdr.planes = exposure;
+            ehdr.columns = width;
+            ehdr.rows = height;
+            ehdr.offset = 0;
+            //ehdr.endian;
+            ehdr.datatype = DT_U_INT;
+            ehdr.interleave = BSQ;
+            ehdr.byteorder = BO_INTEL;
+            ehdr.basename = fname;
+            write_envi_hdr(ehdr);
+
+            fname = makeFilename("stats", extra);
+            fp = fopen(fname.c_str(),"w");
+            if (fp == nullptr)
             {
-                high[icol]=0.;
-                mean[icol].resize(height);
-                for (uint32_t irow=0; irow<height; ++irow)
-                {
-                    mean[icol][irow] = 0.;
-                    for (uint32_t ilayer=0; ilayer<exposure; ++ilayer)
-                    {
-                        mean[icol][irow] += cube[ilayer*width*height+irow*width+icol];
-                    }
-                    mean[icol][irow] /= (float)exposure;
-                    if (mean[icol][irow] > high[icol])
-                    {
-                        high[icol] = mean[icol][irow];
-                        printf("[%d,%d] %f\r",icol,irow,high[icol]);
-                    }
-                }
-                printf("\n");
+                perror("Error opening stats file");
+                exit (1);
             }
-
+            uint16_t *array = (uint16_t *)image.data();
+            vector<vector<float>> mean[3];
+            for (uint16_t bin=0; bin<3; ++bin)
+            {
+                mean[0].resize(height/2-1);
+                mean[1].resize(height/2-1);
+                mean[2].resize(height/2-1);
+                for (uint32_t irow=0; irow<height/2-1; ++irow)
+                {
+                    mean[0][irow].resize(width/2-1);
+                    mean[1][irow].resize(width/2-1);
+                    mean[2][irow].resize(width/2-1);
+                    for (uint32_t icol=0; icol<width/2-1; ++icol)
+                    {
+                        mean[0][irow][icol] = 0.;
+                        mean[1][irow][icol] = 0.;
+                        mean[2][irow][icol] = 0.;
+                        for (uint32_t ilayer=0; ilayer<exposure; ++ilayer)
+                        {
+                            float rvalue = array[(ilayer*width*height+2*irow*width+2*icol)];
+                            mean[0][irow][icol] += rvalue;
+                            float gvalue = array[(ilayer*width*height+2*irow*width+2*icol+1)];
+                            gvalue += array[(ilayer*width*height+(2*irow+1)*width+2*icol)];
+                            mean[1][irow][icol] += gvalue / 2.;
+                            float bvalue = array[(ilayer*width*height+(2*irow+1)*width+2*icol+1)];
+                            mean[2][irow][icol] += bvalue;
+                        }
+                        mean[bin][irow][icol] /= (float)exposure;
+                    }
+                    fwrite((void *)mean[0][irow].data(),width/2-1,4,fp);
+                    fwrite((void *)mean[1][irow].data(),width/2-1,4,fp);
+                    fwrite((void *)mean[2][irow].data(),width/2-1,4,fp);
+                }
+            }
             fclose(fp);
+
+            ehdr.planes = 3;
+            ehdr.columns = width/2-1;
+            ehdr.rows = height/2-1;
+            ehdr.offset = 0;
+            //ehdr.endian;
+            ehdr.datatype = DT_FLOAT;
+            ehdr.interleave = BIL;
+            ehdr.byteorder = BO_INTEL;
+            ehdr.basename = fname;
+            write_envi_hdr(ehdr);
         }
+
+        iretn = gige_readreg(handle,PHXDeviceLinkThroughputLimit);
+        printf("Read DeviceLinkThroughput %u\n",iretn);
 
         iretn = gige_readreg(handle,PHXReg::PHXAcquisitionModeReg);
         printf("Read PHX_AcquisitionMode %d\n",iretn);
+
+        iretn = gige_readreg(handle,PHXReg::PHXTestImageSelectorReg);
+        printf("Read PHXTESTIMAGESELECTOR %d\n",iretn);
+
+        iretn = gige_readreg(handle,PHXReg::PHXPixelColorFilter);
+        printf("Read PHX_PixelColorFilter %d\n",iretn);
+
+        iretn = gige_readreg(handle,PHXReg::PHXIspBayerPattern);
+        printf("Read PHX_IspBayerPattern %d\n",iretn);
+
+        iretn = gige_readreg(handle,PHXReg::PHXADCBitDepth);
+        printf("Read PHX_ADCBitDepth %d\n",iretn);
 
         iretn = gige_readreg(handle,PHXReg::PHXPixelFormatReg);
         printf("Read PHX_PixelFormat %d\n",iretn);
@@ -336,6 +398,7 @@ int main(int argc, char *argv[])
     }
     else if (strncmp((char *)handle->cack_mem.data, "PT1000", 6) == 0 )
     {
+        printf("Using PT1000\n");
         iretn = gige_readreg(handle,PT1000::PixelFormatReg);
         printf("Read PT1000PIXELFORMAT %d\n",iretn);
 
@@ -351,40 +414,57 @@ int main(int argc, char *argv[])
             printf("Error configuring: %s\n", cosmos_error_string(iretn).c_str());
         }
         expbytes = width * height * exposure * 2;
-        tbytes = pt1000_image(handle, exposure, image, bsize);
+        image.resize(expbytes);
+        tbytes = pt1000_image(handle, exposure, image.data(), bsize);
 
-        if (expbytes == tbytes)
+        if (expbytes <= tbytes)
         {
             FILE *fp;
-            fp = fopen("pt1000_test.img","wb");
-            fwrite((void *)image,tbytes,1,fp);
+            string fname = makeFilename("data", "pt1000");
+            fp = fopen(fname.c_str(),"wb");
+            if (fp == nullptr)
+            {
+                perror("Error opening data file");
+                exit (1);
+            }
+            fwrite((void *)image.data(),tbytes,1,fp);
             fclose(fp);
 
-            fp = fopen("pt1000_test", "w");
-            uint16_t *cube = (uint16_t *)image;
-            vector<vector<float>> mean;
-            mean.resize(width);
-            vector<float> high;
-            high.resize(width);
-            for (uint32_t icol=0; icol<width; ++icol)
+            envi_hdr ehdr;
+            ehdr.planes = exposure;
+            ehdr.columns = width;
+            ehdr.rows = height;
+            ehdr.offset = 0;
+            //ehdr.endian;
+            ehdr.datatype = DT_U_INT;
+            ehdr.interleave = BSQ;
+            ehdr.byteorder = BO_INTEL;
+            ehdr.basename = fname;
+            write_envi_hdr(ehdr);
+
+            fname = makeFilename("stats", "pt1000");
+            fp = fopen(fname.c_str(),"wb");
+            if (fp == nullptr)
             {
-                high[icol]=0.;
-                mean[icol].resize(height);
-                for (uint32_t irow=0; irow<height; ++irow)
+                perror("Error opening stats file");
+                exit (1);
+            }
+            uint16_t *cube = (uint16_t *)image.data();
+            vector<vector<float>> mean;
+            mean.resize(height);
+            for (uint32_t irow=0; irow<height; ++irow)
+            {
+                mean[irow].resize(width);
+                for (uint32_t icol=0; icol<width; ++icol)
                 {
-                    mean[icol][irow] = 0.;
+                    mean[irow][icol] = 0.;
                     for (uint32_t ilayer=0; ilayer<exposure; ++ilayer)
                     {
-                        mean[icol][irow] += cube[ilayer*width*height+irow*width+icol];
+                        mean[irow][icol] += cube[ilayer*width*height+irow*width+icol];
                     }
-                    mean[icol][irow] /= (float)exposure;
-                    if (mean[icol][irow] > high[icol])
-                    {
-                        high[icol] = mean[icol][irow];
-                        printf("[%d,%d] %f\r",icol,irow,high[icol]);
-                    }
+                    mean[irow][icol] /= (float)exposure;
                 }
-                printf("\n");
+                fwrite((void *)mean[irow].data(), 4, width, fp);
             }
 
             fclose(fp);
@@ -411,6 +491,7 @@ int main(int argc, char *argv[])
     }
 	else
 	{
+        printf("Using PROSILICA\n");
 
 
 		iretn = prosilica_config(handle, PROSILICA_PixelFormat_BayerRG12, binning, binning, 2448, 2050, 0, 0);
@@ -460,7 +541,8 @@ int main(int argc, char *argv[])
 		height = gige_readreg(handle,PROSILICA_SensorHeight);
 
 		expbytes = width * height * 2;
-		tbytes = prosilica_image(handle, (exposure==0?PROSILICA_ExposureMode_Auto:PROSILICA_ExposureMode_AutoOff), exposure, gain, image, bsize);
+        image.resize(expbytes);
+        tbytes = prosilica_image(handle, (exposure==0?PROSILICA_ExposureMode_Auto:PROSILICA_ExposureMode_AutoOff), exposure, gain, image.data(), bsize);
 
 		used_exposure = gige_readreg(handle,PROSILICA_ExposureValue);
 		printf("Read PROSILICA_ExposureValue %d\n",used_exposure);
@@ -473,89 +555,69 @@ int main(int argc, char *argv[])
 
 	}
 
-	if (expbytes == tbytes)
+    if (expbytes <= tbytes)
 	{
-		//sudo histogram
+        // write image:
+
+        imagename = data_type_path("lab", "temp", "gige", currentmjd(0.), "imgdata", extra);
+        fp = fopen(imagename.c_str(),"wb");
+        fwrite((void *)image.data(),tbytes,1,fp);
+        fclose(fp);
+
+        //sudo histogram
 		printf("\nRead: %d bytes ",tbytes);
-		uint32_t counts[4]={0,0,0,0};
-		uint16_t *array=(uint16_t *)image;
-		double mean=0.;
-		double std=0.;
-		double snr=0.;
-		int16_t min_value=4095.;
-		int16_t max_value=0.;
+        uint32_t counts[3][4]={0,0,0,0};
+        double mean[3]={0.,0.,0.};
+        double std[3]={0.,0.,0.};
+        double snr[3]={0.,0.,0.};
+        int16_t min_value[3]={255, 255, 255};
+        int16_t max_value[3]={0,0,0};
 
 
 
-		for (int32_t i=0; i<tbytes/2; ++i)
-		{
-			mean += array[i];
-			std += (array[i]*array[i]);
-			++counts[array[i]/1024];
+        for (int32_t i=0; i<tbytes/3; ++i)
+        {
+            for (uint16_t bin=0; bin<3; ++bin)
+            {
+                mean[bin] += image[i*3+bin];
+                std[bin] += (1.*image[i*3+bin]*image[i*3+bin]);
+                ++counts[bin][image[i*3+bin]/64];
 
-			if (array[i]<min_value){
-				min_value=array[i];
-			}
+                if (image[i*3+bin]<min_value[bin]){
+                    min_value[bin]=image[i*3+bin];
+                }
 
-			if (array[i]>max_value)
-			{
-				max_value=array[i];
-			}
-		}
-		std = sqrt((std-(mean*mean/(tbytes/2)))/(tbytes/2)-1);
-		mean /= (tbytes/2);
-		snr = (mean/std);
+                if (image[i*3+bin]>max_value[bin])
+                {
+                    max_value[bin]=image[i*3+bin];
+                }
+            }
+        }
+        for (uint16_t bin=0; bin<3; ++bin)
+        {
+            std[bin] = sqrt((std[bin]-(mean[bin]*mean[bin]/(tbytes/3)))/(tbytes/3)-1);
+            mean[bin] /= (tbytes/3);
+            snr[bin] = (mean[bin]/std[bin]);
+        }
 
 		printf("%u %u %u %u %f %f %f\n\n",counts[0],counts[1],counts[2],counts[3],mean,std, snr);
-		iretn = gige_readreg(handle,GIGE_REG_SCPS);
-		printf("Read GIGE_REG_STREAM_CHANNEL_PACKET_SIZE %d\n",iretn);
 
-		iretn = gige_readreg(handle,GIGE_REG_SCDA);
+        iretn = gige_readreg(handle,GIGE_REG_SCDA);
 		printf("Read GIGE_STREAM_CHANNEL_DESTINATION_ADDRESS %x\n",iretn);
 
 		// Separate and print out some of the image quality metrics:
 		printf("___________________________ \n\n");
-		printf("Mean Image Value    = %f\n",mean);
-		printf("Standard Deviation  = %f\n",std);
-		printf("SNR                 = %f\n",snr);
-		printf("Min/Max             = %d, %d \n",min_value, max_value);
+        printf("Mean Image Values    = %f %f %f\n",mean[0], mean[1], mean[2]);
+        printf("Standard Deviations  = %f %f %f\n",std[0], std[1], std[2]);
+        printf("SNRs                 = %f %f %f\n",snr[0], snr[1], snr[2]);
+        printf("Min/Maxs             = %u %u %u, %u %u %u \n",min_value[0], min_value[1], min_value[2], max_value[0],  max_value[1],  max_value[2]);
 
 
 		gige_close(handle);
 
-		// write image:
-
-        imagename = data_type_path("lab", "temp", "gige", currentmjd(0.), "imgdata", extra);
-		fp = fopen(imagename.c_str(),"wb");
-		fwrite((void *)image,tbytes,1,fp);
-		fclose(fp);
-
 		// write metadata file:
 
 
-        metafilename = data_type_path("hiakasat", "temp", "gige", currentmjd(0.), "imgmeta", extra);
-		FILE *f = fopen(metafilename.c_str(), "wb");
-		if (f == NULL)
-		{
-			printf("Error opening file!\n");
-			exit(1);
-		}
-
-		/* print image metrics to file */
-		fprintf(f, "Image Name    = %s\n",imagename.c_str());
-		fprintf(f, "IP Address    = %s\n",ipaddress);
-		fprintf(f, "Acq Timestamp    = %f\n",currentmjd(0.));
-		fprintf(f, "Acq Date    = %s",c_time_string);
-		fprintf(f, "Exposure    = %d\n",used_exposure);
-		fprintf(f, "Pixel Binning    = %d\n",binning);
-		fprintf(f, "Image Width    = %d\n",used_imagewidth);
-		fprintf(f, "Image Height    = %d\n",used_imageheight);
-		fprintf(f, "Mean Image Value    = %f\n",mean);
-		fprintf(f, "Standard Deviation  = %f\n",std);
-		fprintf(f, "SNR                 = %f\n",snr);
-		fprintf(f, "Min/Max             = %d, %d \n",min_value, max_value);
-
-		fclose(f);
 	}
 	else
 	{
@@ -565,3 +627,26 @@ int main(int argc, char *argv[])
 
 	exit(0);
 }
+
+string makeFilename(string argument, string extra)
+{
+    string fname;
+    char DateTimeStamp[16];
+    time_t t = time(nullptr);
+    struct tm tm = *localtime(&t);
+
+    sprintf(DateTimeStamp, "%4d%02d%02d%02d%02d%02d", tm.tm_year-100+2000, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    fname = "image_";
+    fname.append(DateTimeStamp);
+    if (extra.size())
+    {
+        fname.append("_");
+        fname.append(extra);
+    }
+    fname.append("_");
+    fname.append(argument);
+    fname.append(".bip");
+
+    return fname;
+}
+

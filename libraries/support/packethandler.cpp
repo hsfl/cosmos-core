@@ -42,6 +42,9 @@ namespace Cosmos {
             add_func(PacketComm::TypeId::CommandFileTransferList, FileForward);
             add_func(PacketComm::TypeId::CommandFileResetQueue, FileForward);
             add_func(PacketComm::TypeId::CommandFileStopTransfer, FileForward);
+            add_func(PacketComm::TypeId::CommandFileSendFileResponses, FileForward);
+            add_func(PacketComm::TypeId::CommandFileSaveFileProgress, FileForward);
+            add_func(PacketComm::TypeId::CommandFileTransferDirectory, FileForward);
             add_func(PacketComm::TypeId::CommandExecClearQueue, ClearQueue);
             add_func(PacketComm::TypeId::CommandExecSetOpsMode, ExecForward);
             add_func(PacketComm::TypeId::CommandExecEnableChannel, EnableChannel);
@@ -180,8 +183,6 @@ namespace Cosmos {
             {
                 packet.response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
                 uint16_t pong_size = packet.data.size() - 4;
-//                response = to_unsigned(centisec(), 10) + " " + mjd2iso8601(currentmjd()) + " ";
-//                response += "Pong\n";
                 response += to_unsigned(packet.response_id) + " ";
                 response.insert(response.end(), packet.data.begin()+4, packet.data.end());
                 filestruc file = data_name_struc(agent->cinfo->node.name, "temp", agent->cinfo->agent0.name, 0., "pong_"+to_unsigned(packet.response_id));
@@ -619,7 +620,7 @@ namespace Cosmos {
             {
                 double mjd = doublefrom(&packet.data[0], ByteOrder::LITTLEENDIAN);
                 double met = doublefrom(&packet.data[8], ByteOrder::LITTLEENDIAN);
-                response = to_mjd(mjd) + " " + utc2iso8601(mjd) + " " + to_floating(met);
+                response = to_mjd(mjd) + " " + mjd2iso8601(mjd) + " " + to_floating(met);
             }
             else
             {
@@ -637,8 +638,6 @@ namespace Cosmos {
             uint32_t verification_check;
             verification_check = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
             iretn = agent->check_verification(verification_check);
-//            response = to_unsigned(centisec(), 10) + " " + mjd2iso8601(currentmjd()) + " ";
-//            response += "Reset\n";
             if (iretn < 0)
             {
                 response += "Verification Failed: [" + to_hex(verification_check) + ":" + to_hex(agent->get_verification()) + "] " + cosmos_error_string(iretn);
@@ -662,8 +661,6 @@ namespace Cosmos {
             uint32_t verification_check;
             verification_check = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
             iretn = agent->check_verification(verification_check);
-//            response = to_unsigned(centisec(), 10) + " " + mjd2iso8601(currentmjd()) + " ";
-//            response += "Reboot\n";
             if (iretn < 0)
             {
                 response +="Verification Failed: [" + to_hex(verification_check) + ":" + to_hex(agent->get_verification()) + "] " + cosmos_error_string(iretn);
@@ -686,8 +683,6 @@ namespace Cosmos {
             uint32_t verification_check;
             verification_check = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
             iretn = agent->check_verification(verification_check);
-//            response = to_unsigned(centisec(), 10) + " " + mjd2iso8601(currentmjd()) + " ";
-//            response += "Halt\n";
             if (iretn < 0)
             {
                 response +="Verification Failed: [" + to_hex(verification_check) + ":" + to_hex(agent->get_verification()) + "] " + cosmos_error_string(iretn);
@@ -741,8 +736,6 @@ namespace Cosmos {
         int32_t PacketHandler::ExternalCommand(PacketComm& packet, string &response, Agent* agent)
         {
             // Run command, return response
-//            response = to_unsigned(centisec(), 10) + " " + mjd2iso8601(currentmjd()) + " ";
-//            response += string(packet.data.begin()+4, packet.data.end()) + "\n";
             int32_t iretn = data_execute(string(packet.data.begin()+4, packet.data.end()), response);
             packet.response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
             return iretn;
@@ -751,9 +744,13 @@ namespace Cosmos {
         int32_t PacketHandler::ExternalTask(PacketComm& packet, string &response, Agent* agent)
         {
             // Run command in a thread, return response
-//            response = to_unsigned(centisec(), 10) + " " + mjd2iso8601(currentmjd()) + " ";
+            // Format:
+            // Bytes 0-3: unused?
+            // Bytes 4-7: float timeout
+            // Bytes 8-end: command string
             string source = lookup_node_id_name(agent->cinfo, packet.header.nodeorig);
-            int32_t iretn = agent->task_add(string(packet.data.begin()+4, packet.data.end()), source);
+            float timeout = floatfrom(&packet.data[4], ByteOrder::LITTLEENDIAN);
+            int32_t iretn = agent->task_add(string(packet.data.begin()+8, packet.data.end()), source, timeout);
             response += "Running: " + agent->task_command(iretn) + " in " + agent->task_path(iretn) + " #" + to_unsigned(agent->task_size()) + "\n";
             packet.response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
             return iretn;
@@ -761,8 +758,6 @@ namespace Cosmos {
 
         int32_t PacketHandler::TestRadio(PacketComm& packet, string &response, Agent* agent)
         {
-//            response = to_unsigned(centisec(), 10) + " " + mjd2iso8601(currentmjd()) + " ";
-//            response += "Test Radio\n";
             int32_t iretn = agent->channel_push(packet.header.chanin, packet);
             return iretn;
         }
@@ -775,8 +770,6 @@ namespace Cosmos {
             string agentname;
             agentname.insert(agentname.begin(), packet.data.begin()+node.size()+7, packet.data.begin()+node.size()+7+packet.data[5+node.size()]);
 
-//            response = to_unsigned(centisec(), 10) + " " + mjd2iso8601(currentmjd()) + " ";
-//            response += "List Directory " + node + " " + agentname + "\n";
             for (filestruc file : data_list_files(node, "outgoing", agentname))
             {
                 response += file.name + " ";
@@ -808,8 +801,6 @@ namespace Cosmos {
         {
             int32_t iretn=0;
 
-//            response = to_unsigned(centisec(), 10) + " " + mjd2iso8601(currentmjd()) + " ";
-//            response += "Ping\n";
             packet.header.type = PacketComm::TypeId::DataObcPong;
             NODE_ID_TYPE temp = packet.header.nodedest;
             packet.header.nodedest = packet.header.nodeorig;
@@ -860,10 +851,8 @@ namespace Cosmos {
         {
             int32_t iretn=0;
             packet.response_id = centisec();
-//            response = to_unsigned(centisec(), 10) + " " + mjd2iso8601(currentmjd()) + " ";
-//            response += "Get Time\n";
             response += to_label("MET", currentmjd() - agent->cinfo->node.utcstart);
-            response += to_label(" UTC", utc2iso8601(currentmjd())) + "\n";
+            response += to_label(" UTC", mjd2iso8601(currentmjd())) + "\n";
             return iretn;
         }
 
@@ -981,7 +970,7 @@ namespace Cosmos {
             packet.header.nodedest = dest;
             packet.header.chanin = agent->channel_number(radioin);
             packet.header.chanout = agent->channel_number(channelout);
-            string ping = utc2iso8601(currentmjd());
+            string ping = mjd2iso8601(currentmjd());
             packet.data.resize(4);
             uint32_t centi = centisec();
             uint32to(centi, &packet.data[0], ByteOrder::LITTLEENDIAN);
@@ -1435,6 +1424,34 @@ namespace Cosmos {
             packet.data.resize(2);
             packet.data[0] = enable;
             packet.data[1] = number;
+            iretn = agent->channel_push(packet);
+            return iretn;
+        }
+
+        int32_t PacketHandler::QueueSendFileResponses(Agent* agent, NODE_ID_TYPE dest, const string& channelout, const string& radioin)
+        {
+            int32_t iretn = 0;
+            PacketComm packet;
+
+            packet.header.type = PacketComm::TypeId::CommandFileSendFileResponses;
+            packet.header.nodeorig = agent->nodeId;
+            packet.header.nodedest = dest;
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number(channelout);
+            iretn = agent->channel_push(packet);
+            return iretn;
+        }
+
+        int32_t PacketHandler::QueueSaveFileProgress(Agent* agent, NODE_ID_TYPE dest, const string& channelout, const string& radioin)
+        {
+            int32_t iretn = 0;
+            PacketComm packet;
+
+            packet.header.type = PacketComm::TypeId::CommandFileSaveFileProgress;
+            packet.header.nodeorig = agent->nodeId;
+            packet.header.nodedest = dest;
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number(channelout);
             iretn = agent->channel_push(packet);
             return iretn;
         }

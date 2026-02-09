@@ -490,7 +490,8 @@ namespace Cosmos
             const uint8_t DEG10 = 2;
             const uint8_t DEGMAX = 3;
             const uint32_t GS_EVENT_CODE[4] = {EVENT_TYPE_GS, EVENT_TYPE_GS5, EVENT_TYPE_GS10, EVENT_TYPE_GSMAX};
-            const string GS_EVENT_STRING[4] = {"GS", "GS5", "GS10", "GSMAX"};
+            const string LOS_EVENT_STRING[4] = {"LOS", "LOS5", "LOS10", "MAX"};
+            const string AOS_EVENT_STRING[4] = {"AOS", "AOS5", "AOS10", "MAX"};
             //! Tracks Acquisition of Signal events for each groundstation
             map<string, target_aos_set> gs_AoS;
             //! Tracks Acquisition of Sight events for each target. Targets track only DEG0
@@ -508,7 +509,7 @@ namespace Cosmos
             //! Checks for groundstation AoS/LoS events
             //! \param gs Reference to groundstation to check
             //! \param final If true, forces end of event if active
-            int32_t check_gs_aos_event(const targetstruc& gs, bool force_end);
+            int32_t check_gs_event(const targetstruc& gs, bool force_end);
             //! Checks for target AoS/LoS events
             //! \param target Reference to target to check
             //! \param final If true, forces end of event if active

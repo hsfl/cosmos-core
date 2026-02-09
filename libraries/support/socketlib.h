@@ -104,6 +104,8 @@ enum class NetworkType : std::uint16_t
 
 #define SOCKET_BUFFER_LENGTH 512  //Max length of buffer
 
+constexpr char SOCKET_LOOPBACK[] = "127.0.0.1";
+
 //! @}
 
 //! \ingroup socketlib
@@ -138,8 +140,11 @@ struct socket_channel
     char name[COSMOS_MAX_NAME+1] = {0};
     // Interface flags
     int16_t flags;
+    // Packet Size
+    uint16_t mtu = 0;
     // Time out
     double timeout;
+    struct timespec tv;
 };
 
 typedef vector<socket_channel> socket_bus;
@@ -167,15 +172,16 @@ int32_t socket_poll(socket_bus &channel, vector<uint8_t> &buffer, size_t maxlen,
 int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags=0);
 int32_t socket_recvfrom(socket_channel &channel,string &buffer, size_t maxlen, int flags=0);
 int32_t socket_recv(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags=0);
-int32_t socket_post(socket_bus &channel, const string buffer, int flags=0);
-int32_t socket_post(socket_bus &channel, const vector<uint8_t> buffer, int flags=0);
-int32_t socket_post(socket_channel &channel, const string buffer, int flags=0);
-int32_t socket_post(socket_channel &channel, const vector<uint8_t> buffer, int flags=0);
-int32_t socket_sendto(socket_bus &channel, const string buffer, int flags=0);
-int32_t socket_sendto(socket_bus &channel, const vector<uint8_t> buffer, int flags=0);
-int32_t socket_sendto(socket_channel &channel, const string buffer, int flags=0);
-int32_t socket_sendto(socket_channel &channel, const vector<uint8_t> buffer, int flags=0);
-int32_t socket_send(socket_channel &channel, const vector<uint8_t> buffer, int flags=0);
+int32_t socket_recvmmsg(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags=0);
+int32_t socket_post(socket_bus &channel, const string &buffer, int flags=0);
+int32_t socket_post(socket_bus &channel, const vector<uint8_t> &buffer, int flags=0);
+int32_t socket_post(socket_channel &channel, const string &buffer, int flags=0);
+int32_t socket_post(socket_channel &channel, const vector<uint8_t> &buffer, int flags=0);
+int32_t socket_sendto(socket_bus &channel, const string &buffer, int flags=0);
+int32_t socket_sendto(socket_bus &channel, const vector<uint8_t> &buffer, int flags=0);
+int32_t socket_sendto(socket_channel &channel, const string &buffer, int flags=0);
+int32_t socket_sendto(socket_channel &channel, const vector<uint8_t> &buffer, int flags=0);
+int32_t socket_send(socket_channel &channel, const vector<uint8_t> &buffer, int flags=0);
 vector <socket_channel> socket_find_addresses(NetworkType ntype, uint16_t port=0);
 int32_t hostnameToIP(const string hostname, string& ipaddr, string& response);
 

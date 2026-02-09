@@ -441,7 +441,7 @@ int32_t Simulator::ParseSatString(string args)
     int32_t iretn;
     double eventtick = 60.;
     double maxthrust = 0.;
-    double maxalpha = 0.;
+    double maxtorque = 0.;
     double maxomega = 0.;
     double maxmoment = 0.;
     uint16_t argcount = 0;
@@ -490,10 +490,10 @@ int32_t Simulator::ParseSatString(string args)
         ++argcount;
         maxthrust = jargs["maxthrust"].number_value();
     }
-    if (!jargs["maxalpha"].is_null())
+    if (!jargs["maxtorque"].is_null())
     {
         ++argcount;
-        maxalpha = jargs["maxalpha"].number_value();
+        maxtorque = jargs["maxtorque"].number_value();
     }
     if (!jargs["maxomega"].is_null())
     {
@@ -551,7 +551,7 @@ int32_t Simulator::ParseSatString(string args)
         eci2tle2(satloc.pos.eci, satloc.tle);
     }
     if (!jargs["eci"].is_null())
-	{
+    {
         json11::Json::object values = jargs["eci"].object_items();
         satloc.pos.eci.utc = (values["utc"].number_value());
         satloc.pos.eci.s.col[0] = (values["x"].number_value());
@@ -613,87 +613,121 @@ int32_t Simulator::ParseSatString(string args)
     (*sit)->currentinfo.event_tick = eventtick / 86400.;
     (*sit)->currentinfo.node.type = nodetype;
 
-    // CPU
-    iretn = json_createpiece(&(*sit)->currentinfo, "obc_cpu", DeviceType::CPU);
+    // // TSEN
+    // for (uint16_t i=0; i<(*sit)->currentinfo.pieces.size(); ++i)
+    // {
+    //     iretn = json_createpiece(&(*sit)->currentinfo, "tsen_piece_" + (*sit)->currentinfo.pieces[i].name, DeviceType::TSEN);
+    // }
 
-    // Disk
-    iretn = json_createpiece(&(*sit)->currentinfo, "obc_disk", DeviceType::DISK);
+    // // CPU
+    // iretn = json_createpiece(&(*sit)->currentinfo, "obc_cpu", DeviceType::CPU);
+
+    // // Disk
+    // iretn = json_createpiece(&(*sit)->currentinfo, "obc_disk", DeviceType::DISK);
 
     // Thruster
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_thrust", DeviceType::THST);
-    (*sit)->currentinfo.devspec.thst[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].maxthrust = maxthrust;
-    (*sit)->currentinfo.devspec.thst[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unitz(-1.), rv_unitx());
+        // json_createpiece(&(*sit)->currentinfo, "adcs_thrust", DeviceType::THST);
+    for (uint16_t i=0; i<(*sit)->currentinfo.devspec.thst.size(); ++i)
+    {
+        (*sit)->currentinfo.devspec.thst[i].maxthrust = maxthrust;
+    }
+    // (*sit)->currentinfo.devspec.thst[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unitz(-1.), rv_unitx());
+    // (*sit)->currentinfo.node.phys.maxthrust = maxthrust;
 
     // Reaction wheels
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_rw_x", DeviceType::RW);
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxalp = maxalpha;
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxomg = maxomega;
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_rw_y", DeviceType::RW);
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxalp = maxalpha;
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxomg = maxomega;
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_rw_z", DeviceType::RW);
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxalp = maxalpha;
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxomg = maxomega;
-    (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+    for (uint16_t i=0; i<(*sit)->currentinfo.devspec.rw.size(); ++i)
+    {
+        (*sit)->currentinfo.devspec.rw[i].mxtrq = maxtorque;
+        (*sit)->currentinfo.devspec.rw[i].mxomg = maxomega;
+    }
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_rw_x", DeviceType::RW);
+    // (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxtrq = maxtorque;
+    // (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxomg = maxomega;
+    // (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_rw_y", DeviceType::RW);
+    // (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxtrq = maxtorque;
+    // (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxomg = maxomega;
+    // (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_rw_z", DeviceType::RW);
+    // (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxtrq = maxtorque;
+    // (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxomg = maxomega;
+    // (*sit)->currentinfo.devspec.rw[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+    (*sit)->currentinfo.node.phys.maxtorque = maxtorque;
 
     // Torque rods
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mtr_x", DeviceType::MTR);
-    (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxmom = maxmoment;
-    (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mtr_y", DeviceType::MTR);
-    (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxmom = maxmoment;
-    (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mtr_z", DeviceType::MTR);
-    (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxmom = maxmoment;
-    (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+    for (uint16_t i=0; i<(*sit)->currentinfo.devspec.mtr.size(); ++i)
+    {
+        (*sit)->currentinfo.devspec.mtr[i].mxmom = maxmoment;
+    }
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mtr_x", DeviceType::MTR);
+    // (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxmom = maxmoment;
+    // (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mtr_y", DeviceType::MTR);
+    // (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxmom = maxmoment;
+    // (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mtr_z", DeviceType::MTR);
+    // (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].mxmom = maxmoment;
+    // (*sit)->currentinfo.devspec.mtr[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
 
-    // GPS
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_gps", DeviceType::GPS);
+    // // GPS
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_gps", DeviceType::GPS);
 
-    // Magnetometer
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mag", DeviceType::MAG);
-    (*sit)->currentinfo.devspec.mag[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    // // Magnetometer
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_mag", DeviceType::MAG);
+    // (*sit)->currentinfo.devspec.mag[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
 
-    // Gyros
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_gyro_x", DeviceType::GYRO);
-    (*sit)->currentinfo.devspec.gyro[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_gyro_y", DeviceType::GYRO);
-    (*sit)->currentinfo.devspec.gyro[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_gyro_z", DeviceType::GYRO);
-    (*sit)->currentinfo.devspec.gyro[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+    // // Gyros
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_gyro_x", DeviceType::GYRO);
+    // (*sit)->currentinfo.devspec.gyro[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_gyro_y", DeviceType::GYRO);
+    // (*sit)->currentinfo.devspec.gyro[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unitx(), rv_unity(), rv_unitx());
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_gyro_z", DeviceType::GYRO);
+    // (*sit)->currentinfo.devspec.gyro[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
 
-    // Star trackers
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_stt_x+", DeviceType::STT);
-    (*sit)->currentinfo.devspec.stt[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_stt_x-", DeviceType::STT);
-    (*sit)->currentinfo.devspec.stt[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(-1.0), rv_unity());
+    // // Star trackers
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_stt_x+", DeviceType::STT);
+    // (*sit)->currentinfo.devspec.stt[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(), rv_unity());
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_stt_x-", DeviceType::STT);
+    // (*sit)->currentinfo.devspec.stt[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitx(-1.0), rv_unity());
 
-    // Sun and Earth sensors
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_xyzsen_sun", DeviceType::XYZSEN);
-    //        (*sit)->currentinfo.devspec.xyzsen[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(-1.0), rv_unity());
-    iretn = json_createpiece(&(*sit)->currentinfo, "adcs_xyzsen_earth", DeviceType::XYZSEN);
-    //        (*sit)->currentinfo.devspec.xyzsen[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
+    // // Sun and Earth sensors
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_xyzsen_sun", DeviceType::XYZSEN);
+    // //        (*sit)->currentinfo.devspec.xyzsen[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(-1.0), rv_unity());
+    // iretn = json_createpiece(&(*sit)->currentinfo, "adcs_xyzsen_earth", DeviceType::XYZSEN);
+    // //        (*sit)->currentinfo.devspec.xyzsen[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].align = q_irotate_for(rv_unitz(), rv_unity(), rv_unitz(), rv_unity());
 
 
     // Detectors
-    for (camstruc det : dets)
+    for (uint16_t i=0; i<4; ++i)
     {
-        iretn = json_createpiece(&(*sit)->currentinfo, det.name, DeviceType::CAM);
-        (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].volt = 5.;
-        (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].amp = 20. / det.volt;
-        (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].state = 0;
-        (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].fov = det.fov;
-        (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].ifov = det.ifov;
-        (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].specmin = det.specmin;
-        (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].specmax = det.specmax;
+        if (i == dets.size())
+        {
+            break;
+        }
+        (*sit)->currentinfo.devspec.cam[i].volt = 5.;
+        (*sit)->currentinfo.devspec.cam[i].amp = 20. / dets[i].volt;
+        (*sit)->currentinfo.devspec.cam[i].state = 0;
+        (*sit)->currentinfo.devspec.cam[i].fov = dets[i].fov;
+        (*sit)->currentinfo.devspec.cam[i].ifov = dets[i].ifov;
+        (*sit)->currentinfo.devspec.cam[i].specmin = dets[i].specmin;
+        (*sit)->currentinfo.devspec.cam[i].specmax = dets[i].specmax;
     }
+    // for (camstruc det : dets)
+    // {
+    //     iretn = json_createpiece(&(*sit)->currentinfo, det.name, DeviceType::CAM);
+    //     (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].volt = 5.;
+    //     (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].amp = 20. / det.volt;
+    //     (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].state = 0;
+    //     (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].fov = det.fov;
+    //     (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].ifov = det.ifov;
+    //     (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].specmin = det.specmin;
+    //     (*sit)->currentinfo.devspec.cam[(*sit)->currentinfo.device[(*sit)->currentinfo.pieces[iretn].cidx]->didx].specmax = det.specmax;
+    // }
 
-    json_map_node(&(*sit)->currentinfo);
+    // json_map_node(&(*sit)->currentinfo);
     //    jsonnode json;
     //    json_setup_node(json, &(*sit)->currentinfo, false);
-    json_updatecosmosstruc(&(*sit)->currentinfo);
+    // json_updatecosmosstruc(&(*sit)->currentinfo);
 
     (*sit)->sohstring = json_list_of_soh(&(*sit)->currentinfo);
 
@@ -877,12 +911,14 @@ int32_t Simulator::ParseTargetString(string line)
         if (!data["area"].is_null())
         {
             targ.area = data["area"].number_value();
+            targ.size = gvector(sqrt(targ.area/M_PI), sqrt(targ.area/M_PI), 0.);
         }
 
         if (!data["radius"].is_null())
         {
-            targ.area = 100. * data["radius"].number_value();
-            targ.area = M_PI * targ.area * targ.area;
+            targ.area = data["radius"].number_value();
+            targ.size = gvector(targ.area/REARTHM, targ.area/REARTHM, 0.);
+            targ.area *= M_PI * targ.area;
         }
 
         if (!data["minelfrom"].is_null())
@@ -1248,26 +1284,27 @@ int32_t Simulator::Propagate(vector<vector<cosmosstruc> > &results, uint32_t run
     return results.size();
 }
 
-int32_t Simulator::Target(map<uint32_t, vector<qatt> > &pschedule)
+int32_t Simulator::Target(map<uint32_t, vector<pointing_info> > &pschedule)
 {
-    if (pschedule.size() > 1 && pschedule.begin()->second.size() == cnodes.size())
+    if (pschedule.size() > 1 && pschedule.begin()->second.size() >= cnodes.size())
     {
-        qatt catt;
-        if (currentutc < pschedule.begin()->second[0].utc)
+        if (currentutc < pschedule.begin()->second[0].pointing.utc)
         {
             for (uint16_t j=0; j<cnodes.size(); ++j)
             {
-                cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule.begin()->second[j];
-                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = cnodes[j]->currentinfo.node.loc.att.icrf.pass + 1;
+                cnodes[j]->currentinfo.target_idx = pschedule.begin()->second[j].target_idx;
+                cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule.begin()->second[j].pointing;
+                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = std::max(cnodes[j]->currentinfo.node.loc.att.icrf.pass, cnodes[j]->currentinfo.node.loc.att.geoc.pass) + 1;
                 att_lvlh(cnodes[j]->currentinfo.node.loc);
             }
         }
-        else if (currentutc > pschedule.rbegin()->second[0].utc)
+        else if (currentutc > pschedule.rbegin()->second[0].pointing.utc)
         {
             for (uint16_t j=0; j<cnodes.size(); ++j)
             {
-                cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule.rbegin()->second[j];
-                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = cnodes[j]->currentinfo.node.loc.att.icrf.pass + 1;
+                cnodes[j]->currentinfo.target_idx = pschedule.rbegin()->second[j].target_idx;
+                cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule.rbegin()->second[j].pointing;
+                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = std::max(cnodes[j]->currentinfo.node.loc.att.icrf.pass, cnodes[j]->currentinfo.node.loc.att.geoc.pass) + 1;
                 att_lvlh(cnodes[j]->currentinfo.node.loc);
             }
         }
@@ -1275,8 +1312,9 @@ int32_t Simulator::Target(map<uint32_t, vector<qatt> > &pschedule)
         {
             for (uint16_t j=0; j<cnodes.size(); ++j)
             {
-                cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule[decisec(currentutc)][j];
-                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = cnodes[j]->currentinfo.node.loc.att.icrf.pass + 1;
+                cnodes[j]->currentinfo.target_idx = pschedule[decisec(currentutc)][j].target_idx;
+                cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule[decisec(currentutc)][j].pointing;
+                cnodes[j]->currentinfo.node.loc.att.lvlh.pass = std::max(cnodes[j]->currentinfo.node.loc.att.icrf.pass, cnodes[j]->currentinfo.node.loc.att.geoc.pass) + 1;
                 att_lvlh(cnodes[j]->currentinfo.node.loc);
             }
         }
@@ -1295,150 +1333,106 @@ int32_t Simulator::Target(map<uint32_t, vector<qatt> > &pschedule)
         }
         return 0;
     }
+    for (uint16_t i=0; i<cnodes.size(); ++i)
+    {
+        update_target(&cnodes[i]->currentinfo);
+    }
 }
 
 int32_t Simulator::Target()
 {
     int32_t iretn = 0;
-    uint32_t mincount = -1;
+    // uint32_t minlevel = 10000;
+    // Synchronize progress of all targets
     for (uint16_t i=0; i<cnodes.size(); ++i)
     {
         update_target(&cnodes[i]->currentinfo);
         for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
         {
-            if (cnodes[i]->currentinfo.target[j].elto > 0.087 && cnodes[i]->currentinfo.target[j].cover[0].count < mincount)
+            if (cnodes[i]->currentinfo.target[j].cover[0].count > targets[cnodes[i]->currentinfo.target[j].name].cover[0].count)
             {
-                mincount = cnodes[i]->currentinfo.target[j].cover[0].count;
+                targets[cnodes[i]->currentinfo.target[j].name].cover[0].count = cnodes[i]->currentinfo.target[j].cover[0].count;
             }
+            // if (cnodes[i]->currentinfo.target[j].elto > 0.)
+            // {
+            //     uint32_t mylevel = targets[cnodes[i]->currentinfo.target[j].name].cover[0].count / cnodes[i]->currentinfo.target[j].elto;
+            //     if (mylevel < minlevel)
+            //     {
+            //         minlevel = mylevel;
+            //     }
+            // }
         }
     }
 
-    // for (uint16_t i=0; i<cnodes.size(); ++i)
-    // {
-    //     cnodes[i]->currentinfo.target_idx = -1;
-    //     double targetrange = 1e9;
-    //     for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
-    //     {
-    //         if (cnodes[i]->currentinfo.target[j].elto > 0.087)
-    //         {
-    //             bool taken = false;
-    //             if (cnodes[i]->currentinfo.target[j].cover[0].count > mincount)
-    //             {
-    //                 taken = true;
-    //             }
-    //             if (!taken && i > 0)
-    //             {
-    //                 for (uint16_t ii=i-1; ii>0; --ii)
-    //                 {
-    //                     if (cnodes[ii]->currentinfo.target_idx == j)
-    //                     {
-    //                         taken = true;
-    //                     }
-    //                 }
-    //             }
-    //             if (!taken && cnodes[i]->currentinfo.target[j].range < targetrange)
-    //             {
-    //                 if (targetrange == 1e9)
-    //                 {
-    //                     ++iretn;
-    //                 }
-    //                 targetrange = cnodes[i]->currentinfo.target[j].range;
-    //                 cnodes[i]->currentinfo.target_idx = j;
-    //             }
-    //         }
-    //     }
-    //     if (cnodes[i]->currentinfo.target_idx < cnodes[i]->currentinfo.target.size())
-    //     {
-    //         cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].cover[0].count++;
-    //         cnodes[i]->currentinfo.node.loc.att.geoc.s = q_drotate_between_rv(rv_unitz(), rv_sub(cnodes[i]->currentinfo.node.loc.pos.geoc.s, cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].loc.pos.geoc.s));
-    //         cnodes[i]->currentinfo.node.loc.att.geoc.v = rv_zero();
-    //         cnodes[i]->currentinfo.node.loc.att.geoc.a = rv_zero();
-    //         cnodes[i]->currentinfo.node.loc.att.geoc.pass++;
-    //         att_geoc(cnodes[i]->currentinfo.node.loc);
-    //     }
-    //     else
-    //     {
-    //         cnodes[i]->currentinfo.node.loc.att.lvlh.s = q_eye();
-    //         cnodes[i]->currentinfo.node.loc.att.lvlh.v = rv_zero();
-    //         cnodes[i]->currentinfo.node.loc.att.lvlh.a = rv_zero();
-    //         cnodes[i]->currentinfo.node.loc.att.lvlh.utc = currentutc;
-    //         cnodes[i]->currentinfo.node.loc.att.lvlh.pass++;
-    //         att_lvlh(cnodes[i]->currentinfo.node.loc);
-    //     }
-    // }
+    // Pick current target for each Node
+    for (uint16_t i=0; i<cnodes.size(); ++i)
+    {
+        uint32_t minlevel = 10000;
+        cnodes[i]->currentinfo.target_idx = -1;
+        for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
+        {
+            if (cnodes[i]->currentinfo.target[j].elto > 0.)
+            {
+                // Remain candidate if weighted count is low enough
+                uint32_t mylevel = 0.01 * targets[cnodes[i]->currentinfo.target[j].name].cover[0].count / cnodes[i]->currentinfo.target[j].elto;
+                if (mylevel < minlevel)
+                {
+                    // Remove from candidacy if previous Node has been targeted
+                    if (i > 0)
+                    {
+                        for (uint16_t ii=i-1; ii<cnodes.size(); --ii)
+                        {
+                            if (cnodes[ii]->currentinfo.target_idx == j)
+                            {
+                                mylevel = minlevel;
+                            }
+                        }
+                    }
+                    if (mylevel < minlevel)
+                    {
+                        minlevel = mylevel;
+                        cnodes[i]->currentinfo.target_idx = j;
+                    }
+                }
+            }
+            // if (cnodes[i]->currentinfo.target_idx < cnodes[i]->currentinfo.target.size())
+            // {
+            //     break;
+            // }
+        }
+    }
 
     for (uint16_t i=0; i<cnodes.size(); ++i)
     {
-        cnodes[i]->currentinfo.target_idx = -1;
-        double targetangle = D2PI;
-        for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
-        {
-            if (cnodes[i]->currentinfo.target[j].elto > 0.087)
-            {
-                bool taken = false;
-                if (cnodes[i]->currentinfo.target[j].cover[0].count > mincount)
-                {
-                    taken = true;
-                }
-                if (!taken && i > 0)
-                {
-                    for (uint16_t ii=i-1; ii>0; --ii)
-                    {
-                        if (cnodes[ii]->currentinfo.target_idx == j)
-                        {
-                            taken = true;
-                        }
-                    }
-                }
-                double slewangle = sep_q(cnodes[i]->currentinfo.target[j].loc.att.lvlh.s, cnodes[i]->currentinfo.node.loc.att.lvlh.s);
-                if (!taken && slewangle < targetangle)
-                {
-                    if (targetangle == D2PI)
-                    {
-                        ++iretn;
-                    }
-                    targetangle = slewangle;
-                    cnodes[i]->currentinfo.target_idx = j;
-                }
-            }
-        }
-
+        Vector torque;
         if (cnodes[i]->currentinfo.target_idx < cnodes[i]->currentinfo.target.size())
         {
-            cnodes[i]->currentinfo.node.phys.ftorque = calc_control_torque(10., cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].loc.att.icrf, cnodes[i]->currentinfo.node.loc.att.icrf, cnodes[i]->currentinfo.node.phys.moi.to_rv());
+            // torque = calc_control_torque(cnodes[i]->currentinfo.node.phys.maxtorque, cnodes[i]->currentinfo.node.phys.moi, cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].loc.att.icrf, cnodes[i]->currentinfo.node.loc.att.icrf);
+            cnodes[i]->currentinfo.node.loc.att.icrf = cnodes[i]->currentinfo.target[cnodes[i]->currentinfo.target_idx].loc.att.icrf;
         }
-        else
-        {
-            cnodes[i]->currentinfo.node.loc.att.lvlh.s = q_eye();
-            cnodes[i]->currentinfo.node.loc.att.lvlh.v = rv_zero();
-            cnodes[i]->currentinfo.node.loc.att.lvlh.a = rv_zero();
-            cnodes[i]->currentinfo.node.loc.att.lvlh.utc = currentutc;
-            cnodes[i]->currentinfo.node.loc.att.lvlh.pass++;
-            att_lvlh(cnodes[i]->currentinfo.node.loc);
-        }
+        UpdateTorque(cnodes[i]->currentinfo.node.name, torque);
     }
-
     return iretn;
 }
 
 int32_t Simulator::Target(vector<vector<cosmosstruc> > &results)
 {
     int32_t iretn = 0;
-    uint32_t mincount = -1;
-    for (uint32_t tstep=0; tstep<results.size(); ++tstep)
-    {
-        for (uint16_t i=0; i<results[tstep].size(); ++i)
-        {
-            update_target(&results[tstep][i]);
-            for (uint16_t j=0; j<results[tstep][i].target.size(); ++j)
-            {
-                if (results[tstep][i].target[j].elto > 0.087 && results[tstep][i].target[j].cover[0].count < mincount)
-                {
-                    mincount = results[tstep][i].target[j].cover[0].count;
-                }
-            }
-        }
-    }
+    uint32_t minlevel = -1;
+    // for (uint32_t tstep=0; tstep<results.size(); ++tstep)
+    // {
+    //     for (uint16_t i=0; i<results[tstep].size(); ++i)
+    //     {
+    //         update_target(&results[tstep][i]);
+    //         for (uint16_t j=0; j<results[tstep][i].target.size(); ++j)
+    //         {
+    //             if (results[tstep][i].target[j].elto > 0.087 && results[tstep][i].target[j].cover[0].count / cnodes[i]->currentinfo.target[j].elto < minlevel)
+    //             {
+    //                 minlevel = results[tstep][i].target[j].cover[0].count / cnodes[i]->currentinfo.target[j].elto;
+    //             }
+    //         }
+    //     }
+    // }
 
     for (uint32_t tstep=0; tstep<results.size(); ++tstep)
     {
@@ -1454,7 +1448,7 @@ int32_t Simulator::Target(vector<vector<cosmosstruc> > &results)
                     bool taken = false;
                     for (uint16_t ii=i-1; ii<results[tstep].size(); --ii)
                     {
-                        if (results[tstep][ii].target_idx == j || results[tstep][i].target[j].cover[0].count > mincount)
+                        if (results[tstep][ii].target_idx == j || results[tstep][i].target[j].cover[0].count / cnodes[i]->currentinfo.target[j].elto > minlevel)
                         {
                             taken = true;
                         }
