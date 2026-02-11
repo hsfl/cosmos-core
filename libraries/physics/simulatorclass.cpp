@@ -1251,6 +1251,13 @@ int32_t Simulator::Propagate(double nextutc)
             break;
         }
     }
+    for (uint16_t i=1; i<cnodes.size(); ++i)
+    {
+        pos_geoc2lvlh(cnodes[0]->currentinfo.node.loc, cnodes[i]->currentinfo.node.loc);
+        cnodes[i]->currentinfo.node.loc.pos.lvlh.s = -cnodes[i]->currentinfo.node.loc.pos.lvlh.s;
+        cnodes[i]->currentinfo.node.loc.pos.lvlh.v = -cnodes[i]->currentinfo.node.loc.pos.lvlh.v;
+        cnodes[i]->currentinfo.node.loc.pos.lvlh.a = -cnodes[i]->currentinfo.node.loc.pos.lvlh.a;
+    }
     return iretn;
 }
 
@@ -1523,14 +1530,15 @@ int32_t Simulator::Thrust()
     // Calculate thrust
     for (uint16_t i=0; i<cnodes.size(); ++i)
     {
-        //        locstruc goal;
-        cnodes[i]->currentinfo.node.loc_req.pos.eci = cnodes[0]->currentinfo.node.loc.pos.eci;
-        cnodes[i]->currentinfo.node.loc_req.pos.geoc = cnodes[0]->currentinfo.node.loc.pos.geoc;
-        //        cnodes[i]->currentinfo.node.loc_req.pos.eci.pass++;
-        //        pos_eci(cnodes[i]->currentinfo.node.loc_req);
-        cnodes[i]->currentinfo.node.loc_req.pos.lvlh = cnodes[i]->currentinfo.node.loc.pos.lvlh;
-        pos_origin2lvlh(cnodes[i]->currentinfo.node.loc_req);
+        // cnodes[i]->currentinfo.node.loc_req.pos.eci = cnodes[0]->currentinfo.node.loc.pos.eci;
+        // cnodes[i]->currentinfo.node.loc_req.pos.geoc = cnodes[0]->currentinfo.node.loc.pos.geoc;
+        // cnodes[i]->currentinfo.node.loc_req.pos.lvlh = cnodes[i]->currentinfo.node.loc.pos.lvlh;
+        // pos_origin2lvlh(cnodes[i]->currentinfo.node.loc_req);
         UpdatePush(cnodes[i]->currentinfo.node.name, Physics::ControlThrust(cnodes[i]->currentinfo.node.loc.pos.eci, cnodes[i]->currentinfo.node.loc_req.pos.eci, cnodes[i]->currentinfo.mass, cnodes[i]->currentinfo.devspec.thst[0].maxthrust/cnodes[i]->currentinfo.mass, dt));
+        if (i)
+        {
+            cnodes[i]->currentinfo.node.loc.pos.eci.s += .1 * (cnodes[i]->currentinfo.node.loc_req.pos.eci.s - cnodes[i]->currentinfo.node.loc.pos.eci.s);
+        }
     }
     return 0;
 }
@@ -1545,9 +1553,14 @@ int32_t Simulator::Formation(string type, double spacing)
     {
         for (uint16_t i=1; i<cnodes.size(); ++i)
         {
-            cnodes[i]->currentinfo.node.loc.pos.lvlh.s = rv_zero();
-            cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[1] = -spacing * i;
-            ric2lvlh(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc.pos.lvlh, cnodes[i]->currentinfo.node.loc.pos.lvlh);
+            cnodes[i]->currentinfo.node.loc_req.pos.geoc.utc = cnodes[0]->currentinfo.node.loc.pos.geoc.utc;
+            cnodes[i]->currentinfo.node.loc_req.pos.geoc.s = cnodes[0]->currentinfo.node.loc.pos.geoc.s;
+            cnodes[i]->currentinfo.node.loc_req.pos.lvlh.s = rv_zero();
+            cnodes[i]->currentinfo.node.loc_req.pos.lvlh.s.col[1] = -spacing * i;
+            ric2lvlh(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc_req.pos.lvlh, cnodes[i]->currentinfo.node.loc_req.pos.lvlh);
+            pos_origin2lvlh(cnodes[i]->currentinfo.node.loc_req);
+            cnodes[i]->currentinfo.node.loc_req.pos.geoc.pass++;
+            pos_geoc(cnodes[i]->currentinfo.node.loc_req);
         }
         return 1;
     }
@@ -1555,24 +1568,29 @@ int32_t Simulator::Formation(string type, double spacing)
     {
         for (uint16_t i=1; i<cnodes.size(); ++i)
         {
-            cnodes[i]->currentinfo.node.loc.pos.lvlh.s = rv_zero();
-            //            lvlh2ric(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc.pos.lvlh, cnodes[i]->currentinfo.node.loc.pos.lvlh);
+            cnodes[i]->currentinfo.node.loc_req.pos.geoc.utc = cnodes[0]->currentinfo.node.loc.pos.geoc.utc;
+            cnodes[i]->currentinfo.node.loc_req.pos.geoc.s = cnodes[0]->currentinfo.node.loc.pos.geoc.s;
+            cnodes[i]->currentinfo.node.loc_req.pos.lvlh.s = rv_zero();
+            //            lvlh2ric(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc_req.pos.lvlh, cnodes[i]->currentinfo.node.loc_req.pos.lvlh);
             if (i == 2)
             {
-                cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[1] = -spacing * 2.5;
-                cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[2] = -spacing * 1.5;
+                cnodes[i]->currentinfo.node.loc_req.pos.lvlh.s.col[1] = -spacing * 2.5;
+                cnodes[i]->currentinfo.node.loc_req.pos.lvlh.s.col[2] = -spacing * 1.5;
             }
             else if (i == 3)
             {
-                cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[1] = -spacing * 2.5;
-                cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[2] = spacing * 1.5;
+                cnodes[i]->currentinfo.node.loc_req.pos.lvlh.s.col[1] = -spacing * 2.5;
+                cnodes[i]->currentinfo.node.loc_req.pos.lvlh.s.col[2] = spacing * 1.5;
             }
             else
             {
-                cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[1] = -spacing * i;
-                cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[2] = 0;
+                cnodes[i]->currentinfo.node.loc_req.pos.lvlh.s.col[1] = -spacing * i;
+                cnodes[i]->currentinfo.node.loc_req.pos.lvlh.s.col[2] = 0;
             }
-            ric2lvlh(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc.pos.lvlh, cnodes[i]->currentinfo.node.loc.pos.lvlh);
+            ric2lvlh(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc_req.pos.lvlh, cnodes[i]->currentinfo.node.loc_req.pos.lvlh);
+            pos_origin2lvlh(cnodes[i]->currentinfo.node.loc_req);
+            cnodes[i]->currentinfo.node.loc_req.pos.geoc.pass++;
+            pos_geoc(cnodes[i]->currentinfo.node.loc_req);
         }
         return 2;
     }
@@ -1580,18 +1598,23 @@ int32_t Simulator::Formation(string type, double spacing)
     {
         for (uint16_t i=1; i<cnodes.size(); ++i)
         {
-            cnodes[i]->currentinfo.node.loc.pos.lvlh.s = rv_zero();
-            cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[1] = -spacing * i;
-            //            lvlh2ric(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc.pos.lvlh, cnodes[i]->currentinfo.node.loc.pos.lvlh);
+            cnodes[i]->currentinfo.node.loc_req.pos.geoc.utc = cnodes[0]->currentinfo.node.loc.pos.geoc.utc;
+            cnodes[i]->currentinfo.node.loc_req.pos.geoc.s = cnodes[0]->currentinfo.node.loc.pos.geoc.s;
+            cnodes[i]->currentinfo.node.loc_req.pos.lvlh.s = rv_zero();
+            cnodes[i]->currentinfo.node.loc_req.pos.lvlh.s.col[1] = -spacing * i;
+            //            lvlh2ric(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc_req.pos.lvlh, cnodes[i]->currentinfo.node.loc_req.pos.lvlh);
             if (i%2)
             {
-                cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[2] = -spacing * uint16_t((i + 1) / 2);
+                cnodes[i]->currentinfo.node.loc_req.pos.lvlh.s.col[2] = -spacing * uint16_t((i + 1) / 2);
             }
             else
             {
-                cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[2] = spacing * uint16_t((i + 1) / 2);
+                cnodes[i]->currentinfo.node.loc_req.pos.lvlh.s.col[2] = spacing * uint16_t((i + 1) / 2);
             }
-            ric2lvlh(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc.pos.lvlh, cnodes[i]->currentinfo.node.loc.pos.lvlh);
+            ric2lvlh(length_rv(cnodes[i]->currentinfo.node.loc_req.pos.geoc.s), cnodes[i]->currentinfo.node.loc_req.pos.lvlh, cnodes[i]->currentinfo.node.loc_req.pos.lvlh);
+            pos_origin2lvlh(cnodes[i]->currentinfo.node.loc_req);
+            cnodes[i]->currentinfo.node.loc_req.pos.geoc.pass++;
+            pos_geoc(cnodes[i]->currentinfo.node.loc_req);
         }
         return 3;
     }

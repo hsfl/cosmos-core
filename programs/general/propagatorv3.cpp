@@ -25,6 +25,7 @@ uint16_t realtime=1;
 uint16_t summarize=0;
 uint16_t settle=0;
 uint16_t printevent=0;
+uint16_t jsonevent=0;
 uint16_t postevent=0;
 double initialutc = 60107.01;
 double endutc = 0.;
@@ -88,6 +89,50 @@ int main(int argc, char *argv[])
     sim->Init(simdt, realmname);
     sim->ParseOrbitFile();
     sim->ParseSatFile(satfile);
+    if (jsonevent)
+    {
+        printf("{\"sats\":[\n");
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
+        {
+            if (i)
+            {
+                printf(",");
+            }
+            printf("{\"node\":\"%s\",\"triangles\":[\n", sim->cnodes[i]->currentinfo.node.name.c_str());
+            for (uint16_t it=0; it<sim->cnodes[i]->currentinfo.node.phys.triangles.size(); ++it)
+            {
+                if (it)
+                {
+                    printf(",");
+                }
+                // printf("{\"v0\":");
+                Vector v0 = sim->cnodes[i]->currentinfo.node.phys.vertices[sim->cnodes[i]->currentinfo.node.phys.triangles[it].tidx[0]];
+                printf("{\"x0\":%f,\"y0\":%f,\"z0\":%f,", v0.x, v0.y, v0.z);
+                Vector v1 = sim->cnodes[i]->currentinfo.node.phys.vertices[sim->cnodes[i]->currentinfo.node.phys.triangles[it].tidx[1]];
+                printf("\"x1\":%f,\"y1\":%f,\"z1\":%f,", v1.x, v1.y, v1.z);
+                Vector v2 = sim->cnodes[i]->currentinfo.node.phys.vertices[sim->cnodes[i]->currentinfo.node.phys.triangles[it].tidx[2]];
+                printf("\"x2\":%f,\"y2\":%f,\"z2\":%f}", v2.x, v2.y, v2.z);
+                // printf(",\"v1\":");
+                // v1 = sim->cnodes[i]->currentinfo.node.phys.vertices[sim->cnodes[i]->currentinfo.node.phys.triangles[it].tidx[0]];
+                // printf("{\"x0\":%f,\"y0\":%f,\"z0\":%f,", v0.x, v0.y, v0.z);
+                // v1 = sim->cnodes[i]->currentinfo.node.phys.vertices[sim->cnodes[i]->currentinfo.node.phys.triangles[it].tidx[1]];
+                // printf("\"x1\":%f,\"y1\":%f,\"z1\":%f,", v1.x, v1.y, v1.z);
+                // v2 = sim->cnodes[i]->currentinfo.node.phys.vertices[sim->cnodes[i]->currentinfo.node.phys.triangles[it].tidx[2]];
+                // printf("\"x2\":%f,\"y2\":%f,\"z2\":%f}", v2.x, v2.y, v2.z);
+                // printf(",\"v2\":");
+                // v2 = sim->cnodes[i]->currentinfo.node.phys.vertices[sim->cnodes[i]->currentinfo.node.phys.triangles[it].tidx[0]];
+                // printf("{\"x0\":%f,\"y0\":%f,\"z0\":%f,", v0.x, v0.y, v0.z);
+                // v1 = sim->cnodes[i]->currentinfo.node.phys.vertices[sim->cnodes[i]->currentinfo.node.phys.triangles[it].tidx[1]];
+                // printf("\"x1\":%f,\"y1\":%f,\"z1\":%f,", v1.x, v1.y, v1.z);
+                // v2 = sim->cnodes[i]->currentinfo.node.phys.vertices[sim->cnodes[i]->currentinfo.node.phys.triangles[it].tidx[2]];
+                // printf("\"x2\":%f,\"y2\":%f,\"z2\":%f}", v2.x, v2.y, v2.z);
+                printf("\n");
+            }
+            printf("]}\n");
+        }
+        printf("],\n");
+    }
+
     if (satfile.find("/") != string::npos)
     {
         satfile = satfile.substr(satfile.find_last_of('/'));
@@ -136,6 +181,10 @@ int main(int argc, char *argv[])
         sim->Target();
     }
     sim->Metric();
+    if (jsonevent)
+    {
+        printf("\"states\":[\n");
+    }
     while (agent->running() && elapsed < runcount)
     {
         if (settle)
@@ -155,6 +204,14 @@ int main(int argc, char *argv[])
             }
         }
         sim->Formation(formation, spacing);
+        if (jsonevent)
+        {
+            if (elapsed)
+            {
+                printf(",");
+            }
+            printf("{");
+        }
         for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
             if (settle && settled[i])
@@ -230,6 +287,23 @@ int main(int argc, char *argv[])
                         output += to_label("\tgs", (event.flag & EVENT_FLAG_GS) != 0);
                         printf("%s\n", output.c_str());
                     }
+                    // if (jsonevent)
+                    // {
+                    //     json11::Json jobj = json11::Json::object({
+                    //         {"type", "event"},
+                    //         {"node_name", sim->cnodes[i]->currentinfo.node.name},
+                    //         {"utc", event.utc},
+                    //         {"event_utc", event.utc},
+                    //         {"event_name", event.name},
+                    //         {"event_type", static_cast<int>(event.type)},
+                    //         {"event_flag", static_cast<int>(event.flag)},
+                    //         {"event_el", event.el},
+                    //         {"event_az", event.az},
+                    //         {"geodpos", sim->cnodes[i]->currentinfo.node.loc.pos.geod.s}
+                    //     });
+                    //     string output = jobj.dump();
+                    //     printf("%s\n", output.c_str());
+                    // }
                     if (postevent)
                     {
                         json11::Json jobj = json11::Json::object({
@@ -245,7 +319,10 @@ int main(int argc, char *argv[])
                             {"geodpos", sim->cnodes[i]->currentinfo.node.loc.pos.geod.s}
                         });
                         string output = jobj.dump();
-                        iretn = socket_post(data_channel_out, output.c_str());
+                        if (postevent)
+                        {
+                            iretn = socket_post(data_channel_out, output.c_str());
+                        }
 
                         // Post SOH
                         // string jstring;
@@ -291,6 +368,38 @@ int main(int argc, char *argv[])
                 output += to_label("\tdeltav", to_floating(sumdeltav[i].norm(), 3));
                 printf("%s\n", output.c_str());
             }
+            if (jsonevent)
+            {
+                sim->cnodes[i]->currentinfo.devspec.cpu[0].load = static_cast <float>(deviceCpu.getLoad());
+                sim->cnodes[i]->currentinfo.devspec.cpu[0].gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/1073741824.);
+                sim->cnodes[i]->currentinfo.devspec.cpu[0].maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/1073741824.);
+                sim->cnodes[i]->currentinfo.devspec.cpu[0].maxload = deviceCpu.getCpuCount();
+                if (i)
+                {
+                    printf(",");
+                }
+                printf("\"%s\":{\"node\":\"%s\",", sim->cnodes[i]->currentinfo.node.name.c_str(), sim->cnodes[i]->currentinfo.node.name.c_str());
+                printf("\"utc\":%.15f,", sim->cnodes[i]->currentinfo.node.utc);
+                printf("\"icrfatt\":{\"w\":%f,\"x\":%f,\"y\":%f,\"z\":%f},",
+                       sim->cnodes[i]->currentinfo.node.loc.att.icrf.s.w,
+                       sim->cnodes[i]->currentinfo.node.loc.att.icrf.s.d.x,
+                       sim->cnodes[i]->currentinfo.node.loc.att.icrf.s.d.y,
+                       sim->cnodes[i]->currentinfo.node.loc.att.icrf.s.d.z);
+                printf("\"ecipos\":{\"x\":%f,\"y\":%f,\"z\":%f},",
+                       sim->cnodes[i]->currentinfo.node.loc.pos.eci.s.col[0],
+                       sim->cnodes[i]->currentinfo.node.loc.pos.eci.s.col[1],
+                       sim->cnodes[i]->currentinfo.node.loc.pos.eci.s.col[2]);
+                printf("\"lvlhatt\":{\"w\":%f,\"x\":%f,\"y\":%f,\"z\":%f},",
+                       sim->cnodes[i]->currentinfo.node.loc.att.lvlh.s.w,
+                       sim->cnodes[i]->currentinfo.node.loc.att.lvlh.s.d.x,
+                       sim->cnodes[i]->currentinfo.node.loc.att.lvlh.s.d.y,
+                       sim->cnodes[i]->currentinfo.node.loc.att.lvlh.s.d.z);
+                printf("\"lvlhpos\":{\"x\":%f,\"y\":%f,\"z\":%f}",
+                       sim->cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[0],
+                       sim->cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[1],
+                       sim->cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[2]);
+                printf("}\n");
+            }
             if (postevent)
             {
                 sim->cnodes[i]->currentinfo.devspec.cpu[0].load = static_cast <float>(deviceCpu.getLoad());
@@ -312,19 +421,14 @@ int main(int argc, char *argv[])
                 });
                 string output = jobj.dump();
                 iretn = socket_post(data_channel_out, output.c_str());
-                send_telem_to_cosmos_web(&sim->cnodes[i]->currentinfo);
-
-                // Post SOH
-                // string jstring;
-                // agent->post(Agent::AgentMessage::SOH, json_of_list(jstring, sim->cnodes[i]->sohstring, &sim->cnodes[i]->currentinfo));
+                // send_telem_to_cosmos_web(&sim->cnodes[i]->currentinfo);
                 agent->post(Agent::AgentMessage::SOH, output);
             }
         }
-        //        if (printevent)
-        //        {
-        //            printf("\n");
-        //            fflush(stdout);
-        //        }
+        if (jsonevent)
+        {
+            printf("}\n");
+        }
         sim->Propagate();
         sim->Thrust();
         if (pointingfile.length())
@@ -358,32 +462,32 @@ int main(int argc, char *argv[])
                         summaries[i][j].elevation += sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
                         summaries[i][j].elstd += sim->cnodes[i]->currentinfo.target[j].cover[0].elevation * sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
 
-//                        if (summaries[i][j].resmin == 0. || sim->cnodes[i]->currentinfo.target[j].cover[0].resolution < summaries[i][j].resmin)
-//                        {
-//                            summaries[i][j].resmin = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
-//                        }
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].resolution > summaries[i][j].resmax)
-//                        {
-//                            summaries[i][j].resmax = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
-//                        }
+                        //                        if (summaries[i][j].resmin == 0. || sim->cnodes[i]->currentinfo.target[j].cover[0].resolution < summaries[i][j].resmin)
+                        //                        {
+                        //                            summaries[i][j].resmin = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+                        //                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].resolution > summaries[i][j].resmax)
+                        //                        {
+                        //                            summaries[i][j].resmax = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+                        //                        }
 
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth < summaries[i][j].azmin)
-//                        {
-//                            summaries[i][j].azmin = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
-//                        }
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth > summaries[i][j].azmax)
-//                        {
-//                            summaries[i][j].azmax = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
-//                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth < summaries[i][j].azmin)
+                        //                        {
+                        //                            summaries[i][j].azmin = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+                        //                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth > summaries[i][j].azmax)
+                        //                        {
+                        //                            summaries[i][j].azmax = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+                        //                        }
 
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation < summaries[i][j].elmin)
-//                        {
-//                            summaries[i][j].elmin = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
-//                        }
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation > summaries[i][j].elmax)
-//                        {
-//                            summaries[i][j].elmax = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
-//                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation < summaries[i][j].elmin)
+                        //                        {
+                        //                            summaries[i][j].elmin = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+                        //                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation > summaries[i][j].elmax)
+                        //                        {
+                        //                            summaries[i][j].elmax = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+                        //                        }
 
                         ++summaries[i][sim->targets.size()].count;
                         summaries[i][sim->targets.size()].area += sim->cnodes[i]->currentinfo.target[j].cover[0].area;
@@ -395,32 +499,32 @@ int main(int argc, char *argv[])
                         summaries[i][sim->targets.size()].azstd += sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth * sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
                         summaries[i][sim->targets.size()].elstd += sim->cnodes[i]->currentinfo.target[j].cover[0].elevation * sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
 
-//                        if (summaries[i][sim->targets.size()].resmin == 0. || sim->cnodes[i]->currentinfo.target[j].cover[0].resolution < summaries[i][sim->targets.size()].resmin)
-//                        {
-//                            summaries[i][sim->targets.size()].resmin = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
-//                        }
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].resolution > summaries[i][sim->targets.size()].resmax)
-//                        {
-//                            summaries[i][sim->targets.size()].resmax = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
-//                        }
+                        //                        if (summaries[i][sim->targets.size()].resmin == 0. || sim->cnodes[i]->currentinfo.target[j].cover[0].resolution < summaries[i][sim->targets.size()].resmin)
+                        //                        {
+                        //                            summaries[i][sim->targets.size()].resmin = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+                        //                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].resolution > summaries[i][sim->targets.size()].resmax)
+                        //                        {
+                        //                            summaries[i][sim->targets.size()].resmax = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+                        //                        }
 
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth < summaries[i][sim->targets.size()].azmin)
-//                        {
-//                            summaries[i][sim->targets.size()].azmin = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
-//                        }
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth > summaries[i][sim->targets.size()].azmax)
-//                        {
-//                            summaries[i][sim->targets.size()].azmax = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
-//                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth < summaries[i][sim->targets.size()].azmin)
+                        //                        {
+                        //                            summaries[i][sim->targets.size()].azmin = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+                        //                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth > summaries[i][sim->targets.size()].azmax)
+                        //                        {
+                        //                            summaries[i][sim->targets.size()].azmax = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+                        //                        }
 
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation < summaries[i][sim->targets.size()].elmin)
-//                        {
-//                            summaries[i][sim->targets.size()].elmin = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
-//                        }
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation > summaries[i][sim->targets.size()].elmax)
-//                        {
-//                            summaries[i][sim->targets.size()].elmax = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
-//                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation < summaries[i][sim->targets.size()].elmin)
+                        //                        {
+                        //                            summaries[i][sim->targets.size()].elmin = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+                        //                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation > summaries[i][sim->targets.size()].elmax)
+                        //                        {
+                        //                            summaries[i][sim->targets.size()].elmax = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+                        //                        }
 
                         ++summaries[sim->cnodes.size()][sim->targets.size()].count;
                         summaries[sim->cnodes.size()][sim->targets.size()].area += sim->cnodes[i]->currentinfo.target[j].cover[0].area;
@@ -432,32 +536,32 @@ int main(int argc, char *argv[])
                         summaries[sim->cnodes.size()][sim->targets.size()].azstd += sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth * sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
                         summaries[sim->cnodes.size()][sim->targets.size()].elstd += sim->cnodes[i]->currentinfo.target[j].cover[0].elevation * sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
 
-//                        if (summaries[sim->cnodes.size()][sim->targets.size()].resmin == 0. || sim->cnodes[i]->currentinfo.target[j].cover[0].resolution < summaries[sim->cnodes.size()][sim->targets.size()].resmin)
-//                        {
-//                            summaries[sim->cnodes.size()][sim->targets.size()].resmin = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
-//                        }
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].resolution > summaries[sim->cnodes.size()][sim->targets.size()].resmax)
-//                        {
-//                            summaries[sim->cnodes.size()][sim->targets.size()].resmax = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
-//                        }
+                        //                        if (summaries[sim->cnodes.size()][sim->targets.size()].resmin == 0. || sim->cnodes[i]->currentinfo.target[j].cover[0].resolution < summaries[sim->cnodes.size()][sim->targets.size()].resmin)
+                        //                        {
+                        //                            summaries[sim->cnodes.size()][sim->targets.size()].resmin = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+                        //                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].resolution > summaries[sim->cnodes.size()][sim->targets.size()].resmax)
+                        //                        {
+                        //                            summaries[sim->cnodes.size()][sim->targets.size()].resmax = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+                        //                        }
 
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth < summaries[sim->cnodes.size()][sim->targets.size()].azmin)
-//                        {
-//                            summaries[sim->cnodes.size()][sim->targets.size()].azmin = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
-//                        }
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth > summaries[sim->cnodes.size()][sim->targets.size()].azmax)
-//                        {
-//                            summaries[sim->cnodes.size()][sim->targets.size()].azmax = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
-//                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth < summaries[sim->cnodes.size()][sim->targets.size()].azmin)
+                        //                        {
+                        //                            summaries[sim->cnodes.size()][sim->targets.size()].azmin = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+                        //                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth > summaries[sim->cnodes.size()][sim->targets.size()].azmax)
+                        //                        {
+                        //                            summaries[sim->cnodes.size()][sim->targets.size()].azmax = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+                        //                        }
 
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation < summaries[sim->cnodes.size()][sim->targets.size()].elmin)
-//                        {
-//                            summaries[sim->cnodes.size()][sim->targets.size()].elmin = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
-//                        }
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation > summaries[sim->cnodes.size()][sim->targets.size()].elmax)
-//                        {
-//                            summaries[sim->cnodes.size()][sim->targets.size()].elmax = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
-//                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation < summaries[sim->cnodes.size()][sim->targets.size()].elmin)
+                        //                        {
+                        //                            summaries[sim->cnodes.size()][sim->targets.size()].elmin = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+                        //                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation > summaries[sim->cnodes.size()][sim->targets.size()].elmax)
+                        //                        {
+                        //                            summaries[sim->cnodes.size()][sim->targets.size()].elmax = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+                        //                        }
                     }
                 }
             }
@@ -471,6 +575,10 @@ int main(int argc, char *argv[])
         {
             ++elapsed;
         }
+    }
+    if (jsonevent)
+    {
+        printf("]}\n");
     }
     if (summarize)
     {
@@ -697,7 +805,7 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                ++histcnt[0];
+                    ++histcnt[0];
                 }
             }
         }
@@ -1187,6 +1295,11 @@ int32_t parse_control(string args)
         ++argcount;
         printevent = jargs["printevent"].number_value();
     }
+    if (!jargs["jsonevent"].is_null())
+    {
+        ++argcount;
+        jsonevent = jargs["jsonevent"].number_value();
+    }
     if (!jargs["postevent"].is_null())
     {
         ++argcount;
@@ -1599,7 +1712,7 @@ void reset_db(Physics::Simulator* sim)
         });
         socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
     }
-    // A bit silly, but reset requires some wait time at the moment 
+    // A bit silly, but reset requires some wait time at the moment
     // cout << "Resetting db..." << endl;
     secondsleep(1.);
 }
