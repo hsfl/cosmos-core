@@ -4,7 +4,7 @@
 
 int main(int argc, char **argv)
 {
-    const string HYTI2VERSION = "1.01";
+    const string HYTI2VERSION = "1.02";
     const string USAGE = "check_check [filename]";
     if (argc == 2)
     {
@@ -35,7 +35,8 @@ int main(int argc, char **argv)
         }
         else
         {
-            dis = &std::cin;
+            printf("Unable to open %s\n", argv[1]);
+            exit(1);
         }
     }
     else
