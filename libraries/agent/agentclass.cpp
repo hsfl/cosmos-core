@@ -66,7 +66,7 @@ namespace Support
 
 //! Creates a skeleton agent with no setup
 //! \param placeholder Does nothing but provide a different function signature for overloading
-Agent::Agent(uint8_t placeholder) {}
+Agent::Agent(uint8_t) {}
 
 //! Add COSMOS awareness.
 //! Sets up minimum framework for COSMOS awareness. The minimum call makes a nodeless client, setting up the
@@ -2781,7 +2781,7 @@ int32_t Agent::req_command(string &request, string &response, Agent *agent)
      * \param agent Pointer to Cosmos::Agent to use.
      * \return 0, or negative error.
      */
-int32_t Agent::req_run_command(string &request, string &response, Agent *agent)
+int32_t Agent::req_run_command(string &request, string &response, Agent*)
 {
     if (request.find(" ") == string::npos)
     {
@@ -2817,7 +2817,7 @@ int32_t Agent::req_add_task(string &request, string &response, Agent *agent)
 /*! Provide a detailed list of all the Channels currently defined
      * \return 0, or negative error.
      */
-int32_t Agent::req_list_channels(string &request, string &response, Agent *agent)
+int32_t Agent::req_list_channels(string&, string &response, Agent *agent)
 {
     response.clear();
     for (uint16_t i=0; i<agent->channels.channel.size(); ++i)
@@ -4293,7 +4293,7 @@ int32_t Agent::get_debug_level()
     return debug_log.Type();
 }
 
-FILE *Agent::get_debug_fd(double mjd)
+FILE *Agent::get_debug_fd(double)
 {
     return debug_log.Open();
 }
