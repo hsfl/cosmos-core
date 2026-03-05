@@ -1182,6 +1182,8 @@ int32_t geoc2geod(cartpos &geoc, geoidpos &geod)
     p = sqrt(geoc.s.col[0] * geoc.s.col[0] + geoc.s.col[1] * geoc.s.col[1]);
     nh = sqrt(p * p + geoc.s.col[2] * geoc.s.col[2]) - REARTHM;
     phi = atan2(geoc.s.col[2], p);
+
+    int32_t maximum_iteration_counter = std::numeric_limits<uint16_t>::max();
     do
     {
         h = nh;
@@ -1196,6 +1198,10 @@ int32_t geoc2geod(cartpos &geoc, geoidpos &geod)
         else
         {
             nh =  - rn;
+        }
+        if (--maximum_iteration_counter < 0)
+        {
+            return COSMOS_GENERAL_ERROR_TIMEOUT;
         }
     } while (fabs(nh - h) > .01);
 
