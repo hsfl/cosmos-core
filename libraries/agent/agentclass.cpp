@@ -930,11 +930,14 @@ int32_t Agent::process_request(string &bufferin, string &bufferout, bool send_re
     //request[i] = 0;
     request.resize(i);
 
-    bufferout = to_unsigned(centisec(), 10) + " " + mjd2iso8601(currentmjd()) + " " + &bufferin[0] + "\n";
+    bufferout = "{";
+    bufferout += "\"centisec\":" + to_unsigned(centisec(), 10) + ",";
+    bufferout += "\"iso8601\":\"" + mjd2iso8601(currentmjd()) + "\",";
+    bufferout += "\"request\":\"" + bufferin + "\"}\n";
     if(reqs.find(request) == reqs.end())
     {
         iretn = AGENT_ERROR_NULL;
-        bufferout += "[NOK] " + std::to_string(iretn);
+        bufferout += "\"[NOK] " + std::to_string(iretn) + "\"";
     }
     else
     {
@@ -1664,16 +1667,22 @@ int32_t Agent::req_get_position(string &request, string &response, Agent* agent)
 
 int32_t Agent::req_get_location(string &request, string &response, Agent *agent)
 {
-    vector<string> args = string_split(request);
     response.clear();
 
-    json11::Json jobj = json11::Json::object({
-        {"node", agent->cinfo->node.name},
-        {"utcoffset", agent->cinfo->node.utcoffset},
-        {"pos", agent->cinfo->node.loc.pos.eci},
-        {"att", agent->cinfo->node.loc.att.icrf}
-    });
-    response = jobj.dump();
+    // json11::Json jobj = json11::Json::object({
+    //     {"node", agent->cinfo->node.name},
+    //     {"utcoffset", agent->cinfo->node.utcoffset},
+    //     {"utc", agent->cinfo->node.utc},
+    //     {"pos", agent->cinfo->node.loc.pos.eci},
+    //     {"att", agent->cinfo->node.loc.att.icrf}
+    // });
+    // response = jobj.dump();
+    response = "{";
+    response += "\"pos\":{\"eci\":";
+    response += agent->cinfo->node.loc.pos.eci.to_json().dump();
+    response += "},\"att\":{\"icrf\":";
+    response += agent->cinfo->node.loc.att.icrf.to_json().dump();
+    response += "}}";
     return response.length();
 }
 
