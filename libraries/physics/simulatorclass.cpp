@@ -704,6 +704,11 @@ int32_t Simulator::ParseSatString(string args)
         {
             break;
         }
+        if (i == (*sit)->currentinfo.devspec.cam.size())
+        {
+            std::cerr << "Not enough cam devices (" << std::to_string((*sit)->currentinfo.devspec.cam.size()) << ") for number of detectors (" << std::to_string(dets.size()) << ")!" << std::endl;
+            break;
+        }
         (*sit)->currentinfo.devspec.cam[i].volt = 5.;
         (*sit)->currentinfo.devspec.cam[i].amp = 20. / dets[i].volt;
         (*sit)->currentinfo.devspec.cam[i].state = 0;

@@ -69,7 +69,7 @@ static void dump(int16_t value, string &out) {
 
 static void dump(int32_t value, string &out) {
     char buf[32];
-    snprintf(buf, sizeof buf, "%ld", value);
+    snprintf(buf, sizeof buf, "%d", value);
     out += buf;
 }
 
