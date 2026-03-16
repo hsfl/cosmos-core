@@ -496,6 +496,7 @@ namespace Cosmos
 
             int32_t task_add(string command, string source="", float timeout=60.);
             int32_t task_del(uint32_t deci);
+            int32_t task_exists(uint32_t deci);
             int32_t task_iretn(uint16_t number);
             uint32_t task_deci(uint16_t number);
             double task_startmjd(uint16_t number);
