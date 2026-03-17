@@ -120,7 +120,8 @@ namespace Cosmos {
             mtx.lock();
             for(auto iter=tasks.begin(); iter!=tasks.end(); ++iter)
             {
-                if (deci == decisec((*iter).startmjd))
+                // Consider only the tasks that need to run or are currently running
+                if (deci == decisec((*iter).startmjd) && (*iter).state < 2)
                 {
                     found += 1;
                 }
