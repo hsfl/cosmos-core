@@ -82,6 +82,7 @@ namespace Cosmos {
             tasks.back().state = 0;
             tasks.back().command = command;
             tasks.back().timeout = timeout;
+            const int32_t task_identifier = decisec(tasks.back().startmjd);
             if (node.empty())
             {
                 tasks.back().path = data_base_path(NodeName, "temp", AgentName, data_name(tasks.back().startmjd, "task", NodeName, AgentName));
@@ -91,7 +92,7 @@ namespace Cosmos {
                 tasks.back().path = data_base_path(node, "temp", AgentName, data_name(tasks.back().startmjd, "task", NodeName, AgentName));
             }
             mtx.unlock();
-            return tasks.size();
+            return task_identifier;
         }
 
         int32_t Task::Del(uint32_t deci)
@@ -111,6 +112,22 @@ namespace Cosmos {
             }
             mtx.unlock();
             return tasks.size();
+        }
+
+        int32_t Task::Exists(uint32_t deci)
+        {
+            int32_t found = 0;
+            mtx.lock();
+            for(auto iter=tasks.begin(); iter!=tasks.end(); ++iter)
+            {
+                // Consider only the tasks that need to run or are currently running
+                if (deci == decisec((*iter).startmjd) && (*iter).state < 2)
+                {
+                    found += 1;
+                }
+            }
+            mtx.unlock();
+            return found;
         }
 
         int32_t Task::Iretn(uint16_t number)

@@ -5255,6 +5255,11 @@ int32_t Agent::task_del(uint32_t deci)
     return tasks.Del(deci);
 }
 
+int32_t Agent::task_exists(uint32_t deci)
+{
+    return tasks.Exists(deci);
+}
+
 int32_t Agent::task_iretn(uint16_t number)
 {
     return tasks.Iretn(number);
