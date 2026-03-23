@@ -656,8 +656,14 @@ namespace Cosmos
             //! Numeric Telemetry
             NTELEM=34,
             //! String Telemetry
-            //! List count
             STELEM=35,
+            //! Cryogenic Cooler
+            COOLER=36,
+            //! Lens
+            LENS=37,
+            //! BlackBody
+            BB=38,
+            //! List count
             COUNT,
             //! Not a Component
             NONE=UINT16_MAX
@@ -3070,6 +3076,35 @@ union as a ::devicestruc.
             }
         };
 
+
+        //! Lens information
+        struct lensstruc : public devicestruc
+        {
+            //! Current State - Bit 0 = homed, bit 1 = moving
+            uint8_t status;
+            //! Current position
+            int32_t index;
+
+            json11::Json to_json() const {
+                return json11::Json::object {
+                    { "status" , static_cast<int>(status) },
+                    { "index"   , index },
+                };
+            }
+
+            void from_json(const string& s) {
+                string error;
+                json11::Json parsed = json11::Json::parse(s,error);
+                if(error.empty()) {
+                    if(!parsed["status"].is_null()) { status = parsed["status"].int_value(); }
+                    if(!parsed["index"].is_null()) { index = parsed["index"].long_value(); }
+                } else {
+                    cerr<<"ERROR: <"<<error<<">"<<endl;
+                }
+                return;
+            }
+        };
+
         //! Magnetometer structure
         struct magstruc : public devicestruc
         {
@@ -3283,6 +3318,34 @@ union as a ::devicestruc.
                     if(!parsed["tc"].is_null()) { tc = parsed["tc"].number_value(); }
                     if(!parsed["rmom"].is_null()) { rmom = parsed["rmom"].number_value(); }
                     if(!parsed["mom"].is_null()) { mom = parsed["mom"].number_value(); }
+                } else {
+                    cerr<<"ERROR: <"<<error<<">"<<endl;
+                }
+                return;
+            }
+        };
+
+        //! Cooler information
+        struct coolerstruc : public devicestruc
+        {
+            //! Current State
+            uint8_t status;
+            //! Temperature setpoint
+            float setpoint;
+
+            json11::Json to_json() const {
+                return json11::Json::object {
+                    { "status" , static_cast<int>(status) },
+                    { "setpoint"   , setpoint },
+                };
+            }
+
+            void from_json(const string& s) {
+                string error;
+                json11::Json parsed = json11::Json::parse(s,error);
+                if(error.empty()) {
+                    if(!parsed["status"].is_null()) { status = parsed["status"].int_value(); }
+                    if(!parsed["setpoint"].is_null()) { setpoint = parsed["setpoint"].number_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -3982,6 +4045,38 @@ union as a ::devicestruc.
             }
         };
 
+        struct bbstruc : public devicestruc
+        {
+            //! Angular position
+            float setpoint = 0.f;
+
+            /// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+        @return	A json11 JSON object containing every member variable within the class
+    */
+            json11::Json to_json() const {
+                return json11::Json::object {
+                    { "setpoint" , setpoint }
+                };
+            }
+
+            /// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+        @param	s	JSON-formatted string to set class contents to
+        @return n/a
+    */
+            void from_json(const string& s) {
+                string error;
+                json11::Json parsed = json11::Json::parse(s,error);
+                if(error.empty()) {
+                    if(!parsed["setpoint"].is_null()) { setpoint = parsed["setpoint"].number_value(); }
+                } else {
+                    cerr<<"ERROR: <"<<error<<">"<<endl;
+                }
+                return;
+            }
+        };
+
         //! Heater Structure definition
         /*! This structure holds the description of a heaters.
 */
@@ -4483,6 +4578,8 @@ union as a ::devicestruc.
             int16_t lstep;
             uint16_t pwidth = 0;
             uint16_t pheight = 0;
+            uint16_t frate = 0;
+            float itime = 0.f;
             float width = 0.f;
             float height = 0.f;
             float flength = 0.f;
@@ -4512,6 +4609,8 @@ union as a ::devicestruc.
                     { "lstep" , lstep },
                     { "pwidth" , pwidth },
                     { "pheight", pheight },
+                    { "frate", frate },
+                    { "itime", itime },
                     { "width"  , width },
                     { "height" , height },
                     { "flength", flength },
@@ -4536,6 +4635,8 @@ union as a ::devicestruc.
                     if(!parsed["lstep"].is_null()) { lstep = parsed["lstep"].long_value(); }
                     if(!parsed["pwidth"].is_null()) { pwidth = parsed["pwidth"].long_value(); }
                     if(!parsed["pheight"].is_null()) { pheight = parsed["pheight"].long_value(); }
+                    if(!parsed["frate"].is_null()) { frate = parsed["frate"].long_value(); }
+                    if(!parsed["itime"].is_null()) { itime = parsed["itime"].number_value(); }
                     if(!parsed["width"].is_null()) { width = parsed["width"].number_value(); }
                     if(!parsed["height"].is_null()) { height = parsed["height"].number_value(); }
                     if(!parsed["flength"].is_null()) { flength = parsed["flength"].number_value(); }
@@ -5164,16 +5265,19 @@ union as a ::devicestruc.
             {
                 size_t total = sizeof(devspecstruc);
                 total += ant.capacity() * sizeof(antstruc);
+                total += bb.capacity() * sizeof(bbstruc);
                 total += batt.capacity() * sizeof(battstruc);
                 total += bcreg.capacity() * sizeof(bcregstruc);
                 total += bus.capacity() * sizeof(busstruc);
                 total += cam.capacity() * sizeof(camstruc);
+                total += cooler.capacity() * sizeof(coolerstruc);
                 total += cpu.capacity() * sizeof(cpustruc);
                 total += disk.capacity() * sizeof(diskstruc);
                 total += gps.capacity() * sizeof(gpsstruc);
                 total += gyro.capacity() * sizeof(gyrostruc);
                 total += htr.capacity() * sizeof(htrstruc);
                 total += imu.capacity() * sizeof(imustruc);
+                total += lens.capacity() * sizeof(lensstruc);
                 total += mag.capacity() * sizeof(magstruc);
                 total += mcc.capacity() * sizeof(mccstruc);
                 total += motr.capacity() * sizeof(motrstruc);
@@ -5205,16 +5309,19 @@ union as a ::devicestruc.
             void shrinkusage()
             {
                 vector<antstruc>(ant).swap(ant);
+                vector<bbstruc>(bb).swap(bb);
                 vector<battstruc>(batt).swap(batt);
                 vector<bcregstruc>(bcreg).swap(bcreg);
                 vector<busstruc>(bus).swap(bus);
                 vector<camstruc>(cam).swap(cam);
+                vector<coolerstruc>(cooler).swap(cooler);
                 vector<cpustruc>(cpu).swap(cpu);
                 vector<diskstruc>(disk).swap(disk);
                 vector<gpsstruc>(gps).swap(gps);
                 vector<gyrostruc>(gyro).swap(gyro);
                 vector<htrstruc>(htr).swap(htr);
                 vector<imustruc>(imu).swap(imu);
+                vector<lensstruc>(lens).swap(lens);
                 vector<magstruc>(mag).swap(mag);
                 vector<mccstruc>(mcc).swap(mcc);
                 vector<motrstruc>(motr).swap(motr);
@@ -5245,14 +5352,17 @@ union as a ::devicestruc.
             //            uint16_t all_cnt = 0;
             uint16_t ant_cnt = 0;
             uint16_t batt_cnt = 0;
+            uint16_t bb_cnt = 0;
             uint16_t bus_cnt = 0;
             uint16_t cam_cnt = 0;
+            uint16_t cooler_cnt = 0;
             uint16_t cpu_cnt = 0;
             uint16_t disk_cnt = 0;
             uint16_t gps_cnt = 0;
             uint16_t gyro_cnt = 0;
             uint16_t htr_cnt = 0;
             uint16_t imu_cnt = 0;
+            uint16_t lens_cnt = 0;
             uint16_t mag_cnt = 0;
             uint16_t mcc_cnt = 0;
             uint16_t motr_cnt = 0;
@@ -5282,15 +5392,18 @@ union as a ::devicestruc.
 
             vector<antstruc>ant;
             vector<battstruc>batt;
+            vector<bbstruc>bb;
             vector<bcregstruc>bcreg;
             vector<busstruc>bus;
             vector<camstruc>cam;
+            vector<coolerstruc>cooler;
             vector<cpustruc>cpu;
             vector<diskstruc>disk;
             vector<gpsstruc>gps;
             vector<gyrostruc>gyro;
             vector<htrstruc>htr;
             vector<imustruc>imu;
+            vector<lensstruc>lens;
             vector<magstruc>mag;
             vector<mccstruc>mcc;
             vector<motrstruc>motr;
@@ -5326,14 +5439,17 @@ union as a ::devicestruc.
                     //                    { "all_cnt", all_cnt },
                     { "ant_cnt", ant_cnt },
                     { "batt_cnt", batt_cnt },
+                    { "bb_cnt", bb_cnt },
                     { "bus_cnt", bus_cnt },
                     { "cam_cnt", cam_cnt },
+                    { "cooler_cnt", cooler_cnt },
                     { "cpu_cnt", cpu_cnt },
                     { "disk_cnt", disk_cnt },
                     { "gps_cnt", gps_cnt },
                     { "gyro_cnt", gyro_cnt },
                     { "htr_cnt", htr_cnt },
                     { "imu_cnt", imu_cnt },
+                    { "cooler_cnt", cooler_cnt },
                     { "mag_cnt", mag_cnt },
                     { "mcc_cnt", mcc_cnt },
                     { "motr_cnt", motr_cnt },
@@ -5363,15 +5479,18 @@ union as a ::devicestruc.
                     //                    { "all", all },
                     { "ant", ant },
                     { "batt", batt },
+                    { "bb", bb },
                     { "bcreg", bcreg },
                     { "bus", bus },
                     { "cam", cam },
+                    { "cooler", cooler },
                     { "cpu", cpu },
                     { "disk", disk },
                     { "gps", gps },
                     { "gyro", gyro },
                     { "htr", htr },
                     { "imu", imu },
+                    { "cooler", cooler },
                     { "mag", mag },
                     { "mcc", mcc },
                     { "motr", motr },
@@ -5412,15 +5531,17 @@ union as a ::devicestruc.
                     //                    if(!p["all_cnt"].is_null()) { all_cnt = p["all_cnt"].long_value(); }
                     if(!p["ant_cnt"].is_null()) { ant_cnt = p["ant_cnt"].long_value(); }
                     if(!p["batt_cnt"].is_null()) { batt_cnt = p["batt_cnt"].long_value(); }
+                    if(!p["bb_cnt"].is_null()) { bb_cnt = p["bb_cnt"].long_value(); }
                     if(!p["bus_cnt"].is_null()) { bus_cnt = p["bus_cnt"].long_value(); }
                     if(!p["cam_cnt"].is_null()) { cam_cnt = p["cam_cnt"].long_value(); }
-
+                    if(!p["cooler_cnt"].is_null()) { cooler_cnt = p["cooler_cnt"].long_value(); }
                     if(!p["cpu_cnt"].is_null()) { cpu_cnt = p["cpu_cnt"].long_value(); }
                     if(!p["disk_cnt"].is_null()) { disk_cnt = p["disk_cnt"].long_value(); }
                     if(!p["gps_cnt"].is_null()) { gps_cnt = p["gps_cnt"].long_value(); }
                     if(!p["gyro_cnt"].is_null()) { gyro_cnt = p["gyro_cnt"].long_value(); }
                     if(!p["htr_cnt"].is_null()) { htr_cnt = p["htr_cnt"].long_value(); }
                     if(!p["imu_cnt"].is_null()) { imu_cnt = p["imu_cnt"].long_value(); }
+                    if(!p["cooler_cnt"].is_null()) { cooler_cnt = p["cooler_cnt"].long_value(); }
                     if(!p["mag_cnt"].is_null()) { mag_cnt = p["mag_cnt"].long_value(); }
 
                     if(!p["mcc_cnt"].is_null()) { mcc_cnt = p["mcc_cnt"].long_value(); }
@@ -5463,6 +5584,9 @@ union as a ::devicestruc.
                     for(size_t i = 0; i < batt.size(); ++i) {
                         if(!p["batt"][i].is_null()) { batt[i].from_json(p["batt"][i].dump()); }
                     }
+                    for(size_t i = 0; i < bb.size(); ++i) {
+                        if(!p["bb"][i].is_null()) { bb[i].from_json(p["bb"][i].dump()); }
+                    }
                     for(size_t i = 0; i < bcreg.size(); ++i) {
                         if(!p["bcreg"][i].is_null()) { bcreg[i].from_json(p["bcreg"][i].dump()); }
                     }
@@ -5472,6 +5596,9 @@ union as a ::devicestruc.
 
                     for(size_t i = 0; i < cam.size(); ++i) {
                         if(!p["cam"][i].is_null()) { cam[i].from_json(p["cam"][i].dump()); }
+                    }
+                    for(size_t i = 0; i < cooler.size(); ++i) {
+                        if(!p["cooler"][i].is_null()) { cooler[i].from_json(p["cooler"][i].dump()); }
                     }
                     for(size_t i = 0; i < cpu.size(); ++i) {
                         if(!p["cpu"][i].is_null()) { cpu[i].from_json(p["cpu"][i].dump()); }
@@ -5491,6 +5618,9 @@ union as a ::devicestruc.
 
                     for(size_t i = 0; i < imu.size(); ++i) {
                         if(!p["imu"][i].is_null()) { imu[i].from_json(p["imu"][i].dump()); }
+                    }
+                    for(size_t i = 0; i < cooler.size(); ++i) {
+                        if(!p["cooler"][i].is_null()) { cooler[i].from_json(p["cooler"][i].dump()); }
                     }
                     for(size_t i = 0; i < mag.size(); ++i) {
                         if(!p["mag"][i].is_null()) { mag[i].from_json(p["mag"][i].dump()); }

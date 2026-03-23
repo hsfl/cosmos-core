@@ -1107,6 +1107,13 @@ int32_t json_adddevice(cosmosstruc *cinfo, uint16_t pidx, DeviceType ctype)
             cinfo->devspec.batt_cnt = cinfo->devspec.batt.size();
             cinfo->device.push_back(&cinfo->devspec.batt.back());
             break;
+            //! Black Body
+        case DeviceType::BB:
+            cinfo->devspec.bb.push_back(bbstruc());
+            cinfo->devspec.bb.back().didx = cinfo->devspec.bb.size() - 1;
+            cinfo->devspec.bb_cnt = cinfo->devspec.bb.size();
+            cinfo->device.push_back(&cinfo->devspec.bb.back());
+            break;
             //! BCREG
         case DeviceType::BCREG:
             cinfo->devspec.bcreg.push_back(bcregstruc());
@@ -1129,6 +1136,14 @@ int32_t json_adddevice(cosmosstruc *cinfo, uint16_t pidx, DeviceType ctype)
             cinfo->device.push_back(&cinfo->devspec.cam.back());
             break;
             //! Processing Unit
+        case DeviceType::COOLER:
+        {
+            cinfo->devspec.cooler.push_back(coolerstruc{});
+            cinfo->devspec.cooler.back().didx = cinfo->devspec.cooler.size() - 1;
+            cinfo->devspec.cooler_cnt = cinfo->devspec.cooler.size();
+            cinfo->device.push_back(&cinfo->devspec.cooler.back());
+        }
+            break;
         case DeviceType::CPU:
         {
             cinfo->devspec.cpu.push_back(cpustruc{});
@@ -1171,6 +1186,13 @@ int32_t json_adddevice(cosmosstruc *cinfo, uint16_t pidx, DeviceType ctype)
             cinfo->devspec.imu.back().didx = cinfo->devspec.imu.size() - 1;
             cinfo->devspec.imu_cnt = cinfo->devspec.imu.size();
             cinfo->device.push_back(&cinfo->devspec.imu.back());
+            break;
+            //! Lens
+        case DeviceType::LENS:
+            cinfo->devspec.lens.push_back(lensstruc());
+            cinfo->devspec.lens.back().didx = cinfo->devspec.lens.size() - 1;
+            cinfo->devspec.lens_cnt = cinfo->devspec.lens.size();
+            cinfo->device.push_back(&cinfo->devspec.lens.back());
             break;
             //! Magnetometer
         case DeviceType::MAG:
@@ -7696,8 +7718,6 @@ int32_t json_updatecosmosstruc(cosmosstruc *cinfo)
     for (auto &dev : cinfo->devspec.ant)
     {
         cinfo->device[dev.cidx] = &dev;
-        //        json_mapcompentry(dev.cidx, cinfo);
-        //        json_mapdeviceentry(&dev, cinfo);
         ++count;
     }
     for (auto &dev : cinfo->devspec.batt)
@@ -7705,6 +7725,11 @@ int32_t json_updatecosmosstruc(cosmosstruc *cinfo)
         cinfo->device[dev.cidx] = &dev;
         //        json_mapcompentry(dev.cidx, cinfo);
         //        json_mapdeviceentry(&dev, cinfo);
+        ++count;
+    }
+    for (auto &dev : cinfo->devspec.bb)
+    {
+        cinfo->device[dev.cidx] = &dev;
         ++count;
     }
     for (auto &dev : cinfo->devspec.bcreg)
@@ -9222,6 +9247,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_range", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.range, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_LENGTH);
     json_addentry("device_ant_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.ant_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("device_batt_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.batt_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_bb_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.bb_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("device_bus_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.bus_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("device_cam_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.cam_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("device_cpu_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.cpu_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
@@ -9620,6 +9646,8 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
         json_addentry("device_cam_lstep",didx, UINT16_MAX, (uint8_t *)&device->lstep, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_cam_pwidth",didx, UINT16_MAX, (uint8_t *)&device->pwidth, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_cam_pheight",didx, UINT16_MAX, (uint8_t *)&device->pheight, (uint16_t)JSON_TYPE_UINT16, cinfo);
+        json_addentry("device_cam_frate",didx, UINT16_MAX, (uint8_t *)&device->frate, (uint16_t)JSON_TYPE_UINT16, cinfo);
+        json_addentry("device_cam_itime",didx, UINT16_MAX, (uint8_t *)&device->itime, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_cam_width",didx, UINT16_MAX, (uint8_t *)&device->width, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_cam_height",didx, UINT16_MAX, (uint8_t *)&device->height, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_cam_flength",didx, UINT16_MAX, (uint8_t *)&device->flength, (uint16_t)JSON_TYPE_FLOAT, cinfo);
@@ -9631,6 +9659,22 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
         json_addentry("device_cam_specmax",didx, UINT16_MAX, (uint8_t *)&device->specmax, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         break;
     }
+        //! Cryo cooler
+    case DeviceType::COOLER:
+    {
+        coolerstruc* device = reinterpret_cast<coolerstruc*>(devicein);
+        iretn = json_addentry("device_cooler_name",didx, UINT16_MAX, (uint8_t *)&device->name, (uint16_t)JSON_TYPE_STRING, cinfo);
+        iretn = json_addentry("device_cooler_utc",didx, UINT16_MAX, (uint8_t *)&device->utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+        json_addentry("device_cooler_cidx",didx, UINT16_MAX, (uint8_t *)&device->cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
+        json_addentry("device_cooler_flag",didx, UINT16_MAX, (uint8_t *)&device->flag, (uint16_t)JSON_TYPE_UINT32, cinfo);
+        json_addentry("device_cooler_temp",didx, UINT16_MAX, (uint8_t *)&device->temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_cooler_volt",didx, UINT16_MAX, (uint8_t *)&device->volt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_cooler_amp",didx, UINT16_MAX, (uint8_t *)&device->amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_cooler_power",didx, UINT16_MAX, (uint8_t *)&device->power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_cooler_status",didx, UINT16_MAX, (uint8_t *)&device->status, (uint16_t)JSON_TYPE_UINT8, cinfo);
+        json_addentry("device_cooler_setpoint",didx, UINT16_MAX, (uint8_t *)&device->setpoint, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+    }
+        break;
         //! Processing Unit
     case DeviceType::CPU:
     {
@@ -9786,6 +9830,21 @@ uint16_t json_mapdeviceentry(devicestruc* devicein, cosmosstruc *cinfo)
         json_addentry("device_imu_bdot",didx, UINT16_MAX, (uint8_t *)&device->bdot, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
         break;
     }
+        //! Lens
+    case DeviceType::LENS:
+        {
+            lensstruc *device = reinterpret_cast<lensstruc*>(devicein);
+            iretn = json_addentry("device_lens_name",didx, UINT16_MAX, (uint8_t *)&device->name, (uint16_t)JSON_TYPE_STRING, cinfo);
+            iretn = json_addentry("device_lens_utc",didx, UINT16_MAX, (uint8_t *)&device->utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+            json_addentry("device_lens_cidx",didx, UINT16_MAX, (uint8_t *)&device->cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
+            json_addentry("device_lens_temp",didx, UINT16_MAX, (uint8_t *)&device->temp, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_TEMPERATURE);
+            json_addentry("device_lens_amp",didx, UINT16_MAX, (uint8_t *)&device->amp, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_CURRENT);
+            json_addentry("device_lens_volt",didx, UINT16_MAX, (uint8_t *)&device->volt, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_VOLTAGE);
+            json_addentry("device_lens_power",didx, UINT16_MAX, (uint8_t *)&device->power, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_POWER);
+            json_addentry("device_lens_status",didx, UINT16_MAX, (uint8_t *)&device->status, (uint16_t)JSON_TYPE_UINT8, cinfo);
+            json_addentry("device_lens_index",didx, UINT16_MAX, (uint8_t *)&device->index, (uint16_t)JSON_TYPE_INT32, cinfo);
+        }
+        break;
         //! Magnetometer
     case DeviceType::MAG:
     {
@@ -10306,6 +10365,18 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_imu_mag_z",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_imu_bdot",didx, UINT16_MAX, cinfo, state);
         break;
+        //! Cryo cooler
+    case DeviceType::LENS:
+        json_toggleentry("device_lens_name",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_lens_utc",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_lens_cidx",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_lens_temp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_lens_volt",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_lens_amp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_lens_power",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_lens_status",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_lens_index",didx, UINT16_MAX, cinfo, state);
+        break;
     case DeviceType::MAG:
         json_toggleentry("device_mag_name",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_mag_utc",didx, UINT16_MAX, cinfo, state);
@@ -10372,6 +10443,8 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_cam_lstep",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cam_pwidth",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cam_pheight",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cam_frate",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cam_itime",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cam_width",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cam_height",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cam_flength",didx, UINT16_MAX, cinfo, state);
@@ -10382,9 +10455,21 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_cam_specmin",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cam_specmax",didx, UINT16_MAX, cinfo, state);
         break;
+        //! Cryo cooler
+    case DeviceType::COOLER:
+        json_toggleentry("device_cooler_name",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cooler_utc",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cooler_cidx",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cooler_temp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cooler_volt",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cooler_amp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cooler_power",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cooler_status",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cooler_setpoint",didx, UINT16_MAX, cinfo, state);
+        break;
         //! Processing Unit
     case DeviceType::CPU:
-        json_toggleentry("device_cpu_name",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cooler_name",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_utc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_cidx",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_temp",didx, UINT16_MAX, cinfo, state);
@@ -11606,6 +11691,16 @@ string json_list_of_soh(cosmosstruc *cinfo)
         result += tempstring;
     }
 
+    for (uint16_t i=0; i<cinfo->devspec.bb_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_bb_utc_%03d\",\"device_bb_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_bb_mvolt_%03d\",\"device_bb_amp_%03d\",\"device_bb_volt_%03d\", \"device_bb_power_%03d\"",i,i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_bb_setpoint_%03d\"",i);
+        result += tempstring;
+    }
+
     for (uint16_t i=0; i<cinfo->devspec.htr_cnt; ++i)
     {
         sprintf(tempstring, ",\"device_htr_utc_%03d\",\"device_htr_temp_%03d\"", i, i);
@@ -11926,6 +12021,16 @@ string json_list_of_fullsoh(cosmosstruc *cinfo)
         sprintf(tempstring, ",\"device_batt_mvolt_%03d\",\"device_batt_amp_%03d\",\"device_batt_volt_%03d\", \"device_batt_power_%03d\"",i,i, i, i);
         result += tempstring;
         sprintf(tempstring, ",\"device_batt_charge_%03d\",\"device_batt_celltemp_%03d\",\"device_batt_percentage_%03d\", \"device_batt_time_remaining_%03d\"",i,i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.bb_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_bb_utc_%03d\",\"device_bb_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_bb_mvolt_%03d\",\"device_bb_amp_%03d\",\"device_bb_volt_%03d\", \"device_bb_power_%03d\"",i,i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_bb_setpoint_%03d\"",i);
         result += tempstring;
     }
 
@@ -12785,6 +12890,8 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                     json_out_1d(jstring, "device_cam_lstep",j, cinfo);
                     json_out_1d(jstring, "device_cam_pwidth",j, cinfo);
                     json_out_1d(jstring, "device_cam_pheight",j, cinfo);
+                    json_out_1d(jstring, "device_cam_frate",j, cinfo);
+                    json_out_1d(jstring, "device_cam_itime",j, cinfo);
                     json_out_1d(jstring, "device_cam_width",j, cinfo);
                     json_out_1d(jstring, "device_cam_height",j, cinfo);
                     json_out_1d(jstring, "device_cam_flength",j, cinfo);
@@ -13471,6 +13578,14 @@ void create_databases(cosmosstruc *cinfo)
     }
     fclose(op);
 
+    op = fopen("bb.txt","w");
+    fprintf(op,"DeviceIndex\tComponentIndex\tCapacity\tEfficiency\tCharge\n");
+    for (i=0; i<cinfo->devspec.bb_cnt; i++)
+    {
+        fprintf(op,"%d\t%d\t%.15g\n",i,cinfo->devspec.bb[i].cidx,cinfo->devspec.bb[i].setpoint);
+    }
+    fclose(op);
+
     op = fopen("ssen.txt","w");
     fprintf(op,"DeviceIndex\tComponentIndex\tAlignmentQx\tAlignmentQy\tAlignmentQz\tAlignmentQw\tQuadrantVoltageA\tQuadrantVoltageB\tQuadrantVoltageC\tQuadrantVoltageD\tAzimuth\tElevation\n");
     for (i=0; i<cinfo->devspec.ssen_cnt; i++)
@@ -13496,6 +13611,16 @@ void create_databases(cosmosstruc *cinfo)
         gyrostruc ims = cinfo->devspec.gyro[i];
         devicestruc d = cinfo->devspec.gyro[i];
         fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\n",i,d.cidx,ims.align.d.x,ims.align.d.y,ims.align.d.z,ims.align.w);
+    }
+    fclose(op);
+
+    op = fopen("lens.txt","w");
+    fprintf(op,"DeviceIndex\tComponentIndex\tStatus\tIndex\n");
+    for (i=0; i<cinfo->devspec.lens_cnt; i++)
+    {
+        lensstruc ims = cinfo->devspec.lens[i];
+        devicestruc d = cinfo->devspec.lens[i];
+        fprintf(op,"%d\t%d\t%u\t%u\n",i,d.cidx,ims.status,ims.index);
     }
     fclose(op);
 
@@ -13532,6 +13657,14 @@ void create_databases(cosmosstruc *cinfo)
     for (i=0; i<cinfo->devspec.gps_cnt; i++)
     {
         fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\n",i,cinfo->devspec.gps[i].cidx,cinfo->devspec.gps[i].geocs.col[0],cinfo->devspec.gps[i].geocs.col[1],cinfo->devspec.gps[i].geocs.col[2],cinfo->devspec.gps[i].geocv.col[0],cinfo->devspec.gps[i].geocv.col[1],cinfo->devspec.gps[i].geocv.col[2]);
+    }
+    fclose(op);
+
+    op = fopen("cooler.txt","w");
+    fprintf(op,"DeviceIndex\tComponentIndex\tStatus\tSetpoint\n");
+    for (i=0; i<cinfo->devspec.cooler_cnt; i++)
+    {
+        fprintf(op,"%d\t%d\t%u\t%.8g\n",i,cinfo->devspec.cooler[i].cidx,cinfo->devspec.cooler[i].status,cinfo->devspec.cooler[i].setpoint);
     }
     fclose(op);
 
