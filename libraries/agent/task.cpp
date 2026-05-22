@@ -51,17 +51,27 @@ namespace Cosmos {
                 {
                     if ((*iter).state == 0)
                     {
-                        (*iter).result = std::async(std::launch::async, [=] { return data_task((*iter).command, (*iter).path, (*iter).timeout); });
+                        auto temp_command = (*iter).command;
+                        auto temp_path    = (*iter).path;
+                        auto temp_timeout = (*iter).timeout;
+                        (*iter).result = std::async(std::launch::async, [=] { return data_task(temp_command, temp_path, temp_timeout); });
                         (*iter).state = 1;
                     }
                     else if ((*iter).state == 1)
                     {
                         if ((*iter).result.valid() && (*iter).result.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
                         {
-                            (*iter).iretn = (*iter).result.get();
+                            // Catch any exceptions that may have been thrown by the async call
+                            try {
+                                (*iter).iretn = (*iter).result.get();
+                            } catch (const std::future_error& e) {
+                                std::cerr << "Future misuse: " << e.what() << "\n";
+                            } catch (const std::exception& e) {
+                                std::cerr << "Task failed: " << e.what() << "\n";
+                            } catch (...) {
+                                std::cerr << "Task failed with non-std exception.\n";
+                            }
                             (*iter).state = 2;
-//                            log_move_file((*iter).path, data_base_path(NodeName, "outgoing", AgentName, data_name((*iter).startmjd, "out", NodeName, AgentName)), true);
-//                            (*iter).path = data_base_path(NodeName, "temp", AgentName, data_name((*iter).startmjd, "out", NodeName, AgentName));
                             log_move_file((*iter).path, string_replace((*iter).path, "/temp/", "/outgoing/"), true);
                         }
                     }

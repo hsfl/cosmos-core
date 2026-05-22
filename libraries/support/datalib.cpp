@@ -2697,6 +2697,10 @@ int32_t data_execute(string cmd, string& result, float timer, string shell)
 //    result.clear();
 
     vector<string> cmds = string_split(cmd, " ");
+    if (cmds.empty())
+    {
+        return COSMOS_GENERAL_ERROR_EMPTY;
+    }
     if (data_isfile(cmds[0]))
     {
 
