@@ -101,7 +101,9 @@ namespace Cosmos
             double dt;
             double dtj;
             bool fastcalc = true;
-
+            bool   sso_enabled   = false;
+            double sso_alt_m     = 0.;
+            double sso_raan_rate = 0.;
         private:
             bool server;
             int32_t error;

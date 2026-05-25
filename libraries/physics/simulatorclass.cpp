@@ -6,6 +6,77 @@ namespace Cosmos
 {
 namespace Physics
 {
+
+// ---------------------------------------------------------------------------
+// Sun-Synchronous Orbit (SSO) helpers — internal to simulatorclass
+// ---------------------------------------------------------------------------
+namespace
+{
+    // Physical constants
+    static const double SSO_RE  = 6378137.0;          // Earth equatorial radius (m)
+    static const double SSO_J2  = 1.08262668e-3;      // J2 oblateness coefficient
+    static const double SSO_GM  = 3.986004418e14;     // Earth gravitational parameter (m³/s²)
+    // Rate at which the Sun's RA advances: one full circle per tropical year
+    static const double SSO_SUN_RATE = D2PI / (365.25 * 86400.); // rad/s
+
+    /**
+     * @brief Required inclination for a circular SSO at the given altitude.
+     *
+     * Derived from the J2 nodal precession rate:
+     *   dΩ/dt = -(3/2) n J2 (Re/a)² cos(i)
+     * Setting dΩ/dt = SSO_SUN_RATE and solving for i.
+     *
+     * @param alt_m  Altitude above mean Earth surface (metres)
+     * @return Inclination in radians (retrograde, > π/2, for typical LEO)
+     */
+    double sso_inclination(double alt_m)
+    {
+        double a    = SSO_RE + alt_m;
+        double cosi = -SSO_SUN_RATE * pow(a, 3.5)
+                      / (1.5 * SSO_J2 * SSO_RE * SSO_RE * sqrt(SSO_GM));
+        cosi = std::max(-1., std::min(1., cosi));   // guard extreme altitudes
+        return acos(cosi);
+    }
+
+    /**
+     * @brief Initial RAAN placing the ascending node at the desired LST.
+     *
+     * LST of the ascending node = GMST + RAAN (mod 2π), so
+     *   RAAN = (lst_rad - GMST) + (sun_RA offset from noon crossing)
+     *
+     * Convention: LST 12:00 means the node is on the Sun-side (descending
+     * passes at midnight).  LST 10:30 → dawn/dusk orbit.
+     *
+     * @param lst_hours  Desired local solar time of ascending node (hours, 0–24)
+     * @param utc_mjd    Simulation epoch (MJD)
+     * @return RAAN in radians [0, 2π)
+     */
+    double sso_raan(double lst_hours, double utc_mjd)
+    {
+        // Greenwich Mean Sidereal Time (radians) at epoch
+        double T        = (utc_mjd - 51544.5) / 36525.;
+        double gmst_deg = 280.46061837
+                        + 360.98564736629 * (utc_mjd - 51544.5)
+                        + 0.000387933 * T * T
+                        - T * T * T / 38710000.;
+        double gmst = fmod(gmst_deg * DPI / 180., D2PI);
+        if (gmst < 0.) gmst += D2PI;
+
+        // Sun's mean right ascension at epoch
+        double sun_lon_deg = 280.460 + 0.9856474 * (utc_mjd - 51544.5);
+        double sun_ra = fmod(sun_lon_deg * DPI / 180., D2PI);
+        if (sun_ra < 0.) sun_ra += D2PI;
+
+        // Offset: (lst - 12h) hours × 15°/h expressed in radians
+        // LST 12h → node directly under the Sun (ascending through noon meridian)
+        double raan = sun_ra + (lst_hours - 12.) * (DPI / 12.);
+        raan = fmod(raan, D2PI);
+        if (raan < 0.) raan += D2PI;
+        return raan;
+    }
+} // anonymous namespace
+// ---------------------------------------------------------------------------
+
 int32_t Simulator::Init(double idt, string realm, double iutc)
 {
     realmname = realm;
@@ -373,6 +444,78 @@ int32_t Simulator::ParseOrbitString(string args)
         initialloc.tle = lines[0];
         tle2eci(initialutc, initialloc.tle, initialloc.pos.eci);
         initialloc.pos.eci.pass++;
+    }
+    if (!jargs["sso"].is_null())
+    {
+        // Sun-Synchronous Orbit specified by altitude and local solar time.
+        //
+        // Required orbit.dat syntax (all fields mandatory):
+        //   {"sso":{"alt":<metres>, "lst":<hours 0-24>, "utc":<mjd or 0>}}
+        //
+        // alt  — altitude above mean Earth surface in metres (e.g. 550000)
+        // lst  — local solar time of the *ascending* node crossing in decimal
+        //        hours (e.g. 10.5 for 10:30 AM, 22.5 for 10:30 PM)
+        // utc  — epoch: absolute MJD if > 3600, offset from current time if
+        //        ≤ 3600 (use 0 for "now")
+        //
+        // The inclination is derived analytically from the J2 precession
+        // formula so the orbital plane precesses at exactly the Sun's mean
+        // motion (~0.9856°/day).  The initial RAAN is computed from the
+        // requested LST and the Sun's RA at the epoch.  The orbit is circular
+        // and the satellite starts at the ascending node (true anomaly = 0).
+        //
+        // Per-step precession is applied inside Simulator::Propagate() using
+        // the stored sso_raan_rate member, so the orbit file needs no further
+        // attention after startup.
+        ++argcount;
+        json11::Json::object values = jargs["sso"].object_items();
+
+        // --- epoch ---
+        if (values["utc"].number_value() > 3600.)
+        {
+            initialutc = values["utc"].number_value();
+        }
+        else
+        {
+            initialutc += currentmjd() + values["utc"].number_value();
+        }
+        currentutc = initialutc;
+        offsetutc  = initialutc - currentmjd();
+        dt  = 86400. * ((initialutc + (dt / 86400.)) - initialutc);
+        dtj = dt / 86400.;
+        if (deltautc != 0.)
+        {
+            endutc = initialutc + deltautc;
+        }
+
+        // --- derived orbital elements ---
+        double alt_m    = values["alt"].number_value();
+        double lst_hrs  = values["lst"].number_value();
+        double incl     = sso_inclination(alt_m);
+        double raan     = sso_raan(lst_hrs, initialutc);
+        double a        = SSO_RE + alt_m;
+        double v_circ   = sqrt(SSO_GM / a);       // circular speed (m/s)
+
+        // --- build ECI state at ascending node (true anomaly = 0) ---
+        // Position: a·[cos Ω, sin Ω, 0]
+        initialloc.pos.eci.utc      = initialutc;
+        initialloc.pos.eci.s.col[0] = a * cos(raan);
+        initialloc.pos.eci.s.col[1] = a * sin(raan);
+        initialloc.pos.eci.s.col[2] = 0.;
+        // Velocity at ascending node: v·[−sin Ω cos i, cos Ω cos i, sin i]
+        initialloc.pos.eci.v.col[0] = v_circ * (-sin(raan) * cos(incl));
+        initialloc.pos.eci.v.col[1] = v_circ * ( cos(raan) * cos(incl));
+        initialloc.pos.eci.v.col[2] = v_circ *   sin(incl);
+        initialloc.pos.eci.a.col[0] = 0.;
+        initialloc.pos.eci.a.col[1] = 0.;
+        initialloc.pos.eci.a.col[2] = 0.;
+        initialloc.pos.eci.pass++;
+
+        // --- store SSO precession rate for use in Propagate() ---
+        // dΩ/dt = SSO_SUN_RATE (rad/s); convert to rad/step in Propagate().
+        sso_enabled   = true;
+        sso_alt_m     = alt_m;
+        sso_raan_rate = SSO_SUN_RATE;   // rad/s; multiplied by dt in Propagate()
     }
     pos_eci(initialloc);
     if (initialloc.tle.utc == 0.)
@@ -1256,6 +1399,38 @@ int32_t Simulator::Propagate(double nextutc)
             break;
         }
     }
+
+    // Apply Sun-synchronous nodal precession.
+    // Rotates every node's ECI position and velocity about the Earth's spin
+    // axis (Z) by the amount the orbital plane must drift this step so that
+    // it tracks the Sun.  This gives an exact analytical precession rate
+    // (SSO_SUN_RATE) regardless of whether the integrator models J2.
+    // Only active when ParseOrbitString processed an "sso" block.
+    if (sso_enabled)
+    {
+        double delta_raan = sso_raan_rate * dt;   // rad/step (dt is in seconds)
+        double c = cos(delta_raan);
+        double s = sin(delta_raan);
+        for (auto &state : cnodes)
+        {
+            cartpos &eci = state->currentinfo.node.loc.pos.eci;
+            double x, y;
+            // Rotate position
+            x = eci.s.col[0];  y = eci.s.col[1];
+            eci.s.col[0] = c*x - s*y;
+            eci.s.col[1] = s*x + c*y;
+            // Rotate velocity
+            x = eci.v.col[0];  y = eci.v.col[1];
+            eci.v.col[0] = c*x - s*y;
+            eci.v.col[1] = s*x + c*y;
+            // Rotate acceleration
+            x = eci.a.col[0];  y = eci.a.col[1];
+            eci.a.col[0] = c*x - s*y;
+            eci.a.col[1] = s*x + c*y;
+            ++eci.pass;
+        }
+    }
+
     for (uint16_t i=1; i<cnodes.size(); ++i)
     {
         pos_geoc2lvlh(cnodes[0]->currentinfo.node.loc, cnodes[i]->currentinfo.node.loc);
