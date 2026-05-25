@@ -202,6 +202,7 @@ vector <DeviceDisk::info> DeviceDisk::getInfo()
     char nextline[100];
     if (mfd != nullptr)
     {
+        fseek(mfd, 0, SEEK_SET); // Reset file pointer for subsequent calls
         while (fgets(nextline, 100, mfd) != nullptr)
         {
             vector<string> fields = string_split(nextline);
