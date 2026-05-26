@@ -66,7 +66,7 @@ namespace Support
 
 //! Creates a skeleton agent with no setup
 //! \param placeholder Does nothing but provide a different function signature for overloading
-Agent::Agent(uint8_t placeholder) {}
+Agent::Agent(uint8_t) {}
 
 //! Add COSMOS awareness.
 //! Sets up minimum framework for COSMOS awareness. The minimum call makes a nodeless client, setting up the
@@ -930,11 +930,14 @@ int32_t Agent::process_request(string &bufferin, string &bufferout, bool send_re
     //request[i] = 0;
     request.resize(i);
 
-    bufferout = to_unsigned(centisec(), 10) + " " + mjd2iso8601(currentmjd()) + " " + &bufferin[0] + "\n";
+    bufferout = "{";
+    bufferout += "\"centisec\":" + to_unsigned(centisec(), 10) + ",";
+    bufferout += "\"iso8601\":\"" + mjd2iso8601(currentmjd()) + "\",";
+    bufferout += "\"request\":\"" + bufferin + "\"}\n";
     if(reqs.find(request) == reqs.end())
     {
         iretn = AGENT_ERROR_NULL;
-        bufferout += "[NOK] " + std::to_string(iretn);
+        bufferout += "\"[NOK] " + std::to_string(iretn) + "\"";
     }
     else
     {
@@ -1664,16 +1667,22 @@ int32_t Agent::req_get_position(string &request, string &response, Agent* agent)
 
 int32_t Agent::req_get_location(string &request, string &response, Agent *agent)
 {
-    vector<string> args = string_split(request);
     response.clear();
 
-    json11::Json jobj = json11::Json::object({
-        {"node", agent->cinfo->node.name},
-        {"utcoffset", agent->cinfo->node.utcoffset},
-        {"pos", agent->cinfo->node.loc.pos.eci},
-        {"att", agent->cinfo->node.loc.att.icrf}
-    });
-    response = jobj.dump();
+    // json11::Json jobj = json11::Json::object({
+    //     {"node", agent->cinfo->node.name},
+    //     {"utcoffset", agent->cinfo->node.utcoffset},
+    //     {"utc", agent->cinfo->node.utc},
+    //     {"pos", agent->cinfo->node.loc.pos.eci},
+    //     {"att", agent->cinfo->node.loc.att.icrf}
+    // });
+    // response = jobj.dump();
+    response = "{";
+    response += "\"pos\":{\"eci\":";
+    response += agent->cinfo->node.loc.pos.eci.to_json().dump();
+    response += "},\"att\":{\"icrf\":";
+    response += agent->cinfo->node.loc.att.icrf.to_json().dump();
+    response += "}}";
     return response.length();
 }
 
@@ -2781,7 +2790,7 @@ int32_t Agent::req_command(string &request, string &response, Agent *agent)
      * \param agent Pointer to Cosmos::Agent to use.
      * \return 0, or negative error.
      */
-int32_t Agent::req_run_command(string &request, string &response, Agent *agent)
+int32_t Agent::req_run_command(string &request, string &response, Agent*)
 {
     if (request.find(" ") == string::npos)
     {
@@ -2817,7 +2826,7 @@ int32_t Agent::req_add_task(string &request, string &response, Agent *agent)
 /*! Provide a detailed list of all the Channels currently defined
      * \return 0, or negative error.
      */
-int32_t Agent::req_list_channels(string &request, string &response, Agent *agent)
+int32_t Agent::req_list_channels(string&, string &response, Agent *agent)
 {
     response.clear();
     for (uint16_t i=0; i<agent->channels.channel.size(); ++i)
@@ -4293,7 +4302,7 @@ int32_t Agent::get_debug_level()
     return debug_log.Type();
 }
 
-FILE *Agent::get_debug_fd(double mjd)
+FILE *Agent::get_debug_fd(double)
 {
     return debug_log.Open();
 }
@@ -5244,6 +5253,11 @@ int32_t Agent::task_add(string command, string source, float timeout)
 int32_t Agent::task_del(uint32_t deci)
 {
     return tasks.Del(deci);
+}
+
+int32_t Agent::task_exists(uint32_t deci)
+{
+    return tasks.Exists(deci);
 }
 
 int32_t Agent::task_iretn(uint16_t number)

@@ -496,6 +496,7 @@ namespace Cosmos
 
             int32_t task_add(string command, string source="", float timeout=60.);
             int32_t task_del(uint32_t deci);
+            int32_t task_exists(uint32_t deci);
             int32_t task_iretn(uint16_t number);
             uint32_t task_deci(uint16_t number);
             double task_startmjd(uint16_t number);
@@ -579,6 +580,7 @@ namespace Cosmos
             static int32_t req_get_time(string &request, string &response, Agent *agent);
             static int32_t req_get_position(string &request, string &response, Agent *agent);
             static int32_t req_get_location(string &request, string &response, Agent *agent);
+            static int32_t req_get_state_vector(string &request, string &response, Agent *agent);
             static int32_t req_get_position_data(string &request, string &response, Agent *agent);
             static int32_t req_setvalue(string &request, string &response, Agent *agent);
             static int32_t req_set_value(string &request, string &response, Agent *agent);

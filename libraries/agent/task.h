@@ -60,6 +60,7 @@ namespace Cosmos
             void Runner();
             int32_t Add(string command, string node="", float timeout=60.);
             int32_t Del(uint32_t deci);
+            int32_t Exists(uint32_t deci);
             int32_t Iretn(uint16_t number);
             uint32_t Deci(uint16_t number);
             double Startmjd(uint16_t number);

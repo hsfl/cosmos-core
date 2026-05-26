@@ -246,11 +246,11 @@ int32_t write_envi_hdr(envi_hdr &hdr)
     fprintf(fp,"byte order = %lu\n",hdr.byteorder);
     if (hdr.map_info.size())
     {
-        fprintf(fp, "%s\n", hdr.map_info.c_str());
+        fprintf(fp, "map info = %s\n", hdr.map_info.c_str());
     }
     else
     {
-        fprintf(fp,"map info = {Arbitrary, 1.5000, 1.5000, %f, %f, %f, %f, units=Meters)\n",hdr.x0,hdr.y0,hdr.xmpp,hdr.ympp);
+        fprintf(fp,"map info = {Arbitrary, 1.5000, 1.5000, %f, %f, %f, %f, units=Meters}\n",hdr.x0,hdr.y0,hdr.xmpp,hdr.ympp);
     }
     if (hdr.projection_info.size())
     {
@@ -281,6 +281,10 @@ int32_t write_envi_hdr(envi_hdr &hdr)
             }
         }
         fprintf(fp,"}\n");
+    }
+    for (size_t i=0; i<std::min(hdr.keys.size(), hdr.values.size()); ++i)
+    {
+        fprintf(fp, "%s = %s\n", hdr.keys[i].c_str(), hdr.values[i].c_str());
     }
 
     fclose(fp);
@@ -1698,4 +1702,19 @@ int32_t write_envi_data(envi_hdr &ehdr, uint8_t *data)
 
     fclose(fp);
     return datasize * ehdr.planes * ehdr.columns * ehdr.rows;
+}
+
+string MapInfoGeoLatLon::to_string()
+{
+    std::ostringstream ss;
+    ss  << "{"
+        << projection_type << ", "
+        << std::to_string(tie_point_x) << ", " << std::to_string(tie_point_y) << ", "
+        << std::to_string(longitude) << ", " << std::to_string(latitude) << ", "
+        << std::to_string(pixel_size_x) << ", " << std::to_string(pixel_size_y) << ", "
+        << datum << ", "
+        << "units=" << (is_degrees ? "Degrees" : "Radians") << ", "
+        << "rotation=" << std::to_string(rotation)
+        << "}";
+    return ss.str();
 }

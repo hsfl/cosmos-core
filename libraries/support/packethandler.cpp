@@ -1335,6 +1335,25 @@ namespace Cosmos {
             return iretn;
         }
 
+        int32_t PacketHandler::QueueTransferDirectory(const string& node_directory, const string& outgoing_subdirectory, Agent* agent, NODE_ID_TYPE dest)
+        {
+            int32_t iretn = 0;
+            PacketComm packet;
+
+            packet.header.type = PacketComm::TypeId::CommandFileTransferDirectory;
+            packet.header.nodeorig = agent->nodeId;
+            packet.header.nodedest = dest;
+            packet.header.chanin = 0;
+            packet.header.chanout = agent->channel_number("FILE");
+            packet.data.resize(0);
+            packet.data.push_back((uint8_t)node_directory.size());
+            packet.data.push_back((uint8_t)outgoing_subdirectory.size());
+            packet.data.insert(packet.data.end(), node_directory.begin(), node_directory.end());
+            packet.data.insert(packet.data.end(), outgoing_subdirectory.begin(), outgoing_subdirectory.end());
+            iretn = agent->channel_push(packet);
+            return iretn;
+        }
+
         int32_t PacketHandler::QueueTestRadio(uint8_t start, uint8_t step, uint8_t stop, uint32_t count, Agent* agent, string testradio, NODE_ID_TYPE dest, const string& radioin)
         {
             int32_t iretn = 0;
