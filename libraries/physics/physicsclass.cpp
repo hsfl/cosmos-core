@@ -985,6 +985,7 @@ int32_t Structure::Setup(string stype)
                         "U3","U3X","U3Y","U3XY",
                         "U6","U6X","U6Y","U6XY",
                         "U12","U12X","U12Y","U12XY",
+                        "U16","U16X","U16Y","U16XY",
                         "HEX65W80H"
                     }, {0});
     }
@@ -1068,6 +1069,27 @@ int32_t Structure::Setup(Type type)
     case U12XY:
         iretn = add_u(2, 2, 3, XY);
         break;
+    case U16:
+        iretn = add_u(2, 2, 4, NoPanel);
+        break;
+    case U16X:
+        iretn = add_u(2, 2, 4, X);
+        break;
+    case U16XX:
+        iretn = add_u(2, 2, 4, XX);
+        break;
+    case U16Y:
+        iretn = add_u(2, 2, 4, Y);
+        break;
+    case U16YY:
+        iretn = add_u(2, 2, 4, YY);
+        break;
+    case U16XY:
+        iretn = add_u(2, 2, 4, XY);
+        break;
+    case U16XXYY:
+        iretn = add_u(2, 2, 4, XXYY);
+        break;
     case HEX65W80H:
         iretn = add_hex(.65, .80, XY);
         break;
@@ -1139,6 +1161,61 @@ int32_t Structure::add_u(double x, double y, double z, ExternalPanelType type)
         add_panel("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -y/2., z/2.), Vector(-x/2., -y/2., z/2.), .01, 2, 0.);
         add_panel("panel+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., z + y/2., -z/2.), Vector(-x/2., z + y/2., -z/2.), .01);
         add_panel("panel-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -z - y/2., -z/2.), Vector(-x/2., -z - y/2., -z/2.), .01);
+
+        add_panel("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .01);
+        add_panel("external-z", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., -y/2., -z/2.), .01);
+        break;
+    case XX:
+        // ±X body faces — no solar cells (panels deployed from here)
+        add_panel("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .01, 2, 0.);
+        add_panel("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., -y/2., z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., y/2., -z/2.), .01, 2, 0.);
+        // First panel segment (same as X)
+        add_panel("panel+x",  Vector(    x/2., -y/2., -z/2.), Vector(    x/2.,  y/2., -z/2.), Vector(  z+x/2.,  y/2., -z/2.), Vector(  z+x/2., -y/2., -z/2.), .01);
+        add_panel("panel-x",  Vector(   -x/2., -y/2., -z/2.), Vector(   -x/2.,  y/2., -z/2.), Vector( -z-x/2.,  y/2., -z/2.), Vector( -z-x/2., -y/2., -z/2.), .01);
+        // Second panel segment
+        add_panel("panel+x2", Vector(  z+x/2., -y/2., -z/2.), Vector(  z+x/2.,  y/2., -z/2.), Vector(2*z+x/2.,  y/2., -z/2.), Vector(2*z+x/2., -y/2., -z/2.), .01);
+        add_panel("panel-x2", Vector( -z-x/2., -y/2., -z/2.), Vector( -z-x/2.,  y/2., -z/2.), Vector(-2*z-x/2., y/2., -z/2.), Vector(-2*z-x/2., -y/2., -z/2.), .01);
+
+        // ±Y and ±Z body faces — normal external panels with solar cells
+        add_panel("external+y", Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., y/2., -z/2.), .01);
+        add_panel("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -y/2., z/2.), Vector(-x/2., -y/2., z/2.), .01);
+        add_panel("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .01);
+        add_panel("external-z", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., -y/2., -z/2.), .01);
+        break;
+
+    case YY:
+        // ±Y body faces — no solar cells
+        add_panel("external+y", Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., y/2., -z/2.), .01, 2, 0.);
+        add_panel("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -y/2., z/2.), Vector(-x/2., -y/2., z/2.), .01, 2, 0.);
+        // First panel segment (same as Y)
+        add_panel("panel+y",  Vector(-x/2.,     y/2., -z/2.), Vector( x/2.,     y/2., -z/2.), Vector( x/2.,   z+y/2., -z/2.), Vector(-x/2.,   z+y/2., -z/2.), .01);
+        add_panel("panel-y",  Vector(-x/2.,    -y/2., -z/2.), Vector( x/2.,    -y/2., -z/2.), Vector( x/2.,  -z-y/2., -z/2.), Vector(-x/2.,  -z-y/2., -z/2.), .01);
+        // Second panel segment
+        add_panel("panel+y2", Vector(-x/2.,   z+y/2., -z/2.), Vector( x/2.,   z+y/2., -z/2.), Vector( x/2., 2*z+y/2., -z/2.), Vector(-x/2., 2*z+y/2., -z/2.), .01);
+        add_panel("panel-y2", Vector(-x/2.,  -z-y/2., -z/2.), Vector( x/2.,  -z-y/2., -z/2.), Vector( x/2.,-2*z-y/2., -z/2.), Vector(-x/2.,-2*z-y/2., -z/2.), .01);
+
+        // ±X and ±Z body faces — normal
+        add_panel("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .01);
+        add_panel("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., -y/2., z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., y/2., -z/2.), .01);
+        add_panel("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .01);
+        add_panel("external-z", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., -y/2., -z/2.), .01);
+        break;
+
+    case XXYY:
+        // ±X and ±Y body faces — no solar cells (all replaced by deployed panels)
+        add_panel("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .01, 2, 0.);
+        add_panel("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., -y/2., z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., y/2., -z/2.), .01, 2, 0.);
+        add_panel("panel+x",  Vector(    x/2., -y/2., -z/2.), Vector(    x/2.,  y/2., -z/2.), Vector(  z+x/2.,  y/2., -z/2.), Vector(  z+x/2., -y/2., -z/2.), .01);
+        add_panel("panel-x",  Vector(   -x/2., -y/2., -z/2.), Vector(   -x/2.,  y/2., -z/2.), Vector( -z-x/2.,  y/2., -z/2.), Vector( -z-x/2., -y/2., -z/2.), .01);
+        add_panel("panel+x2", Vector(  z+x/2., -y/2., -z/2.), Vector(  z+x/2.,  y/2., -z/2.), Vector(2*z+x/2.,  y/2., -z/2.), Vector(2*z+x/2., -y/2., -z/2.), .01);
+        add_panel("panel-x2", Vector( -z-x/2., -y/2., -z/2.), Vector( -z-x/2.,  y/2., -z/2.), Vector(-2*z-x/2., y/2., -z/2.), Vector(-2*z-x/2., -y/2., -z/2.), .01);
+
+        add_panel("external+y", Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., y/2., -z/2.), .01, 2, 0.);
+        add_panel("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -y/2., z/2.), Vector(-x/2., -y/2., z/2.), .01, 2, 0.);
+        add_panel("panel+y",  Vector(-x/2.,     y/2., -z/2.), Vector( x/2.,     y/2., -z/2.), Vector( x/2.,   z+y/2., -z/2.), Vector(-x/2.,   z+y/2., -z/2.), .01);
+        add_panel("panel-y",  Vector(-x/2.,    -y/2., -z/2.), Vector( x/2.,    -y/2., -z/2.), Vector( x/2.,  -z-y/2., -z/2.), Vector(-x/2.,  -z-y/2., -z/2.), .01);
+        add_panel("panel+y2", Vector(-x/2.,   z+y/2., -z/2.), Vector( x/2.,   z+y/2., -z/2.), Vector( x/2., 2*z+y/2., -z/2.), Vector(-x/2., 2*z+y/2., -z/2.), .01);
+        add_panel("panel-y2", Vector(-x/2.,  -z-y/2., -z/2.), Vector( x/2.,  -z-y/2., -z/2.), Vector( x/2.,-2*z-y/2., -z/2.), Vector(-x/2.,-2*z-y/2., -z/2.), .01);
 
         add_panel("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .01);
         add_panel("external-z", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., -y/2., -z/2.), .01);

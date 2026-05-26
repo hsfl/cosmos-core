@@ -76,6 +76,13 @@ namespace Cosmos
                 U12X,
                 U12Y,
                 U12XY,
+                U16,
+                U16X,
+                U16XX,
+                U16Y,
+                U16YY,
+                U16XY,
+                U16XXYY,
                 HEX65W80H
                 };
 
@@ -83,8 +90,11 @@ namespace Cosmos
                 {
                 NoPanel = 0,
                 X,
+                XX,
                 Y,
-                XY
+                YY,
+                XY,
+                XXYY
                 };
 
             Structure(physicsstruc *newphys) : currentphys{newphys}
