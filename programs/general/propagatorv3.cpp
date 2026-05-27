@@ -33,10 +33,11 @@ double deltautc = 0.;
 string formation = "string";
 double spacing = 1000.;
 string realmname = "propagate";
-string orbitfile = "orbit.dat";
-string satfile = "sats.dat";
+string orbitfile = "";
+string satfile = "";
 string targetfile = "targets.dat";
 string tlefile = "tle.dat";
+string dump ="";
 string pointingfile;
 map<uint32_t, vector<Physics::Simulator::pointing_info>> pschedule;
 double runcount = 1500;
@@ -89,6 +90,17 @@ int main(int argc, char *argv[])
     sim->Init(simdt, realmname);
     sim->ParseOrbitFile();
     sim->ParseSatFile(satfile);
+
+    if (!dump.empty())
+    {
+        Physics::Simulator::StateList::iterator sit = sim->GetNode(dump);
+        if (sit != sim->cnodes.end())
+        {
+            json_dump_node(&(*sit)->currentinfo);
+        }
+        exit (1);
+    }
+
     if (jsonevent)
     {
         printf("{\"sats\":[\n");
@@ -267,6 +279,10 @@ int main(int argc, char *argv[])
             {
                 for (eventstruc event : sim->cnodes[i]->currentinfo.event)
                 {
+                    if (event.utc == 0.)
+                    {
+                        continue;
+                    }
                     if (printevent)
                     {
                         string output = "type: event";
@@ -1343,6 +1359,11 @@ int32_t parse_control(string args)
     //        ++argcount;
     //        minaccelratio = jargs["minaccelratio"].number_value();
     //    }
+    if (!jargs["dump"].is_null())
+    {
+        ++argcount;
+        dump = jargs["dump"].string_value();
+    }
     if (!jargs["satfile"].is_null())
     {
         ++argcount;
