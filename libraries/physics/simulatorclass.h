@@ -104,6 +104,12 @@ namespace Cosmos
             bool   sso_enabled   = false;
             double sso_alt_m     = 0.;
             double sso_raan_rate = 0.;
+
+            // Frozen Lunar Orbit parameters (set by ParseOrbitString "flo" key)
+            bool   flo_enabled        = false;
+            double flo_alt_m          = 0.;   //!< Altitude above Moon surface (m)
+            double flo_incl_rad       = 0.;   //!< Inclination (rad)
+            double flo_raan_rate_rads = 0.;   //!< Secular RAAN drift from J2 (rad/s)
         private:
             bool server;
             int32_t error;
