@@ -2972,6 +2972,7 @@ int32_t ElectricalPropagator::Propagate(double nextutc)
 
 int32_t OrbitalEventGenerator::Init()
 {
+    currentutc = currentinfo->node.loc.utc;
     time_start = currentinfo->node.loc.utc;
     currentinfo->event_tick = (time_start + currentinfo->event_tick) - time_start;
     time_end = time_start + currentinfo->event_tick;
@@ -3666,6 +3667,7 @@ int32_t OrbitalEventGenerator::check_target_event(const targetstruc& target, boo
             eventstruc target_event;
             target_event.name = "TARGLOS_" + target.name;
             target_event.type = EVENT_TYPE_TARGLOS;
+            target_event.utc = currentutc;
             target_event.dtime = currentutc - target_AoS[target.name].utc;
             target_event.value = target_AoS[target.name].azto;
             target_event.az = target_AoS[target.name].azto;
@@ -3725,7 +3727,8 @@ int32_t OrbitalEventGenerator::check_target_event(const targetstruc& target, boo
         eventstruc target_event;
         target_event.name = "TARGAOS_" + target.name;
         target_event.type = EVENT_TYPE_TARG;
-        target_event.utc = target_AoS[target.name].utc;
+        target_AoS[target.name].utc = currentutc;          // set it first
+        target_event.utc = currentutc;                     // then use it
         target_event.dtime = 0.;
         target_event.value = target_AoS[target.name].elto;
         target_event.az = target_AoS[target.name].azto;
