@@ -739,11 +739,29 @@ size_t data_list_files(string directory, vector<filestruc>& files, uint16_t limi
                     tf.agent = parts[parts.size()-1];
                     tf.node = parts[parts.size()-3];
                 }
-                struct stat st;
-                stat(tf.path.c_str(), &st);
-                tf.size = st.st_size;
-                tf.utc = unix2utc((double)st.st_ctime);
-                if (S_ISDIR(st.st_mode))
+                // statx() provides birth time but requires Linux 4.11 and glibc 2.28+.
+                // Fall back to stat() on older systems using a compile-time guard.
+#if defined(__linux__) && defined(STATX_BTIME) && defined(AT_FDCWD)
+                struct ::statx stx;
+                ::statx(AT_FDCWD, tf.path.c_str(), 0, STATX_ALL, &stx);
+                tf.size = stx.stx_size;
+                if ((stx.stx_mask & STATX_BTIME) && stx.stx_btime.tv_sec != 0)
+                {
+                    tf.utc = unix2utc((double)stx.stx_btime.tv_sec + stx.stx_btime.tv_nsec / 1e9);
+                }
+                else
+                {
+                    tf.utc = unix2utc((double)stx.stx_mtime.tv_sec + stx.stx_mtime.tv_nsec / 1e9);
+                }
+                bool isdir = S_ISDIR(stx.stx_mode);
+#else
+                struct stat stbuf;
+                ::stat(tf.path.c_str(), &stbuf);
+                tf.size = stbuf.st_size;
+                tf.utc  = unix2utc((double)stbuf.st_mtime);
+                bool isdir = S_ISDIR(stbuf.st_mode);
+#endif
+                if (isdir)
                 {
                     tf.type = "directory";
                 }
@@ -1327,7 +1345,7 @@ bool data_exists(string& path)
  * created, or the file can not be opened.
  */
 
-FILE *data_open(string path, const char *mode)
+FILE *data_open(string path, const char *mode, uint32_t dmode)
 {
     char dtemp[1024];
     uint32_t index, dindex, length;
@@ -1348,7 +1366,7 @@ FILE *data_open(string path, const char *mode)
             {
                 strncpy(dtemp, path.c_str(), index+1);
                 dtemp[index+1] = 0;
-                if (COSMOS_MKDIR(dtemp,00777))
+                if (COSMOS_MKDIR(dtemp, dmode))
                 {
                     if (errno != EEXIST)
                         return (nullptr);
