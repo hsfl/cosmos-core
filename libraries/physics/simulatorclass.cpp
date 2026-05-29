@@ -6,6 +6,196 @@ namespace Cosmos
 {
 namespace Physics
 {
+
+// ---------------------------------------------------------------------------
+// Sun-Synchronous Orbit (SSO) helpers — internal to simulatorclass
+// ---------------------------------------------------------------------------
+namespace
+{
+    // Physical constants
+    static const double SSO_RE  = 6378137.0;          // Earth equatorial radius (m)
+    static const double SSO_J2  = 1.08262668e-3;      // J2 oblateness coefficient
+    static const double SSO_GM  = 3.986004418e14;     // Earth gravitational parameter (m³/s²)
+    // Rate at which the Sun's RA advances: one full circle per tropical year
+    static const double SSO_SUN_RATE = D2PI / (365.25 * 86400.); // rad/s
+
+    /**
+     * @brief Required inclination for a circular SSO at the given altitude.
+     *
+     * Derived from the J2 nodal precession rate:
+     *   dΩ/dt = -(3/2) n J2 (Re/a)² cos(i)
+     * Setting dΩ/dt = SSO_SUN_RATE and solving for i.
+     *
+     * @param alt_m  Altitude above mean Earth surface (metres)
+     * @return Inclination in radians (retrograde, > π/2, for typical LEO)
+     */
+    double sso_inclination(double alt_m)
+    {
+        double a    = SSO_RE + alt_m;
+        double cosi = -SSO_SUN_RATE * pow(a, 3.5)
+                      / (1.5 * SSO_J2 * SSO_RE * SSO_RE * sqrt(SSO_GM));
+        cosi = std::max(-1., std::min(1., cosi));   // guard extreme altitudes
+        return acos(cosi);
+    }
+
+    /**
+     * @brief Initial RAAN placing the ascending node at the desired LST.
+     *
+     * LST of the ascending node = GMST + RAAN (mod 2π), so
+     *   RAAN = (lst_rad - GMST) + (sun_RA offset from noon crossing)
+     *
+     * Convention: LST 12:00 means the node is on the Sun-side (descending
+     * passes at midnight).  LST 10:30 → dawn/dusk orbit.
+     *
+     * @param lst_hours  Desired local solar time of ascending node (hours, 0–24)
+     * @param utc_mjd    Simulation epoch (MJD)
+     * @return RAAN in radians [0, 2π)
+     */
+    double sso_raan(double lst_hours, double utc_mjd)
+    {
+        // Greenwich Mean Sidereal Time (radians) at epoch
+        double T        = (utc_mjd - 51544.5) / 36525.;
+        double gmst_deg = 280.46061837
+                        + 360.98564736629 * (utc_mjd - 51544.5)
+                        + 0.000387933 * T * T
+                        - T * T * T / 38710000.;
+        double gmst = fmod(gmst_deg * DPI / 180., D2PI);
+        if (gmst < 0.) gmst += D2PI;
+
+        // Sun's mean right ascension at epoch
+        double sun_lon_deg = 280.460 + 0.9856474 * (utc_mjd - 51544.5);
+        double sun_ra = fmod(sun_lon_deg * DPI / 180., D2PI);
+        if (sun_ra < 0.) sun_ra += D2PI;
+
+        // Offset: (lst - 12h) hours × 15°/h expressed in radians
+        // LST 12h → node directly under the Sun (ascending through noon meridian)
+        double raan = sun_ra + (lst_hours - 12.) * (DPI / 12.);
+        raan = fmod(raan, D2PI);
+        if (raan < 0.) raan += D2PI;
+        return raan;
+    }
+} // anonymous namespace
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Frozen Lunar Orbit (FLO) helpers — internal to simulatorclass
+// ---------------------------------------------------------------------------
+namespace
+{
+    // Lunar physical constants
+    static const double FLO_RM   = 1737400.0;       // Moon mean radius (m)
+    static const double FLO_GM   = 4.9048695e12;    // Moon gravitational parameter (m³/s²)
+
+    // Moon's J2 and C22 (LP150Q model, widely used for frozen-orbit design)
+    static const double FLO_J2   = 2.0330e-4;
+    static const double FLO_C22  = 2.2372e-5;
+
+    // The critical inclination nearest 90° for a polar frozen orbit.
+    // For the Moon the frozen eccentricity vector combination of J2 and C22
+    // yields a stable frozen condition at i ≈ 90° ± a small offset driven by
+    // C22.  For a purely polar orbit we use exactly 90°; callers wanting the
+    // analytically corrected value can use flo_frozen_inclination() below.
+    //
+    // Frozen eccentricity at altitude h (circular seed):
+    //   e_frozen ≈ (5/2) * (J2/2 + C22) * (RM/a)^2 * cos(i)
+    // At i = 90° this vanishes, so e ≈ 0 and the orbit is naturally frozen.
+    // For i slightly off 90° a small eccentricity corrects it; we carry that
+    // calculation so the caller can start from the true frozen state.
+
+    /**
+     * @brief Frozen eccentricity magnitude for a lunar orbit.
+     *
+     * Uses the first-order secular frozen-orbit condition:
+     *   e_f = (5/4) * (RM/a)^2 * (J2 - 5*C22*cos(2*w)) * cos(i) / sin^2(i)
+     *
+     * For a polar orbit (i = 90°) e_f = 0 and the argument of perigee is
+     * unconstrained.  For i ≠ 90° a non-zero eccentricity is needed.  The
+     * stable frozen argument of perigee is ω = 90° or 270°.
+     *
+     * Reference: Abad, San-Juan & Gavín (2009), "Near Circular Frozen Orbits
+     * for the Dopri-CW System of Equations."
+     *
+     * @param alt_m  Altitude above mean Moon surface (metres)
+     * @param incl   Inclination (radians)
+     * @return       Frozen eccentricity (dimensionless, ≥ 0)
+     */
+    double flo_frozen_eccentricity(double alt_m, double incl)
+    {
+        double a      = FLO_RM + alt_m;
+        double ratio2 = (FLO_RM / a) * (FLO_RM / a);
+        double ci     = cos(incl);
+        double si     = sin(incl);
+        if (fabs(si) < 1e-6) return 0.;          // equatorial — no frozen solution
+        // Frozen ω = 90° ⟹ cos(2ω) = -1
+        double ef = (5. / 4.) * ratio2 * (FLO_J2 - 5. * FLO_C22 * (-1.)) * ci / (si * si);
+        return fabs(ef);
+    }
+
+    /**
+     * @brief Circular (seed) orbital speed for a lunar orbit.
+     * @param alt_m  Altitude above mean Moon surface (metres)
+     * @return       Speed in m/s
+     */
+    double flo_circular_speed(double alt_m)
+    {
+        double a = FLO_RM + alt_m;
+        return sqrt(FLO_GM / a);
+    }
+
+    /**
+     * @brief Orbital period for a lunar orbit.
+     * @param alt_m  Altitude above mean Moon surface (metres)
+     * @return       Period in seconds
+     */
+    double flo_period(double alt_m)
+    {
+        double a = FLO_RM + alt_m;
+        return D2PI * sqrt(a * a * a / FLO_GM);
+    }
+
+    /**
+     * @brief Nodal precession rate (dΩ/dt) for a frozen lunar orbit.
+     *
+     * First-order J2 secular rate:
+     *   dΩ/dt = -(3/2) n J2 (RM/a)² cos(i) / (1-e²)²
+     *
+     * For a frozen orbit e is small, so (1-e²)² ≈ 1.
+     *
+     * @param alt_m  Altitude (m)
+     * @param incl   Inclination (rad)
+     * @return       dΩ/dt in rad/s  (negative = westward for prograde)
+     */
+    double flo_raan_rate(double alt_m, double incl)
+    {
+        double a = FLO_RM + alt_m;
+        double n = sqrt(FLO_GM / (a * a * a));
+        return -1.5 * n * FLO_J2 * (FLO_RM / a) * (FLO_RM / a) * cos(incl);
+    }
+
+    /**
+     * @brief Argument-of-perigee drift rate (dω/dt) for a frozen lunar orbit.
+     *
+     * First-order J2 secular rate:
+     *   dω/dt = (3/4) n J2 (RM/a)² (5 cos²i - 1) / (1-e²)²
+     *
+     * At the frozen condition ω is stationary (dω/dt = 0) for the full
+     * model; here we return the J2-only term so callers can verify.
+     * For a polar orbit (i = 90°, cos²i = 0): dω/dt = -(3/4) n J2 (RM/a)²
+     *
+     * @param alt_m  Altitude (m)
+     * @param incl   Inclination (rad)
+     * @return       dω/dt in rad/s
+     */
+    double flo_aop_rate(double alt_m, double incl)
+    {
+        double a  = FLO_RM + alt_m;
+        double n  = sqrt(FLO_GM / (a * a * a));
+        double ci = cos(incl);
+        return 0.75 * n * FLO_J2 * (FLO_RM / a) * (FLO_RM / a) * (5. * ci * ci - 1.);
+    }
+} // anonymous namespace (FLO)
+// ---------------------------------------------------------------------------
+
 int32_t Simulator::Init(double idt, string realm, double iutc)
 {
     realmname = realm;
@@ -374,6 +564,230 @@ int32_t Simulator::ParseOrbitString(string args)
         tle2eci(initialutc, initialloc.tle, initialloc.pos.eci);
         initialloc.pos.eci.pass++;
     }
+    if (!jargs["sso"].is_null())
+    {
+        // Sun-Synchronous Orbit specified by altitude and local solar time.
+        //
+        // Required orbit.dat syntax (all fields mandatory):
+        //   {"sso":{"alt":<metres>, "lst":<hours 0-24>, "utc":<mjd or 0>}}
+        //
+        // alt  — altitude above mean Earth surface in metres (e.g. 550000)
+        // lst  — local solar time of the *ascending* node crossing in decimal
+        //        hours (e.g. 10.5 for 10:30 AM, 22.5 for 10:30 PM)
+        // utc  — epoch: absolute MJD if > 3600, offset from current time if
+        //        ≤ 3600 (use 0 for "now")
+        //
+        // The inclination is derived analytically from the J2 precession
+        // formula so the orbital plane precesses at exactly the Sun's mean
+        // motion (~0.9856°/day).  The initial RAAN is computed from the
+        // requested LST and the Sun's RA at the epoch.  The orbit is circular
+        // and the satellite starts at the ascending node (true anomaly = 0).
+        //
+        // Per-step precession is applied inside Simulator::Propagate() using
+        // the stored sso_raan_rate member, so the orbit file needs no further
+        // attention after startup.
+        ++argcount;
+        json11::Json::object values = jargs["sso"].object_items();
+
+        // --- epoch ---
+        if (values["utc"].number_value() > 3600.)
+        {
+            initialutc = values["utc"].number_value();
+        }
+        else
+        {
+            initialutc += currentmjd() + values["utc"].number_value();
+        }
+        currentutc = initialutc;
+        offsetutc  = initialutc - currentmjd();
+        dt  = 86400. * ((initialutc + (dt / 86400.)) - initialutc);
+        dtj = dt / 86400.;
+        if (deltautc != 0.)
+        {
+            endutc = initialutc + deltautc;
+        }
+
+        // --- derived orbital elements ---
+        double alt_m    = values["alt"].number_value();
+        double lst_hrs  = values["lst"].number_value();
+        double incl     = sso_inclination(alt_m);
+        double raan     = sso_raan(lst_hrs, initialutc);
+        double a        = SSO_RE + alt_m;
+        double v_circ   = sqrt(SSO_GM / a);       // circular speed (m/s)
+
+        // --- build ECI state at ascending node (true anomaly = 0) ---
+        // Position: a·[cos Ω, sin Ω, 0]
+        initialloc.pos.eci.utc      = initialutc;
+        initialloc.pos.eci.s.col[0] = a * cos(raan);
+        initialloc.pos.eci.s.col[1] = a * sin(raan);
+        initialloc.pos.eci.s.col[2] = 0.;
+        // Velocity at ascending node: v·[−sin Ω cos i, cos Ω cos i, sin i]
+        initialloc.pos.eci.v.col[0] = v_circ * (-sin(raan) * cos(incl));
+        initialloc.pos.eci.v.col[1] = v_circ * ( cos(raan) * cos(incl));
+        initialloc.pos.eci.v.col[2] = v_circ *   sin(incl);
+        initialloc.pos.eci.a.col[0] = 0.;
+        initialloc.pos.eci.a.col[1] = 0.;
+        initialloc.pos.eci.a.col[2] = 0.;
+        initialloc.pos.eci.pass++;
+
+        // --- store SSO precession rate for use in Propagate() ---
+        // dΩ/dt = SSO_SUN_RATE (rad/s); convert to rad/step in Propagate().
+        sso_enabled   = true;
+        sso_alt_m     = alt_m;
+        sso_raan_rate = SSO_SUN_RATE;   // rad/s; multiplied by dt in Propagate()
+    }
+    if (!jargs["flo"].is_null())
+    {
+        // Frozen Lunar Orbit — two input modes
+        // ─────────────────────────────────────────────────────────────────────
+        // MODE A  Simple altitude + inclination (eccentricity computed from J2/C22):
+        //   {"flo":{"alt":<m>, "inc":<deg>, "raan":<deg>, "utc":<mjd|0>}}
+        //
+        //   alt  — altitude above mean Moon surface (m), e.g. 100000
+        //   inc  — inclination (deg); 90° → polar, zero frozen eccentricity
+        //   raan — RAAN (deg, Moon-centred J2000); default 0
+        //   aop  — argument of perigee (deg); default 270° (south-pole perigee,
+        //          the other stable frozen condition alongside 90°); set to 90°
+        //          for north-pole perigee
+        //   ta   — true anomaly at epoch (deg); default 0°
+        //
+        //   The frozen eccentricity and RAAN precession rate are derived
+        //   analytically from the Moon's J2 and C22 gravity coefficients.
+        //
+        // MODE B  Full Keplerian elements (use when a mission report gives them
+        //          explicitly, e.g. VMMO Phase B1):
+        //   {"flo":{"a":<m>, "e":<–>, "inc":<deg>, "raan":<deg>,
+        //            "aop":<deg>, "ta":<deg>, "utc":<mjd|0>}}
+        //
+        //   a    — semi-major axis (m), e.g. 1857600
+        //   e    — eccentricity, e.g. 0.0428
+        //   inc  — inclination (deg)
+        //   raan — RAAN (deg)
+        //   aop  — argument of perigee (deg)
+        //   ta   — true anomaly at epoch (deg); default 0°
+        //
+        //   When "a" is present the code uses MODE B and ignores "alt".
+        //   The eccentricity is taken as given — no analytical correction.
+        //
+        // Common to both modes
+        // ─────────────────────────────────────────────────────────────────────
+        // Secular RAAN precession (J2 dΩ/dt) is applied every step inside
+        // Simulator::Propagate() via flo_raan_rate_rads.  The Moon's gravity
+        // field is far lumpier than Earth's (large C22, mascons); for
+        // mission-critical work use a full GLGM-3/LP150Q gravity model.  This
+        // approximation is suitable for coverage studies and trade analysis.
+        ++argcount;
+        json11::Json::object values = jargs["flo"].object_items();
+
+        // --- epoch ---
+        if (values["utc"].number_value() > 3600.)
+        {
+            initialutc = values["utc"].number_value();
+        }
+        else
+        {
+            initialutc += currentmjd() + values["utc"].number_value();
+        }
+        currentutc = initialutc;
+        offsetutc  = initialutc - currentmjd();
+        dt  = 86400. * ((initialutc + (dt / 86400.)) - initialutc);
+        dtj = dt / 86400.;
+        if (deltautc != 0.)
+        {
+            endutc = initialutc + deltautc;
+        }
+
+        // --- orbital elements (MODE B takes priority when "a" is present) ---
+        double a, e_f, incl, raan, aop, ta;
+
+        incl = RADOF(values["inc"].number_value());         // always required
+        raan = RADOF(values["raan"].number_value());        // default 0°
+        // aop: default 270° (south-pole perigee, stable frozen condition)
+        aop  = values["aop"].is_null()
+               ? (3. * DPI / 2.)
+               : RADOF(values["aop"].number_value());
+        ta   = values["ta"].is_null()
+               ? 0.
+               : RADOF(values["ta"].number_value());
+
+        if (!values["a"].is_null())
+        {
+            // MODE B — full Keplerian elements supplied directly
+            a   = values["a"].number_value();
+            e_f = values["e"].is_null() ? 0. : values["e"].number_value();
+            // Derive mean altitude for the RAAN-rate formula (r_mean = a for circular;
+            // for small e use semi-latus rectum altitude at π/2 as representative)
+            flo_alt_m = a - FLO_RM;
+        }
+        else
+        {
+            // MODE A — altitude given; compute frozen eccentricity analytically
+            flo_alt_m = values["alt"].number_value();
+            a         = FLO_RM + flo_alt_m;
+            e_f       = flo_frozen_eccentricity(flo_alt_m, incl);
+        }
+
+        // ── Convert Keplerian elements to ECI Cartesian ──────────────────────
+        //
+        // For the given true anomaly ν:
+        //   p   = a(1 − e²)                     semi-latus rectum
+        //   r   = p / (1 + e cosν)               radius
+        //   v_r = √(μ/p) · e sinν               radial speed
+        //   v_t = √(μ/p) · (1 + e cosν)         transverse speed
+        //
+        // In the perifocal frame (P̂ toward perigee, Q̂ 90° ahead):
+        //   r_pf = r · [cosν, sinν, 0]
+        //   v_pf = √(μ/p) · [−sinν, e+cosν, 0]
+        //
+        // Rotate to ECI via R3(−Ω) · R1(−i) · R3(−ω):
+        //   (standard 313 Euler rotation, angles negated for active rotation)
+
+        double p     = a * (1. - e_f * e_f);
+        double r     = p / (1. + e_f * cos(ta));
+        double sqmup = sqrt(FLO_GM / p);
+
+        // Perifocal position and velocity
+        double rx_pf = r * cos(ta);
+        double ry_pf = r * sin(ta);
+        double vx_pf = sqmup * (-sin(ta));
+        double vy_pf = sqmup * (e_f + cos(ta));
+
+        // Rotation matrix elements: R = R3(−Ω) · R1(−i) · R3(−ω)
+        // Following Bate, Mueller & White §2.6:
+        //   Qxx = cos Ω cos ω − sin Ω sin ω cos i
+        //   Qxy = −cos Ω sin ω − sin Ω cos ω cos i
+        //   Qyx = sin Ω cos ω + cos Ω sin ω cos i
+        //   Qyy = −sin Ω sin ω + cos Ω cos ω cos i
+        //   Qzx = sin ω sin i
+        //   Qzy = cos ω sin i
+        double cO = cos(raan), sO = sin(raan);
+        double cI = cos(incl), sI = sin(incl);
+        double cw = cos(aop),  sw = sin(aop);
+
+        double Qxx = cO*cw - sO*sw*cI;
+        double Qxy = -cO*sw - sO*cw*cI;
+        double Qyx = sO*cw + cO*sw*cI;
+        double Qyy = -sO*sw + cO*cw*cI;
+        double Qzx = sw*sI;
+        double Qzy = cw*sI;
+
+        initialloc.pos.eci.utc      = initialutc;
+        initialloc.pos.eci.s.col[0] = Qxx*rx_pf + Qxy*ry_pf;
+        initialloc.pos.eci.s.col[1] = Qyx*rx_pf + Qyy*ry_pf;
+        initialloc.pos.eci.s.col[2] = Qzx*rx_pf + Qzy*ry_pf;
+        initialloc.pos.eci.v.col[0] = Qxx*vx_pf + Qxy*vy_pf;
+        initialloc.pos.eci.v.col[1] = Qyx*vx_pf + Qyy*vy_pf;
+        initialloc.pos.eci.v.col[2] = Qzx*vx_pf + Qzy*vy_pf;
+        initialloc.pos.eci.a.col[0] = 0.;
+        initialloc.pos.eci.a.col[1] = 0.;
+        initialloc.pos.eci.a.col[2] = 0.;
+        initialloc.pos.eci.pass++;
+
+        // --- store FLO parameters for use in Propagate() ---
+        flo_enabled        = true;
+        flo_incl_rad       = incl;
+        flo_raan_rate_rads = flo_raan_rate(flo_alt_m, incl); // rad/s, negative = westward
+    }
     pos_eci(initialloc);
     if (initialloc.tle.utc == 0.)
     {
@@ -702,6 +1116,11 @@ int32_t Simulator::ParseSatString(string args)
     {
         if (i == dets.size())
         {
+            break;
+        }
+        if (i == (*sit)->currentinfo.devspec.cam.size())
+        {
+            std::cerr << "Not enough cam devices (" << std::to_string((*sit)->currentinfo.devspec.cam.size()) << ") for number of detectors (" << std::to_string(dets.size()) << ")!" << std::endl;
             break;
         }
         (*sit)->currentinfo.devspec.cam[i].volt = 5.;
@@ -1251,6 +1670,70 @@ int32_t Simulator::Propagate(double nextutc)
             break;
         }
     }
+
+    // Apply Sun-synchronous nodal precession.
+    // Rotates every node's ECI position and velocity about the Earth's spin
+    // axis (Z) by the amount the orbital plane must drift this step so that
+    // it tracks the Sun.  This gives an exact analytical precession rate
+    // (SSO_SUN_RATE) regardless of whether the integrator models J2.
+    // Only active when ParseOrbitString processed an "sso" block.
+    if (sso_enabled)
+    {
+        double delta_raan = sso_raan_rate * dt;   // rad/step (dt is in seconds)
+        double c = cos(delta_raan);
+        double s = sin(delta_raan);
+        for (auto &state : cnodes)
+        {
+            cartpos &eci = state->currentinfo.node.loc.pos.eci;
+            double x, y;
+            // Rotate position
+            x = eci.s.col[0];  y = eci.s.col[1];
+            eci.s.col[0] = c*x - s*y;
+            eci.s.col[1] = s*x + c*y;
+            // Rotate velocity
+            x = eci.v.col[0];  y = eci.v.col[1];
+            eci.v.col[0] = c*x - s*y;
+            eci.v.col[1] = s*x + c*y;
+            // Rotate acceleration
+            x = eci.a.col[0];  y = eci.a.col[1];
+            eci.a.col[0] = c*x - s*y;
+            eci.a.col[1] = s*x + c*y;
+            ++eci.pass;
+        }
+    }
+
+    // Apply Frozen Lunar Orbit nodal precession.
+    // Rotates every node's ECI position and velocity about the Moon's spin
+    // axis (Z in the Moon-centred inertial frame, approximated as ECI-Z for
+    // short simulations) by the J2 secular RAAN drift for this timestep.
+    // This corrects the fixed-plane ECI spiral into the slowly precessing
+    // plane that characterises a true frozen lunar orbit.
+    // Only active when ParseOrbitString processed a "flo" block.
+    if (flo_enabled)
+    {
+        double delta_raan = flo_raan_rate_rads * dt;  // rad/step (dt in seconds)
+        double c = cos(delta_raan);
+        double s = sin(delta_raan);
+        for (auto &state : cnodes)
+        {
+            cartpos &eci = state->currentinfo.node.loc.pos.eci;
+            double x, y;
+            // Rotate position
+            x = eci.s.col[0];  y = eci.s.col[1];
+            eci.s.col[0] = c*x - s*y;
+            eci.s.col[1] = s*x + c*y;
+            // Rotate velocity
+            x = eci.v.col[0];  y = eci.v.col[1];
+            eci.v.col[0] = c*x - s*y;
+            eci.v.col[1] = s*x + c*y;
+            // Rotate acceleration
+            x = eci.a.col[0];  y = eci.a.col[1];
+            eci.a.col[0] = c*x - s*y;
+            eci.a.col[1] = s*x + c*y;
+            ++eci.pass;
+        }
+    }
+
     for (uint16_t i=1; i<cnodes.size(); ++i)
     {
         pos_geoc2lvlh(cnodes[0]->currentinfo.node.loc, cnodes[i]->currentinfo.node.loc);

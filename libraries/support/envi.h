@@ -16,6 +16,33 @@
 #define BO_INTEL 0
 #define BO_NETWORK 1
 
+struct MapInfoGeoLatLon
+{
+    //! Projection type 
+    string projection_type = "Geographic Lat/Lon";
+    //! Pixel tie point. Which x pixel corresponds to the lat/lon point.
+    double tie_point_x = 1.5;
+    //! Pixel tie point. Which y pixel corresponds to the lat/lon point.
+    double tie_point_y = 1.5;
+    //! Longitude
+    double longitude = 0;
+    //! Latitude
+    double latitude = 0;
+    //! Size of each pixel, in units of either degrees or radians
+    double pixel_size_x = 0.001;
+    //! Size of each pixel, in units of either degrees or radians
+    double pixel_size_y = 0.001;
+    //! Datum
+    string datum = "WGS-84";
+    //! Set to true for degrees or false for radians
+    bool is_degrees = true;
+    //! Rotation of the image as projected onto a flat map, where 0 offset from North and positive is CCW
+    double rotation = 0;
+
+    //! Returns an ENVI readable map info field
+    string to_string();
+};
+
 struct envi_hdr
 {
     size_t planes;

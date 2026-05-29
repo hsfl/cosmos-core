@@ -2165,6 +2165,11 @@ namespace Cosmos
                     add_name(basename+".percentage", &devspec.batt[didx].percentage, "float");
                     add_name(basename+".time_remaining", &devspec.batt[didx].time_remaining, "float");
                     break;
+                case DeviceType::BB:
+                    basename = "devspec.bb[" + std::to_string(didx) + "]";
+                    add_name(basename+"", &devspec.bb[didx], "bbstruc");
+                    add_name(basename+".setpoint", &devspec.bb[didx].setpoint, "float");
+                    break;
                 case DeviceType::BCREG:
                     basename = "devspec.bcreg[" + std::to_string(didx) + "]";
                     add_name(basename+"", &devspec.bcreg[didx], "bcregstruc");
@@ -2184,6 +2189,8 @@ namespace Cosmos
                     add_name(basename+".lstep", &devspec.cam[didx].lstep, "uint16_t");
                     add_name(basename+".pwidth", &devspec.cam[didx].pwidth, "uint16_t");
                     add_name(basename+".pheight", &devspec.cam[didx].pheight, "uint16_t");
+                    add_name(basename+".frate", &devspec.cam[didx].frate, "uint16_t");
+                    add_name(basename+".itime", &devspec.cam[didx].itime, "uint16_t");
                     add_name(basename+".width", &devspec.cam[didx].width, "float");
                     add_name(basename+".height", &devspec.cam[didx].height, "float");
                     add_name(basename+".flength", &devspec.cam[didx].flength, "float");
@@ -2193,6 +2200,12 @@ namespace Cosmos
                     add_name(basename+".ifov", &devspec.cam[didx].ifov, "float");
                     add_name(basename+".specmin", &devspec.cam[didx].specmin, "float");
                     add_name(basename+".specmax", &devspec.cam[didx].specmax, "float");
+                    break;
+                case DeviceType::COOLER:
+                    basename = "devspec.cooler[" + std::to_string(didx) + "]";
+                    add_name(basename+"", &devspec.cooler[didx], "coolerstruc");
+                    add_name(basename+".status", &devspec.cooler[didx].status, "uint8_t");
+                    add_name(basename+".setpoint", &devspec.cooler[didx].setpoint, "float");
                     break;
                 case DeviceType::CPU:
                     basename = "devspec.cpu[" + std::to_string(didx) + "]";
@@ -2330,6 +2343,12 @@ namespace Cosmos
                         string rebasename = basename + "imu.bdot.col[" + std::to_string(j) + "]";
                         add_name(rebasename, &devspec.imu[didx].bdot.col[j], "double");
                     }
+                    break;
+                case DeviceType::LENS:
+                    basename = "devspec.lens[" + std::to_string(didx) + "]";
+                    add_name(basename+"", &devspec.lens[didx], "lensstruc");
+                    add_name(basename+".status", &devspec.lens[didx].status, "uint8");
+                    add_name(basename+".setpoint", &devspec.lens[didx].index, "uint16_t");
                     break;
                 case DeviceType::MAG:
                     basename = "devspec.mag[" + std::to_string(didx) + "]";
@@ -2706,6 +2725,7 @@ namespace Cosmos
             //                add_name("devspec.all_cnt", &devspec.all_cnt, "uint16_t");
             add_name("devspec.ant_cnt", &devspec.ant_cnt, "uint16_t");
             add_name("devspec.batt_cnt", &devspec.batt_cnt, "uint16_t");
+            add_name("devspec.bb_cnt", &devspec.bb_cnt, "uint16_t");
             add_name("devspec.bus_cnt", &devspec.bus_cnt, "uint16_t");
             add_name("devspec.cam_cnt", &devspec.cam_cnt, "uint16_t");
             add_name("devspec.cpu_cnt", &devspec.cpu_cnt, "uint16_t");
@@ -3615,6 +3635,31 @@ namespace Cosmos
             column_names.clear();
             namespace_names.clear();
 
+            // bbstruc table
+            table_name = "bbstruc";
+            column_names.push_back("node_name");
+            column_names.push_back("didx");
+            column_names.push_back("utc");
+            column_names.push_back("volt");
+            column_names.push_back("amp");
+            column_names.push_back("power");
+            column_names.push_back("temp");
+            for (uint16_t i=0; i<cinfo->devspec.bb.size(); ++i)
+            {
+                string didx = std::to_string(i);
+                namespace_names.push_back("node.name");
+                namespace_names.push_back("devspec.bb["+didx+"].didx");
+                namespace_names.push_back("devspec.bb["+didx+"].utc");
+                namespace_names.push_back("devspec.bb["+didx+"].volt");
+                namespace_names.push_back("devspec.bb["+didx+"].amp");
+                namespace_names.push_back("devspec.bb["+didx+"].power");
+                namespace_names.push_back("devspec.bb["+didx+"].temp");
+                namespace_names.push_back("devspec.bb["+didx+"].setpoint");
+            }
+            tables.push_back(cosmos2table(schema_name, table_name, column_names, namespace_names, "insert ignore"));
+            column_names.clear();
+            namespace_names.clear();
+
             // bcregstruc table
             table_name = "bcregstruc";
             column_names.push_back("node_name");
@@ -3642,6 +3687,28 @@ namespace Cosmos
                 namespace_names.push_back("devspec.bcreg["+didx+"].mpptin_volt");
                 namespace_names.push_back("devspec.bcreg["+didx+"].mpptout_amp");
                 namespace_names.push_back("devspec.bcreg["+didx+"].mpptout_volt");
+            }
+            tables.push_back(cosmos2table(schema_name, table_name, column_names, namespace_names, "insert ignore"));
+            column_names.clear();
+            namespace_names.clear();
+
+            // coolerstruc table
+            table_name = "coolerstruc";
+            column_names.push_back("node_name");
+            column_names.push_back("didx");
+            column_names.push_back("utc");
+            column_names.push_back("temp");
+            column_names.push_back("status");
+            column_names.push_back("setpoint");
+            for (uint16_t i=0; i<cinfo->devspec.cooler.size(); ++i)
+            {
+                string didx = std::to_string(i);
+                namespace_names.push_back("node.name");
+                namespace_names.push_back("devspec.cooler["+didx+"].didx");
+                namespace_names.push_back("devspec.cooler["+didx+"].utc");
+                namespace_names.push_back("devspec.cooler["+didx+"].temp");
+                namespace_names.push_back("devspec.cooler["+didx+"].status");
+                namespace_names.push_back("devspec.cooler["+didx+"].setpoint");
             }
             tables.push_back(cosmos2table(schema_name, table_name, column_names, namespace_names, "insert ignore"));
             column_names.clear();
@@ -3693,6 +3760,28 @@ namespace Cosmos
             column_names.clear();
             namespace_names.clear();
 
+            // lens table
+            table_name = "lensstruc";
+            column_names.push_back("node_name");
+            column_names.push_back("didx");
+            column_names.push_back("utc");
+            column_names.push_back("temp");
+            column_names.push_back("status");
+            column_names.push_back("index");
+            for (uint16_t i=0; i<cinfo->devspec.lens.size(); ++i)
+            {
+                string didx = std::to_string(i);
+                namespace_names.push_back("node.name");
+                namespace_names.push_back("devspec.lens["+didx+"].didx");
+                namespace_names.push_back("devspec.lens["+didx+"].utc");
+                namespace_names.push_back("devspec.lens["+didx+"].temp");
+                namespace_names.push_back("devspec.lens["+didx+"].status");
+                namespace_names.push_back("devspec.lens["+didx+"].index");
+            }
+            tables.push_back(cosmos2table(schema_name, table_name, column_names, namespace_names, "insert ignore"));
+            column_names.clear();
+            namespace_names.clear();
+
             // magstruc table
             table_name = "magstruc";
             column_names.push_back("node_name");
@@ -3707,9 +3796,9 @@ namespace Cosmos
                 namespace_names.push_back("node.name");
                 namespace_names.push_back("devspec.mag["+didx+"].didx");
                 namespace_names.push_back("devspec.mag["+didx+"].utc");
-                namespace_names.push_back("devspec.mag["+didx+"].col[0]");
-                namespace_names.push_back("devspec.mag["+didx+"].col[1]");
-                namespace_names.push_back("devspec.mag["+didx+"].col[2]");
+                namespace_names.push_back("devspec.mag["+didx+"].mag_x");
+                namespace_names.push_back("devspec.mag["+didx+"].mag_y");
+                namespace_names.push_back("devspec.mag["+didx+"].mag_z");
             }
             tables.push_back(cosmos2table(schema_name, table_name, column_names, namespace_names, "insert ignore"));
             column_names.clear();
@@ -3897,6 +3986,18 @@ namespace Cosmos
             init += "PRIMARY KEY (node_name, didx, utc)\n";
             init += ");\n";
 
+            init += "CREATE TABLE IF NOT EXISTS " + schema_name + ".bbstruc (\n";
+            init += "node_name VARCHAR(40) NOT NULL,\n";
+            init += "didx TINYINT UNSIGNED NOT NULL, #devicestruc\n";
+            init += "utc DOUBLE NOT NULL, #devicestruc\n";
+            init += "volt DECIMAL(5,2), #devicestruc\n";
+            init += "amp DECIMAL(5,2), #devicestruc\n";
+            init += "power DECIMAL(5,2), #devicestruc\n";
+            init += "temp DECIMAL(5,2), #devicestruc\n";
+            init += "setpoint DECIMAL(5,1), #bbstruc\n";
+            init += "PRIMARY KEY (node_name, didx, utc)\n";
+            init += ");\n";
+
             init += "CREATE TABLE IF NOT EXISTS " + schema_name + ".bcregstruc (\n";
             init += "node_name VARCHAR(40) NOT NULL,\n";
             init += "didx TINYINT UNSIGNED NOT NULL, #devicestruc\n";
@@ -3912,6 +4013,14 @@ namespace Cosmos
             init += "PRIMARY KEY (node_name, didx, utc)\n";
             init += ");\n";
 
+            init += "CREATE TABLE IF NOT EXISTS " + schema_name + ".coolerstruc (\n";
+            init += "node_name VARCHAR(40) NOT NULL,\n";
+            init += "didx TINYINT UNSIGNED NOT NULL, #devicestruc\n";
+            init += "utc DOUBLE NOT NULL, #devicestruc\n";
+            init += "temp DECIMAL(5,2), #devicestruc\n";
+            init += "status TINYINT UNSIGNED,    #coolerstruc\n";
+            init += "setpoint DECIMAL(5,2),  #coolerstruc\n";
+
             init += "CREATE TABLE IF NOT EXISTS " + schema_name + ".cpustruc (\n";
             init += "node_name VARCHAR(40) NOT NULL,\n";
             init += "didx TINYINT UNSIGNED NOT NULL, #devicestruc\n";
@@ -3922,6 +4031,16 @@ namespace Cosmos
             init += "gib DECIMAL(5,2),   #cpustruc\n";
             init += "boot_count INT UNSIGNED,    #cpustruc\n";
             init += "storage DECIMAL(5,2),   #cpustruc\n";
+            init += "PRIMARY KEY (node_name, didx, utc)\n";
+            init += ");\n";
+
+            init += "CREATE TABLE IF NOT EXISTS " + schema_name + ".lensstruc (\n";
+            init += "node_name VARCHAR(40) NOT NULL,\n";
+            init += "didx TINYINT UNSIGNED NOT NULL, #devicestruc\n";
+            init += "utc DOUBLE NOT NULL, #devicestruc\n";
+            init += "temp TINYINT UNSIGNED,\n";
+            init += "status DECIMAL(5,2),\n";
+            init += "index INT SIGNED,\n";
             init += "PRIMARY KEY (node_name, didx, utc)\n";
             init += ");\n";
 

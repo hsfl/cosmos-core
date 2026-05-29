@@ -51,17 +51,27 @@ namespace Cosmos {
                 {
                     if ((*iter).state == 0)
                     {
-                        (*iter).result = std::async(std::launch::async, [=] { return data_task((*iter).command, (*iter).path, (*iter).timeout); });
+                        auto temp_command = (*iter).command;
+                        auto temp_path    = (*iter).path;
+                        auto temp_timeout = (*iter).timeout;
+                        (*iter).result = std::async(std::launch::async, [=] { return data_task(temp_command, temp_path, temp_timeout); });
                         (*iter).state = 1;
                     }
                     else if ((*iter).state == 1)
                     {
                         if ((*iter).result.valid() && (*iter).result.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
                         {
-                            (*iter).iretn = (*iter).result.get();
+                            // Catch any exceptions that may have been thrown by the async call
+                            try {
+                                (*iter).iretn = (*iter).result.get();
+                            } catch (const std::future_error& e) {
+                                std::cerr << "Future misuse: " << e.what() << "\n";
+                            } catch (const std::exception& e) {
+                                std::cerr << "Task failed: " << e.what() << "\n";
+                            } catch (...) {
+                                std::cerr << "Task failed with non-std exception.\n";
+                            }
                             (*iter).state = 2;
-//                            log_move_file((*iter).path, data_base_path(NodeName, "outgoing", AgentName, data_name((*iter).startmjd, "out", NodeName, AgentName)), true);
-//                            (*iter).path = data_base_path(NodeName, "temp", AgentName, data_name((*iter).startmjd, "out", NodeName, AgentName));
                             log_move_file((*iter).path, string_replace((*iter).path, "/temp/", "/outgoing/"), true);
                         }
                     }
@@ -82,6 +92,7 @@ namespace Cosmos {
             tasks.back().state = 0;
             tasks.back().command = command;
             tasks.back().timeout = timeout;
+            const int32_t task_identifier = decisec(tasks.back().startmjd);
             if (node.empty())
             {
                 tasks.back().path = data_base_path(NodeName, "temp", AgentName, data_name(tasks.back().startmjd, "task", NodeName, AgentName));
@@ -91,7 +102,7 @@ namespace Cosmos {
                 tasks.back().path = data_base_path(node, "temp", AgentName, data_name(tasks.back().startmjd, "task", NodeName, AgentName));
             }
             mtx.unlock();
-            return tasks.size();
+            return task_identifier;
         }
 
         int32_t Task::Del(uint32_t deci)
@@ -111,6 +122,22 @@ namespace Cosmos {
             }
             mtx.unlock();
             return tasks.size();
+        }
+
+        int32_t Task::Exists(uint32_t deci)
+        {
+            int32_t found = 0;
+            mtx.lock();
+            for(auto iter=tasks.begin(); iter!=tasks.end(); ++iter)
+            {
+                // Consider only the tasks that need to run or are currently running
+                if (deci == decisec((*iter).startmjd) && (*iter).state < 2)
+                {
+                    found += 1;
+                }
+            }
+            mtx.unlock();
+            return found;
         }
 
         int32_t Task::Iretn(uint16_t number)

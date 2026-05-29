@@ -33,10 +33,11 @@ double deltautc = 0.;
 string formation = "string";
 double spacing = 1000.;
 string realmname = "propagate";
-string orbitfile = "orbit.dat";
-string satfile = "sats.dat";
+string orbitfile = "";
+string satfile = "";
 string targetfile = "targets.dat";
 string tlefile = "tle.dat";
+string dump ="";
 string pointingfile;
 map<uint32_t, vector<Physics::Simulator::pointing_info>> pschedule;
 double runcount = 1500;
@@ -89,6 +90,17 @@ int main(int argc, char *argv[])
     sim->Init(simdt, realmname);
     sim->ParseOrbitFile();
     sim->ParseSatFile(satfile);
+
+    if (!dump.empty())
+    {
+        Physics::Simulator::StateList::iterator sit = sim->GetNode(dump);
+        if (sit != sim->cnodes.end())
+        {
+            json_dump_node(&(*sit)->currentinfo);
+        }
+        exit (1);
+    }
+
     if (jsonevent)
     {
         printf("{\"sats\":[\n");
@@ -267,6 +279,10 @@ int main(int argc, char *argv[])
             {
                 for (eventstruc event : sim->cnodes[i]->currentinfo.event)
                 {
+                    if (event.utc == 0.)
+                    {
+                        continue;
+                    }
                     if (printevent)
                     {
                         string output = "type: event";
@@ -307,15 +323,14 @@ int main(int argc, char *argv[])
                     if (postevent)
                     {
                         json11::Json jobj = json11::Json::object({
-                            {"type", "event"},
-                            {"node_name", sim->cnodes[i]->currentinfo.node.name},
+                            {"mtype", "event"},
+                            {"node", sim->cnodes[i]->currentinfo.node.name},
                             {"utc", event.utc},
-                            {"event_utc", event.utc},
-                            {"event_name", event.name},
-                            {"event_type", static_cast<int>(event.type)},
-                            {"event_flag", static_cast<int>(event.flag)},
-                            {"event_el", event.el},
-                            {"event_az", event.az},
+                            {"name", event.name},
+                            {"type", static_cast<int>(event.type)},
+                            {"flag", static_cast<int>(event.flag)},
+                            {"el", event.el},
+                            {"az", event.az},
                             {"geodpos", sim->cnodes[i]->currentinfo.node.loc.pos.geod.s}
                         });
                         string output = jobj.dump();
@@ -407,13 +422,13 @@ int main(int argc, char *argv[])
                 sim->cnodes[i]->currentinfo.devspec.cpu[0].maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/1073741824.);
                 sim->cnodes[i]->currentinfo.devspec.cpu[0].maxload = deviceCpu.getCpuCount();
                 json11::Json jobj = json11::Json::object({
-                    {"type", "soh"},
+                    {"mtype", "soh"},
                     {"utc", sim->cnodes[i]->currentinfo.node.utc},
-                    {"node_name", sim->cnodes[i]->currentinfo.node.name},
+                    {"node", sim->cnodes[i]->currentinfo.node.name},
                     {"pvstrg", sim->cnodes[i]->currentinfo.devspec.pvstrg},
                     {"tsen", sim->cnodes[i]->currentinfo.devspec.tsen},
                     {"ecipos", sim->cnodes[i]->currentinfo.node.loc.pos.eci},
-                    {"alphatt", sim->cnodes[i]->currentinfo.node.loc.att.icrf},
+                    {"alphaatt", sim->cnodes[i]->currentinfo.node.loc.att.icrf},
                     {"powerin", sim->cnodes[i]->currentinfo.node.phys.powgen},
                     {"powerout", sim->cnodes[i]->currentinfo.node.phys.powuse},
                     {"load", sim->cnodes[i]->currentinfo.devspec.cpu[0].load / sim->cnodes[i]->currentinfo.devspec.cpu[0].maxload},
@@ -1344,6 +1359,11 @@ int32_t parse_control(string args)
     //        ++argcount;
     //        minaccelratio = jargs["minaccelratio"].number_value();
     //    }
+    if (!jargs["dump"].is_null())
+    {
+        ++argcount;
+        dump = jargs["dump"].string_value();
+    }
     if (!jargs["satfile"].is_null())
     {
         ++argcount;
