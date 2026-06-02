@@ -231,10 +231,23 @@ namespace Cosmos {
  * \param mjd Modified Julian Day
  * \return Calendar representation in ::calstruc
 */
-        calstruc mjd2cal(double mjd)
+        calstruc mjd2cal(double mjd, uint8_t resolution)
         {
             static double lmjd = 0.;
             static calstruc date;
+
+            switch (resolution)
+            {
+            case 3:
+                mjd = static_cast<uint32_t>(mjd * 24. + 0.5) / 24.;
+                break;
+            case 2:
+                mjd = static_cast<uint32_t>(mjd * 1440. + 0.5) / 1440.;
+                break;
+            case 1:
+                mjd = static_cast<uint64_t>(mjd * 86400. + 0.5) / 86400.;
+                break;
+            }
 
             if (lmjd != mjd)
             {
