@@ -2680,8 +2680,10 @@ int32_t data_execute(string cmd, string& result, float timer, string shell)
         accum.resize(size);
 //        result.clear();
 
+        ElapsedTime et;
         do
         {
+            if (et.split() >= timer) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
             //Reads stream from child stdout
             bSuccess = ReadFile(g_hChildStd_OUT_Rd, (LPVOID)&accum[0], size-1, &dwRead, NULL);
             if (!bSuccess || dwRead == 0)

@@ -2222,8 +2222,10 @@ int32_t State::Propagate(double nextutc)
         nextutc = currentinfo.node.utc + dtj;
     }
 
+    ElapsedTime et;
     while ((nextutc - currentinfo.node.utc) > dtj / 2.)
     {
+        if (et.split() > 60.) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
         PhysCalc(&currentinfo.node.loc, &currentinfo.node.phys);
 
         // Thermal
@@ -2634,8 +2636,10 @@ int32_t IterativeAttitudePropagator::Propagate(double nextutc)
     {
         nextutc = currentutc + dtj;
     }
+    ElapsedTime et;
     while ((nextutc - currentutc) > dtj / 2.)
     {
+        if (et.split() > 60.) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
         currentutc += dtj;
         // Calculate new a from ftorque
         currentinfo->node.phys.ctorque = currentinfo->node.phys.ftorque;
@@ -2842,8 +2846,10 @@ int32_t ThermalPropagator::Propagate(double nextutc)
     {
         nextutc = currentutc + dtj;
     }
+    ElapsedTime et;
     while ((nextutc - currentutc) > dtj / 2.)
     {
+        if (et.split() > 60.) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
         currentutc += dtj;
         double energyd = 0.;
         double heatratio = currentinfo->node.phys.heat / currentinfo->node.phys.mass;
@@ -2970,8 +2976,10 @@ int32_t ElectricalPropagator::Propagate(double nextutc)
     {
         nextutc = currentutc + dtj;
     }
+    ElapsedTime et;
     while ((nextutc - currentutc) > dtj / 2.)
     {
+        if (et.split() > 60.) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
         currentutc += dtj;
 
         currentinfo->node.phys.powgen = 0.;
@@ -3125,8 +3133,10 @@ int32_t OrbitalEventGenerator::Propagate(double nextutc)
     {
         nextutc = currentutc + dtj;
     }
+    ElapsedTime et;
     while ((nextutc - currentutc) > dtj / 2.)
     {
+        if (et.split() > 60.) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
         currentutc += dtj;
 
         check_all_event(false);
@@ -4123,8 +4133,10 @@ int32_t LunarPositionPropagator::Propagate(double nextutc)
         nextutc = currentutc + dtj;
     }
 
+    ElapsedTime et;
     while ((nextutc - currentutc) > dtj / 2.)
     {
+        if (et.split() > 60.) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
         currentutc += dtj;
         //                Vector normal, unitv, unitx, unitp, unitp1, unitp2;
         //                Vector lunitp1(.1,.1,0.);
@@ -4440,8 +4452,10 @@ int32_t LvlhPositionPropagator::Propagate(locstruc &loc)
 {
     double nextutc = loc.pos.geod.utc;
     pos_lvlh2origin(currentinfo->node.loc);
+    ElapsedTime et;
     while ((nextutc - currentutc) > dtj / 2.)
     {
+        if (et.split() > 60.) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
         currentutc += dtj;
         currentinfo->node.loc.pos.lvlh.utc = currentutc;
         currentinfo->node.loc.pos.lvlh.a += dt * currentinfo->node.loc.pos.lvlh.j;
@@ -4509,8 +4523,10 @@ int32_t IterativePositionPropagator::Propagate(double nextutc)
     {
         nextutc = currentutc + dtj;
     }
+    ElapsedTime et;
     while ((nextutc - currentutc) > dtj / 2.)
     {
+        if (et.split() > 60.) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
         currentutc += dtj;
         currentinfo->node.loc.pos.sci.utc = currentutc;
         currentinfo->node.loc.pos.sci.s += dt * (currentinfo->node.loc.pos.sci.v + dt * ((1/2.) * currentinfo->node.loc.pos.sci.a + dt * (1.6) * currentinfo->node.loc.pos.sci.j));
@@ -4569,8 +4585,10 @@ int32_t TlePositionPropagator::Propagate(double nextutc)
     {
         nextutc = currentutc + dtj;
     }
+    ElapsedTime et;
     while ((nextutc - currentutc) > dtj / 2.)
     {
+        if (et.split() > 60.) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
         currentutc += dtj;
         tle2eci(currentutc, currentinfo->node.loc.tle, currentinfo->node.loc.pos.eci);
         currentinfo->node.loc.pos.sci.pass++;
@@ -4978,8 +4996,10 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
         nextutc = currentutc + dtj;
     }
 
+    ElapsedTime et;
     while ((nextutc - currentutc) > dtj / 2.)
     {
+        if (et.split() > 60.) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
         currentutc += dtj;
         //                Vector normal, unitv, unitx, unitp, unitp1, unitp2;
         //                Vector lunitp1(.1,.1,0.);
