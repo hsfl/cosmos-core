@@ -233,9 +233,18 @@ int main(int argc, char *argv[])
             sumdeltav[i].x = sumdeltav[i].x + sim->dt * fabs(sim->cnodes[i]->currentinfo.node.phys.fpush.x) / sim->cnodes[i]->currentinfo.node.phys.mass;
             sumdeltav[i].y = sumdeltav[i].y + sim->dt * fabs(sim->cnodes[i]->currentinfo.node.phys.fpush.y) / sim->cnodes[i]->currentinfo.node.phys.mass;
             sumdeltav[i].z = sumdeltav[i].z + sim->dt * fabs(sim->cnodes[i]->currentinfo.node.phys.fpush.z) / sim->cnodes[i]->currentinfo.node.phys.mass;
-            delta[i].s = sim->cnodes[i]->currentinfo.node.loc.pos.eci.s - sim->cnodes[i]->currentinfo.node.loc_req.pos.eci.s;
-            delta[i].v = sim->cnodes[i]->currentinfo.node.loc.pos.eci.v - sim->cnodes[i]->currentinfo.node.loc_req.pos.eci.v;
-            delta[i].a = sim->cnodes[i]->currentinfo.node.loc.pos.eci.a - sim->cnodes[i]->currentinfo.node.loc_req.pos.eci.a;
+            if (sim->cnodes[i]->currentinfo.node.loc.pos.extra.closest == COSMOS_MOON)
+            {
+                delta[i].s = sim->cnodes[i]->currentinfo.node.loc.pos.sci.s - sim->cnodes[i]->currentinfo.node.loc_req.pos.sci.s;
+                delta[i].v = sim->cnodes[i]->currentinfo.node.loc.pos.sci.v - sim->cnodes[i]->currentinfo.node.loc_req.pos.sci.v;
+                delta[i].a = sim->cnodes[i]->currentinfo.node.loc.pos.sci.a - sim->cnodes[i]->currentinfo.node.loc_req.pos.sci.a;
+            }
+            else
+            {
+                delta[i].s = sim->cnodes[i]->currentinfo.node.loc.pos.eci.s - sim->cnodes[i]->currentinfo.node.loc_req.pos.eci.s;
+                delta[i].v = sim->cnodes[i]->currentinfo.node.loc.pos.eci.v - sim->cnodes[i]->currentinfo.node.loc_req.pos.eci.v;
+                delta[i].a = sim->cnodes[i]->currentinfo.node.loc.pos.eci.a - sim->cnodes[i]->currentinfo.node.loc_req.pos.eci.a;
+            }
             if (settle && !settled[i] && length_rv(delta[i].s) < 5. && length_rv(delta[i].v) < .5)
             {
                 settled[i] = true;
@@ -351,6 +360,20 @@ int main(int argc, char *argv[])
                 output += to_label("\tnode", sim->cnodes[i]->currentinfo.node.name);
                 output += to_label("\tdt", to_floating(86400.*(sim->cnodes[i]->currentinfo.node.utc-sim->initialutc), 1));
                 output += to_label("\tutc", to_mjd(sim->cnodes[i]->currentinfo.node.utc));
+                if (sim->cnodes[i]->currentinfo.node.loc.pos.extra.closest == COSMOS_MOON)
+                {
+                    output += to_label("\tscix", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.sci.s.col[0], 1));
+                    output += to_label("\tsciy", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.sci.s.col[1], 1));
+                    output += to_label("\tsciz", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.sci.s.col[2], 1));
+                    output += to_label("\tscivx", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.sci.v.col[0], 2));
+                    output += to_label("\tscivy", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.sci.v.col[1], 2));
+                    output += to_label("\tscivz", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.sci.v.col[2], 2));
+                    output += to_label("\tsciax", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.sci.a.col[0], 3));
+                    output += to_label("\tsciay", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.sci.a.col[1], 3));
+                    output += to_label("\tsciaz", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.sci.a.col[2], 3));
+                }
+                else
+                {
                 output += to_label("\tecix", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.s.col[0], 1));
                 output += to_label("\teciy", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.s.col[1], 1));
                 output += to_label("\teciz", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.s.col[2], 1));
@@ -360,6 +383,7 @@ int main(int argc, char *argv[])
                 output += to_label("\teciax", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.a.col[0], 3));
                 output += to_label("\teciay", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.a.col[1], 3));
                 output += to_label("\teciaz", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.a.col[2], 3));
+                }
                 output += to_label("\tpowerin", to_floating(sim->cnodes[i]->currentinfo.node.phys.powgen, 2));
                 output += to_label("\tpowerout", to_floating(sim->cnodes[i]->currentinfo.node.phys.powuse, 2));
                 sim->cnodes[i]->currentinfo.devspec.cpu[0].load = static_cast <float>(deviceCpu.getLoad());
@@ -427,6 +451,7 @@ int main(int argc, char *argv[])
                     {"node", sim->cnodes[i]->currentinfo.node.name},
                     {"pvstrg", sim->cnodes[i]->currentinfo.devspec.pvstrg},
                     {"tsen", sim->cnodes[i]->currentinfo.devspec.tsen},
+                    {"closest", static_cast<int>(sim->cnodes[i]->currentinfo.node.loc.pos.extra.closest)},
                     {"ecipos", sim->cnodes[i]->currentinfo.node.loc.pos.eci},
                     {"alphaatt", sim->cnodes[i]->currentinfo.node.loc.att.icrf},
                     {"powerin", sim->cnodes[i]->currentinfo.node.phys.powgen},

@@ -697,7 +697,8 @@ int32_t Simulator::ParseOrbitString(string args)
             endutc = initialutc + deltautc;
         }
 
-        // --- orbital elements (MODE B takes priority when "a" is present) ---
+        // --- orbital elements (MODE B takes priority when "a"/"sma" is present,
+        //     or when "e" is given explicitly alongside "alt") ---
         double a, e_f, incl, raan, aop, ta;
 
         incl = RADOF(values["inc"].number_value());         // always required
@@ -710,14 +711,31 @@ int32_t Simulator::ParseOrbitString(string args)
                ? 0.
                : RADOF(values["ta"].number_value());
 
-        if (!values["a"].is_null())
+        // Resolve semi-major axis: accept "a" or "sma" as the key
+        bool have_sma = !values["a"].is_null() || !values["sma"].is_null();
+        bool have_ecc = !values["e"].is_null();
+
+        if (have_sma)
         {
             // MODE B — full Keplerian elements supplied directly
-            a   = values["a"].number_value();
-            e_f = values["e"].is_null() ? 0. : values["e"].number_value();
-            // Derive mean altitude for the RAAN-rate formula (r_mean = a for circular;
-            // for small e use semi-latus rectum altitude at π/2 as representative)
+            a   = values["a"].is_null()
+                  ? values["sma"].number_value()
+                  : values["a"].number_value();
+            e_f = have_ecc ? values["e"].number_value() : 0.;
             flo_alt_m = a - FLO_RM;
+            std::fprintf(stderr, "[flo] Mode B: a=%.1f m  e=%.5f  i=%.2f°  "
+                         "raan=%.2f°  aop=%.2f°  ta=%.2f°\n",
+                         a, e_f, DEGOF(incl), DEGOF(raan), DEGOF(aop), DEGOF(ta));
+        }
+        else if (!values["alt"].is_null() && have_ecc)
+        {
+            // MODE B via alt+e — altitude and eccentricity given explicitly
+            flo_alt_m = values["alt"].number_value();
+            a         = FLO_RM + flo_alt_m;
+            e_f       = values["e"].number_value();
+            std::fprintf(stderr, "[flo] Mode B (alt+e): alt=%.0f m  a=%.1f m  "
+                         "e=%.5f  i=%.2f°  raan=%.2f°  aop=%.2f°  ta=%.2f°\n",
+                         flo_alt_m, a, e_f, DEGOF(incl), DEGOF(raan), DEGOF(aop), DEGOF(ta));
         }
         else
         {
@@ -725,6 +743,9 @@ int32_t Simulator::ParseOrbitString(string args)
             flo_alt_m = values["alt"].number_value();
             a         = FLO_RM + flo_alt_m;
             e_f       = flo_frozen_eccentricity(flo_alt_m, incl);
+            std::fprintf(stderr, "[flo] Mode A: alt=%.0f m  a=%.1f m  "
+                         "e_frozen=%.5f  i=%.2f°\n",
+                         flo_alt_m, a, e_f, DEGOF(incl));
         }
 
         // ── Convert Keplerian elements to ECI Cartesian ──────────────────────
@@ -787,6 +808,9 @@ int32_t Simulator::ParseOrbitString(string args)
         flo_enabled        = true;
         flo_incl_rad       = incl;
         flo_raan_rate_rads = flo_raan_rate(flo_alt_m, incl); // rad/s, negative = westward
+        // Signal to ParseSatString / AddNode that this is a lunar orbit so
+        // PositionLunar is used instead of the default Earth-centred propagator.
+        flo_ptype = Propagator::Type::PositionLunar;
     }
     pos_eci(initialloc);
     if (initialloc.tle.utc == 0.)
@@ -990,13 +1014,18 @@ int32_t Simulator::ParseSatString(string args)
         {
             type = "HEX65W80H";
         }
-        if (fastcalc)
+        if (fastcalc && !flo_enabled)
         {
             iretn = AddNode(nodename, type, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeIterative, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.tle, initialloc.att.icrf);
         }
         else
         {
-            iretn = AddNode(nodename, type, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeIterative, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
+            // Use PositionLunar when a frozen lunar orbit was configured;
+            // fall back to GaussJackson for Earth orbits.
+            Physics::Propagator::Type ptype = flo_enabled
+                ? flo_ptype
+                : Physics::Propagator::PositionGaussJackson;
+            iretn = AddNode(nodename, type, ptype, Physics::Propagator::AttitudeIterative, Physics::Propagator::Thermal, Physics::Propagator::Electrical, initialloc.pos.eci, initialloc.att.icrf);
         }
     }
     else
@@ -1009,13 +1038,16 @@ int32_t Simulator::ParseSatString(string args)
         {
             type = "U12XY";
         }
-        if (fastcalc)
+        if (fastcalc && !flo_enabled)
         {
             iretn = AddNode(nodename, type, Physics::Propagator::PositionTle, Physics::Propagator::AttitudeIterative, Physics::Propagator::Thermal, Physics::Propagator::Electrical, satloc.tle, initialloc.att.icrf);
         }
         else
         {
-            iretn = AddNode(nodename, type, Physics::Propagator::PositionGaussJackson, Physics::Propagator::AttitudeIterative, Physics::Propagator::Thermal, Physics::Propagator::Electrical, satloc.pos.eci, initialloc.att.icrf);
+            Physics::Propagator::Type ptype = flo_enabled
+                ? flo_ptype
+                : Physics::Propagator::PositionGaussJackson;
+            iretn = AddNode(nodename, type, ptype, Physics::Propagator::AttitudeIterative, Physics::Propagator::Thermal, Physics::Propagator::Electrical, satloc.pos.eci, initialloc.att.icrf);
         }
     }
 
@@ -1661,6 +1693,9 @@ int32_t Simulator::Propagate(double nextutc)
         case Physics::Propagator::Type::PositionGaussJackson:
         case Physics::Propagator::Type::PositionGeo:
         case Physics::Propagator::Type::PositionTle:
+            iretn = state->Propagate(currentutc);
+            break;
+        case Physics::Propagator::Type::PositionLunar:
             iretn = state->Propagate(currentutc);
             break;
         case Physics::Propagator::Type::PositionLvlh:

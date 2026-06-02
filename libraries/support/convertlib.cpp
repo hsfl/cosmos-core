@@ -426,29 +426,40 @@ int32_t pos_eci(locstruc &loc)
     }
 
     // Set closest
-    double moongrav = MMOON / (length_rv(loc.pos.sci.s) * length_rv(loc.pos.sci.s));
-    double earthgrav = MEARTH / (length_rv(loc.pos.eci.s) * length_rv(loc.pos.eci.s));
+    rvector icrf_s = rv_add(loc.pos.eci.s, loc.pos.extra.sun2earth.s);
+    rvector sci_s = rv_sub(icrf_s, loc.pos.extra.sun2moon.s);
+    double moongrav  = MMOON  / (length_rv(sci_s)          * length_rv(sci_s));
+    double earthgrav = MEARTH / (length_rv(loc.pos.eci.s)  * length_rv(loc.pos.eci.s));
     loc.pos.extra.closest = COSMOS_EARTH;
     if (earthgrav < moongrav)
     {
         loc.pos.extra.closest = COSMOS_MOON;
     }
-    pos_lvlh(loc);
 
     // Set adjoining positions
-    if (loc.pos.eci.pass > loc.pos.icrf.pass)
-    {
-        pos_eci2icrf(loc);
-        pos_icrf(loc);
-    }
     if (loc.pos.eci.pass > loc.pos.geoc.pass)
     {
         pos_eci2geoc(loc);
         pos_geoc(loc);
     }
+    if (loc.pos.eci.pass > loc.pos.icrf.pass)
+    {
+        pos_eci2icrf(loc);
+        pos_icrf(loc);
+    }
+    if (loc.pos.eci.pass > loc.pos.sci.pass)
+    {
+        if (loc.pos.eci.pass > loc.pos.icrf.pass)
+        {
+            pos_eci2icrf(loc);
+        }
+        pos_icrf2sci(loc);
+        pos_sci(loc);           // sci → selc → selg handled inside pos_sci
+    }
+    pos_lvlh(loc);              // now has geod AND selg valid for both Earth and Moon
 
     // Set related attitude
-    loc.att.icrf.pass = loc.pos.eci.pass;
+    loc.att.icrf.pass = loc.att.selc.pass = loc.pos.eci.pass;
     return 0;
 }
 
@@ -478,15 +489,16 @@ int32_t pos_sci(locstruc &loc)
         return iretn;
     }
 
-    // Set closest
-    double moongrav = MMOON / (length_rv(loc.pos.sci.s) * length_rv(loc.pos.sci.s));
-    double earthgrav = MEARTH / (length_rv(loc.pos.eci.s) * length_rv(loc.pos.eci.s));
+    // Set closest — derive eci_s from sci without relying on loc.pos.eci.s
+    rvector icrf_s = rv_add(loc.pos.sci.s, loc.pos.extra.sun2moon.s);
+    rvector eci_s  = rv_sub(icrf_s, loc.pos.extra.sun2earth.s);
+    double moongrav  = MMOON  / (length_rv(loc.pos.sci.s) * length_rv(loc.pos.sci.s));
+    double earthgrav = MEARTH / (length_rv(eci_s)          * length_rv(eci_s));
     loc.pos.extra.closest = COSMOS_EARTH;
     if (earthgrav < moongrav)
     {
         loc.pos.extra.closest = COSMOS_MOON;
     }
-    pos_lvlh(loc);
 
     // Set adjoining positions
     if (loc.pos.sci.pass > loc.pos.icrf.pass)
@@ -499,9 +511,21 @@ int32_t pos_sci(locstruc &loc)
         pos_sci2selc(loc);
         pos_selc(loc);
     }
-
-    // Set related attitude
-    loc.att.icrf.pass = loc.pos.sci.pass;
+    if (loc.pos.sci.pass > loc.pos.eci.pass)
+    {
+        if (loc.pos.sci.pass > loc.pos.icrf.pass)   // only if not already done above
+        {
+            pos_sci2icrf(loc);
+        }
+        pos_icrf2eci(loc);
+        if (loc.pos.sci.pass > loc.pos.geoc.pass)
+        {
+            pos_eci2geoc(loc);
+            pos_geoc(loc);
+        }
+    }
+    pos_lvlh(loc);              // geoc, sci, selg all valid now
+    loc.att.icrf.pass = loc.att.selc.pass = loc.pos.sci.pass;
     return 0;
 }
 

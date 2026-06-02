@@ -110,6 +110,7 @@ namespace Cosmos
             double flo_alt_m          = 0.;   //!< Altitude above Moon surface (m)
             double flo_incl_rad       = 0.;   //!< Inclination (rad)
             double flo_raan_rate_rads = 0.;   //!< Secular RAAN drift from J2 (rad/s)
+            Propagator::Type flo_ptype = Propagator::Type::PositionGaussJackson; //!< Set to PositionLunar when flo block parsed
         private:
             bool server;
             int32_t error;

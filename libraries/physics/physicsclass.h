@@ -151,6 +151,7 @@ namespace Cosmos
                 PositionGeo = 13,
                 PositionTle = 14,
                 PositionLvlh = 15,
+                PositionLunar = 16,
                 AttitudeInertial = 20,
                 AttitudeIterative = 21,
                 AttitudeLVLH = 22,
@@ -280,6 +281,64 @@ namespace Cosmos
             double dtsq;
             uint16_t order2;
             vector<gjstruc> step;
+        };
+
+        /**
+         * @brief Selenocentric Gauss-Jackson propagator for lunar orbit.
+         *
+         * The Moon is the central gravitational body.  Earth and Sun are
+         * treated as third-body perturbers using JPL ephemeris vectors
+         * already present in locstruc::pos::extra (sun2earth, sun2moon).
+         *
+         * The state vector in pos.eci is interpreted as Moon-centred
+         * inertial (selenocentric) throughout this propagator.  No Earth
+         * coordinate conversions (pos_eci2geoc, EGM2008) are performed.
+         *
+         * Lunar gravity is modelled as a two-body term scaled by GMOON.
+         * Replace LunarPosAccel() with a selenopotential model (GLGM-3 /
+         * LP150Q) for higher fidelity.
+         */
+        class LunarPositionPropagator : public Propagator
+        {
+        public:
+            uint16_t order;
+
+            LunarPositionPropagator(cosmosstruc *newinfo, double idt, uint16_t iorder = 6)
+                : Propagator{ newinfo, idt }, order{ iorder }
+            {
+                type = PositionLunar;
+                Setup();
+            }
+
+            int32_t Setup();
+            int32_t Init();
+            int32_t Converge();
+            int32_t Propagate(double nextutc = 0.);
+            int32_t Reset(double nextutc = 0.);
+
+        private:
+            struct gjstruc
+            {
+                rvector s;
+                rvector ss;
+                rvector sa;
+                rvector sb;
+                rvector tau;
+                locstruc loc;
+            };
+
+            vector<vector<double>>   a;
+            vector<vector<double>>   b;
+            vector<vector<int32_t>>  binom;
+            vector<double>           c;
+            vector<double>           gam;
+            vector<vector<double>>   beta;
+            vector<double>           q;
+            vector<double>           lam;
+            vector<vector<double>>   alpha;
+            double                   dtsq;
+            uint16_t                 order2;
+            vector<gjstruc>          step;
         };
 
         class LvlhPositionPropagator : public Propagator
@@ -596,6 +655,7 @@ namespace Cosmos
             GaussJacksonPositionPropagator *gjposition;
             TlePositionPropagator *tleposition;
             LvlhPositionPropagator *lvlhposition;
+            LunarPositionPropagator *lunarposition;
 
             Propagator::Type atype;
             InertialAttitudePropagator *inattitude;
@@ -642,6 +702,7 @@ namespace Cosmos
 
         int32_t PosAccel(locstruc &loc, physicsstruc &physics);
         int32_t PosAccel(locstruc* loc, physicsstruc* physics);
+        int32_t LunarPosAccel(locstruc* loc, physicsstruc* physics);
         int32_t AttAccel(locstruc &loc, physicsstruc &physics);
         int32_t AttAccel(locstruc* loc, physicsstruc* physics);
         int32_t PhysSetup(physicsstruc *phys);
