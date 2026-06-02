@@ -236,7 +236,7 @@ bool GetCameraFrame(gige_handle* handle, uint16_t *A35FrameBuffer, uint32_t Imag
     // Loop untill we get the tail packet (then we return)
     do
 	{
-        if (et.split() > 5.) { return false; }
+        if (et.split() > 300.) { return false; }
         // Loop untill we get a packet
         bytes_recieved=0;
 
@@ -261,6 +261,7 @@ bool GetCameraFrame(gige_handle* handle, uint16_t *A35FrameBuffer, uint32_t Imag
                     return(false);   // Timeout
                 }
             }
+            if (et.split() > 300.) { return false; }
         }
 
         FrameNum = (bufferin[2]<<8) + bufferin[3]; // Get image number
