@@ -15,7 +15,7 @@ namespace Cosmos
     namespace Module
     {
         /**
-         * @brief A default implementation of the Sender interface that sends packets to a Channel.
+         * \brief A default implementation of the Sender interface that sends packets to a Channel.
          */
         class ChannelSender : public Cosmos::Support::Sender
         {
@@ -36,22 +36,22 @@ namespace Cosmos
         public:
             FileModule(Sender* sender, bool keep_errored_files) : transfer(sender), keep_errored_files{keep_errored_files} {}
             /**
-             * @brief Initialize FileModule
+             * \brief Initialize FileModule
              * 
-             * @param agent Reference to main agent of this channel
-             * @param file_transfer_contact_nodes Names of nodes in nodes.ini that this node can transfer files with
-             * @return int32_t 
+             * \param agent Reference to main agent of this channel
+             * \param file_transfer_contact_nodes Names of nodes in nodes.ini that this node can transfer files with
+             * \return int32_t 
              */
             int32_t Init(Agent *agent, const vector<string> file_transfer_contact_nodes);
             void Loop();
 
             /**
-             * @brief Stops the loop.
+             * \brief Stops the loop.
              */
             void soft_shutdown();
             
             /**
-             * @brief Shutdown the FileModule. Closes all file pointers.
+             * \brief Shutdown the FileModule. Closes all file pointers.
             */
             void shutdown();
 

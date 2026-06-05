@@ -31,8 +31,11 @@
 * Contains definitions and functions for running a Yaesu prkx2su
 * controller.
 * @file prkx2su_lib.h
-* @brief prkx2su controller includes
+* \brief prkx2su controller includes
 */
+
+//! \ingroup devices
+//! \defgroup prkx2su Yaesu PRKX2SU antenna rotator controller device library.
 
 #ifndef _prkx2suLIB_H
 #define _prkx2suLIB_H 1
@@ -57,7 +60,7 @@
 /**
 * Internal structure containing the state of the prkx2su and its
 * associated G-5500.
-* @brief prkx2su state
+* \brief prkx2su state
 */
 struct prkx2su_state
 	{

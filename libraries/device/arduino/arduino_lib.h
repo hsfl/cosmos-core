@@ -35,6 +35,9 @@
 #include <sys/ioctl.h>
 #endif
 
+//! \ingroup devices
+//! \defgroup arduino Arduino microcontroller serial device library.
+
 int arduino_init(char* port, int baud);
 int arduino_printstring(char* str);
 int arduino_printnum(int num);

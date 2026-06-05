@@ -284,7 +284,7 @@ namespace Cosmos
         };
 
         /**
-         * @brief Selenocentric Gauss-Jackson propagator for lunar orbit.
+         * \brief Selenocentric Gauss-Jackson propagator for lunar orbit.
          *
          * The Moon is the central gravitational body.  Earth and Sun are
          * treated as third-body perturbers using JPL ephemeris vectors

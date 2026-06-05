@@ -1375,15 +1375,15 @@ namespace Cosmos {
         }
 
         /**
-         * @brief Queues a beacon that sets the system clock of destination node
-         * @param mjd New MJD time, or if less than 3600, is used as an offset in seconds from current time.
-         * @param limit Limit (in seconds). If the delta between the new MJD and current MJD exceeds the limit, clock will not be set. A value of 0 will force the change.
-         * @param bootseconds Unless this value is 0, the system will be rebooted after a delay.
-         * @param agent Pointer to parent agent
-         * @param dest Node ID of destination
-         * @param channelout The Channel ID to send this packet out of
-         * @param radioin The Channel ID of the receiver's receive channel
-         * @return 0 on success, negative on error
+         * \brief Queues a beacon that sets the system clock of destination node
+         * \param mjd New MJD time, or if less than 3600, is used as an offset in seconds from current time.
+         * \param limit Limit (in seconds). If the delta between the new MJD and current MJD exceeds the limit, clock will not be set. A value of 0 will force the change.
+         * \param bootseconds Unless this value is 0, the system will be rebooted after a delay.
+         * \param agent Pointer to parent agent
+         * \param dest Node ID of destination
+         * \param channelout The Channel ID to send this packet out of
+         * \param radioin The Channel ID of the receiver's receive channel
+         * \return 0 on success, negative on error
          */
         int32_t PacketHandler::QueueSetTime(double mjd, float limit, uint16_t bootseconds, Agent* agent, NODE_ID_TYPE dest, const string& channelout, const string& radioin)
         {

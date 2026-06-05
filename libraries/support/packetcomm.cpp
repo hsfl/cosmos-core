@@ -330,7 +330,7 @@ namespace Cosmos {
             return ASMPacketize(data.size() + sizeof(PacketComm::header) + 2 + atsm.size(), false);
         }
 
-        //! @param packet_wrapped_size Size to stuff a packet up to for fixed-sized requirements
+        //! \param packet_wrapped_size Size to stuff a packet up to for fixed-sized requirements
         bool PacketComm::ASMPacketize(uint16_t packet_wrapped_size, bool scramble)
         {
             // 2 is crc size

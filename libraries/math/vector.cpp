@@ -101,14 +101,14 @@ rvector rv_convert(svector from)
 }
 
 /**
- * @brief Rotates a point about an axis
+ * \brief Rotates a point about an axis
  * 
  * Uses Rodrigues' rotation formula (https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula)
  * 
- * @param point Point to rotate
- * @param axis Axis to rotate about
- * @param theta Angle to rotate about axis (in radians)
- * @return rvector Rotated point
+ * \param point Point to rotate
+ * \param axis Axis to rotate about
+ * \param theta Angle to rotate about axis (in radians)
+ * \return rvector Rotated point
  */
 rvector rv_rotate(rvector point, rvector axis, double theta)
 {
@@ -2453,13 +2453,13 @@ namespace Cosmos {
             }
 
             /**
-             * @brief Rotates a point about axis defined by this vector
+             * \brief Rotates a point about axis defined by this vector
              * 
              * Uses Rodrigues' rotation formula (https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula)
              * 
-             * @param point Point to rotate
-             * @param theta Angle to rotate about axis (in radians)
-             * @return Vector Rotated point
+             * \param point Point to rotate
+             * \param theta Angle to rotate about axis (in radians)
+             * \return Vector Rotated point
              */
             Vector Vector::rotate(Vector point, double theta)
             {

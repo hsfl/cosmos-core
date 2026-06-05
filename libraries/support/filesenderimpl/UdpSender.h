@@ -9,7 +9,7 @@ class UdpSender : public Cosmos::Support::Sender
 {
 public:
     /**
-     * @brief Implementation of the Sender interface that sends packets out over UDP.
+     * \brief Implementation of the Sender interface that sends packets out over UDP.
      */
     UdpSender() = default;
     void init(const std::string& ip, uint16_t port);

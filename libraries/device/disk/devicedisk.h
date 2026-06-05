@@ -1,3 +1,6 @@
+//! \ingroup devices
+//! \defgroup devicedisk Disk device information and usage library.
+
 #ifndef DEVICEDISK_H
 #define DEVICEDISK_H
 

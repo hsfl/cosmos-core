@@ -43,6 +43,7 @@ namespace Cosmos {
         /*! \file gige_lib.cpp
 *	\brief gige_lib include file.
 *
+//! \ingroup devices
 *	\defgroup gige GigE Vision support.
 * @{
 * GigE Vision.
@@ -52,6 +53,7 @@ namespace Cosmos {
 */
 
         //! \ingroup gige
+//! \ingroup devices
         //!	\defgroup gige_cmd_constants GigE Vision Command constants
         //!	@{
 
@@ -67,6 +69,7 @@ namespace Cosmos {
         //! @}
 
         //! \ingroup gige
+//! \ingroup devices
         //!	\defgroup gige_ack_constants GigE Vision Acknowledge constants
         //!	@{
 
@@ -81,6 +84,7 @@ namespace Cosmos {
         //! @}
 
         //! \ingroup gige
+//! \ingroup devices
         //!	\defgroup gige_reg_constants GigE Vision Register constants
         //!	@{
 
@@ -172,6 +176,7 @@ namespace Cosmos {
         //! @}
 
         //! \ingroup gige
+//! \ingroup devices
         //!	\defgroup gige_prosilica_constants GigE Vision Prosilica constants
         //!	@{
 
@@ -243,6 +248,7 @@ namespace Cosmos {
         //!	@}
 
         //! \ingroup gige
+//! \ingroup devices
         //! \defgroup gige_typedefs GigE Vision type definitions
         //! @{
         typedef union
@@ -441,6 +447,7 @@ namespace Cosmos {
         //! @}
 
         //! \ingroup gige
+//! \ingroup devices
         //! \defgroup gige_functions GigE Vision functions
         //! @{
 
@@ -482,6 +489,7 @@ namespace Cosmos {
 
 
         //! \ingroup gige
+//! \ingroup devices
         //!	\defgroup gige_a35_constants GigE Vision A35 constants
         //!	@{
 
@@ -545,6 +553,7 @@ namespace Cosmos {
         //!	@}
 
         //! \ingroup gige
+//! \ingroup devices
         //!	\defgroup gige_pt1000_constants GigE Vision PT1000-CL4 constants
         //!	@{
         enum PT1000

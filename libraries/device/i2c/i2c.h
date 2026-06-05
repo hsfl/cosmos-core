@@ -27,6 +27,9 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+//! \ingroup devices
+//! \defgroup i2c I2C bus device class library.
+
 #ifndef COSMOS_DEVICE_I2C_CLASS_H
 #define COSMOS_DEVICE_I2C_CLASS_H
 

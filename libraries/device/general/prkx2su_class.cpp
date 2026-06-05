@@ -17,11 +17,11 @@ namespace Cosmos {
         /**
         * Connects to am MII prkx2su antenna controller, which in turn
         * drives a Yaesu G-5500 antenna controller.
-        * @param dev pointer to a character string with the serial port it is
+        * \param dev pointer to a character string with the serial port it is
         * connected to.
-        * @see cssl_start
-        * @see cssl_open
-        * @see cssl_setflowcontrol
+        * \see cssl_start
+        * \see cssl_open
+        * \see cssl_setflowcontrol
         */
         int32_t Prkx2su::connect()
         {
@@ -107,10 +107,10 @@ namespace Cosmos {
         /**
         * Routine to use in blocking mode. Reads the serial port until a New
         * Line is received, then returns entire buffer.
-        * @param axis Axis to read.
-        * @param buf Pointer to a char buffer
-        * @param buflen 32 bit signed integer indicating the maximum size of the buffer
-        * @return 32 bit signed integer containing the number of bytes read.
+        * \param axis Axis to read.
+        * \param buf Pointer to a char buffer
+        * \param buflen 32 bit signed integer indicating the maximum size of the buffer
+        * \return 32 bit signed integer containing the number of bytes read.
         */
         int32_t Prkx2su::getdata(uint8_t axis, string &buf, uint16_t buflen)
         {
@@ -139,7 +139,7 @@ namespace Cosmos {
         /**
         * Poll controller for Status and Heading. Turns
         * calibration mode on in prkx2su.
-        * @param axis 32 bit signed integer , 0 = Azimuth, 1 = Elevation
+        * \param axis 32 bit signed integer , 0 = Azimuth, 1 = Elevation
         */
         int32_t Prkx2su::get_status(uint8_t axis)
         {
@@ -229,7 +229,7 @@ namespace Cosmos {
         /**
         * Routine to stop current action. Whatever the current command is, it will
         * cancelled before completeion.
-        * @return 0 or negative error.
+        * \return 0 or negative error.
         */
         int32_t Prkx2su::stop(uint8_t axis)
         {

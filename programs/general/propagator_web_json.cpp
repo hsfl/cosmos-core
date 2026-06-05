@@ -171,15 +171,15 @@ int main(int argc, char *argv[])
 ////////////////////////////////////////////
 
 /**
- * @brief Initialize the propagator object
+ * \brief Initialize the propagator object
  * 
  * The propagator object is initialized with the initial conditions specified in 
  * the JSON string \a args.
  * 
- * @param prop prop_unit object to initialize
- * @param args JSON string from the command line argument
- * @param response The response string
- * @return int32_t 0 on success, negative on error
+ * \param prop prop_unit object to initialize
+ * \param args JSON string from the command line argument
+ * \param response The response string
+ * \return int32_t 0 on success, negative on error
  */
 int32_t init_propagator(prop_unit& prop, const string& args, string& response)
 {
@@ -261,14 +261,14 @@ int32_t init_propagator(prop_unit& prop, const string& args, string& response)
 }
 
 /**
- * @brief Run the propagator
+ * \brief Run the propagator
  * 
  * The propagator object is initialized with the initial conditions specified in 
  * the JSON string \a args.
  * 
- * @param prop prop_unit object to run simulation for
- * @param response JSON-encoded string data for one iteration of the propagator
- * @return int32_t 0 on success, negative on error
+ * \param prop prop_unit object to run simulation for
+ * \param response JSON-encoded string data for one iteration of the propagator
+ * \return int32_t 0 on success, negative on error
  */
 int32_t run_propagator(prop_unit& prop, string& response)
 {
@@ -322,13 +322,13 @@ int32_t run_propagator(prop_unit& prop, string& response)
 ////////////////////////////////////////////
 
 /**
- * @brief Validate args provided to propagator
+ * \brief Validate args provided to propagator
  * 
  * Checks that all required fields are provided and are of the correct type.
  * 
- * @param jargs JSON-parsed object of JSON-string provided through command line.
- * @param response Error message, if any.
- * @return int32_t 0 on success, negative on error.
+ * \param jargs JSON-parsed object of JSON-string provided through command line.
+ * \param response Error message, if any.
+ * \return int32_t 0 on success, negative on error.
  */
 int32_t validate_json_args(const json11::Json& jargs, string& response)
 {
@@ -386,13 +386,13 @@ int32_t validate_json_args(const json11::Json& jargs, string& response)
 }
 
 /**
- * @brief Validate initial node parameters
+ * \brief Validate initial node parameters
  * 
  * Checks that all required fields for initializing the node are provided and are of the correct type.
  * 
- * @param node JSON-parsed object in the array of nodes, from the nodes field of the JSON args.
- * @param response Error messages, if any.
- * @return int32_t 0 on success, negative on error.
+ * \param node JSON-parsed object in the array of nodes, from the nodes field of the JSON args.
+ * \param response Error messages, if any.
+ * \return int32_t 0 on success, negative on error.
  */
 int32_t validate_json_node(const json11::Json& node, string& response)
 {
@@ -544,14 +544,14 @@ int32_t validate_json_node(const json11::Json& node, string& response)
 ////////////////////////////////////////////
 
 /**
- * @brief Parse initial node conditions from JSON
+ * \brief Parse initial node conditions from JSON
  * 
  * Call validate_json_node() first.
  * 
- * @param prop Propagator object
- * @param nodes JSON-parsed array of nodes with initial conditions.
- * @param response Error messages, if any.
- * @return int32_t 0 on success, negative on error.
+ * \param prop Propagator object
+ * \param nodes JSON-parsed array of nodes with initial conditions.
+ * \param response Error messages, if any.
+ * \return int32_t 0 on success, negative on error.
  */
 int32_t prop_parse_nodes(prop_unit& prop, const json11::Json& nodes, string& response)
 {
@@ -669,11 +669,11 @@ int32_t prop_parse_nodes(prop_unit& prop, const json11::Json& nodes, string& res
 }
 
 /**
- * @brief Append a node telem JSON object containing desired telem fields to output
+ * \brief Append a node telem JSON object containing desired telem fields to output
  * 
- * @param prop prop_unit object with current simulator state
- * @param output Array to push nodes state to
- * @return int32_t 
+ * \param prop prop_unit object with current simulator state
+ * \param output Array to push nodes state to
+ * \return int32_t 
  */
 int32_t create_sim_snapshot(const prop_unit& prop, json11::Json::array& output)
 {

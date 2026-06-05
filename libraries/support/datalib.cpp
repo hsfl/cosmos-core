@@ -796,14 +796,14 @@ size_t data_list_files(string directory, vector<filestruc>& files, uint16_t limi
 }
 
 /**
- * @brief Get list of files and folders in a Node's <location> folder.
+ * \brief Get list of files and folders in a Node's <location> folder.
  * 
  * location is generally incoming or outgoing.
  * Meaning, the intended purpose of this function is to return the agents in, for example, a node's outgoing folder.
  * 
- * @param node Node to search
- * @param location Subdirectory of node to search
- * @return A C++ vector of ::filestruc. Zero size if no files are found.
+ * \param node Node to search
+ * \param location Subdirectory of node to search
+ * \return A C++ vector of ::filestruc. Zero size if no files are found.
  */
 vector<filestruc> data_list_files(string node, string location)
 {
