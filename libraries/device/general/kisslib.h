@@ -27,6 +27,9 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+//! \ingroup devices
+//! \defgroup kisslib KISS protocol framing and AX.25 packet library.
+
 #ifndef KISSLIB
 #define KISSLIB
 

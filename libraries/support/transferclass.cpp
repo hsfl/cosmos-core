@@ -252,7 +252,7 @@ namespace Cosmos {
         //! Scan the outgoing directory of the specified node in txq.
         //! Enqueues new files in its outgoing queue.
         //! Not thread safe.
-        //! @param specific_directory Optional specific directory to scan within the outgoing directory.
+        //! \param specific_directory Optional specific directory to scan within the outgoing directory.
         //! \return Number of files in the outgoing queue, negative on error
         int32_t Transfer::outgoing_tx_load(const string node_name, const string& specific_directory)
         {
@@ -272,7 +272,7 @@ namespace Cosmos {
         //! Enqueues new files in its outgoing queue.
         //! Not thread safe.
         //! \param dest_node_id ID of destination node
-        //! @param specific_directory Optional specific directory to scan within the outgoing directory.
+        //! \param specific_directory Optional specific directory to scan within the outgoing directory.
         //! \return Number of files in this node's outgoing queue, negative on error
         int32_t Transfer::outgoing_tx_load(const uint8_t dest_node_id, const string& specific_directory)
         {
@@ -349,13 +349,13 @@ namespace Cosmos {
         }
 
         /**
-         * @brief Read file data into a buffer, using a pre-read buffer to minimize I/O.
+         * \brief Read file data into a buffer, using a pre-read buffer to minimize I/O.
          * 
-         * @param file File to read from
-         * @param dest Destination buffer to read data into
-         * @param offset Offset into the file to read from
-         * @param size Number of bytes to read from the file
-         * @return Number of bytes read or negative on error.
+         * \param file File to read from
+         * \param dest Destination buffer to read data into
+         * \param offset Offset into the file to read from
+         * \param size Number of bytes to read from the file
+         * \return Number of bytes read or negative on error.
          */
         static int32_t buffered_read(FILE* file, PACKET_BYTE* dest, size_t offset, size_t size)
         {
@@ -1415,10 +1415,10 @@ namespace Cosmos {
         }
 
         /**
-         * @brief Updates internal structures from a received META-type packet
+         * \brief Updates internal structures from a received META-type packet
          * 
-         * @param meta Incoming META packet
-         * @return tx_id on success, negative on failure
+         * \param meta Incoming META packet
+         * \return tx_id on success, negative on failure
          */
         int32_t Transfer::incoming_tx_update(const packet_struct_metadata &meta)
         {
@@ -2601,13 +2601,13 @@ PACKET_NODE_ID_TYPE Transfer::txq_idx_to_node_id(const size_t node_idx)
 }
 
 /**
- * @brief Resets queues, clearing out everything inside to the defaults.
+ * \brief Resets queues, clearing out everything inside to the defaults.
  * 
  * Also clears out all temporary files for specified nodes
  * 
- * @param node_id ID of node
- * @param direction 0 to clear incoming, 1 to clear outgoing, 2 to clear both
- * @return int32_t 
+ * \param node_id ID of node
+ * \param direction 0 to clear incoming, 1 to clear outgoing, 2 to clear both
+ * \return int32_t 
  */
 int32_t Transfer::reset_queue(uint8_t node_id, uint8_t direction)
 {
@@ -2648,11 +2648,11 @@ int32_t Transfer::reset_queue(uint8_t node_id, uint8_t direction)
 }
 
 /**
- * @brief Closes all open file pointers for specified node and direction.
+ * \brief Closes all open file pointers for specified node and direction.
  * 
- * @param node_id ID of node
- * @param direction 0 to close incoming, 1 to close outgoing, 2 to close both
- * @return int32_t 0 on success, negative on error
+ * \param node_id ID of node
+ * \param direction 0 to close incoming, 1 to close outgoing, 2 to close both
+ * \return int32_t 0 on success, negative on error
  */
 int32_t Transfer::close_file_pointers(uint8_t node_id, uint8_t direction)
 {
@@ -2685,10 +2685,10 @@ int32_t Transfer::close_file_pointers(uint8_t node_id, uint8_t direction)
 }
 
 /**
- * @brief Write all metadata progress for the node's transactions.
+ * \brief Write all metadata progress for the node's transactions.
  * 
- * @param node_id ID of node
- * @return int32_t 0 on success, negative on error
+ * \param node_id ID of node
+ * \return int32_t 0 on success, negative on error
  */
 int32_t Transfer::save_progress(uint8_t node_id)
 {
@@ -2740,13 +2740,13 @@ int32_t Transfer::save_progress(uint8_t node_id)
 }
 
 /**
- * @brief Prints out debug information for file packets
+ * \brief Prints out debug information for file packets
  * 
- * @param packet PacketComm packet containing file packet
- * @param direction 0 for incoming, 1 for outgoing
- * @param type Extra print info, generally "outgoing" or "incoming". TODO: deprecate
- * @param debug_log pointer to Logger to use to print
- * @return int32_t 
+ * \param packet PacketComm packet containing file packet
+ * \param direction 0 for incoming, 1 for outgoing
+ * \param type Extra print info, generally "outgoing" or "incoming". TODO: deprecate
+ * \param debug_log pointer to Logger to use to print
+ * \return int32_t 
  */
 void Transfer::print_file_packet(const PacketComm& packet, uint8_t direction, string type, Log::Logger* debug_log)
 {

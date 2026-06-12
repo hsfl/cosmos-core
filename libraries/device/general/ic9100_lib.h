@@ -28,6 +28,9 @@
 ********************************************************************/
 
 
+//! \ingroup devices
+//! \defgroup ic9100 Icom IC-9100 radio transceiver device library.
+
 #ifndef IC9100_LIB_H
 #define IC9100_LIB_H
 

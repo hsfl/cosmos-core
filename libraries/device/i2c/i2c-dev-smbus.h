@@ -22,6 +22,9 @@
 
 /* $Id: i2c-dev.h 5894 2010-12-12 13:22:29Z khali $ */
 
+//! \ingroup devices
+//! \defgroup i2cdevsmbus I2C/SMBus kernel interface definitions library.
+
 #ifndef LIB_I2CDEV_H
 #define LIB_I2CDEV_H
 

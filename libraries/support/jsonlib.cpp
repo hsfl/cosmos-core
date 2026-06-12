@@ -13882,9 +13882,9 @@ int32_t add_node_id(cosmosstruc *cinfo, string node_name)
 
 //! Adds a new entry into the node_ids list.
 //! An error is returned if an existing entry exists with the same node_name or node_id.
-//! @param cinfo Pointer to the ::cosmosstruc to use.
-//! @param node_name Name of the node to add
-//! @param node_id ID of the node to add
+//! \param cinfo Pointer to the ::cosmosstruc to use.
+//! \param node_name Name of the node to add
+//! \param node_id ID of the node to add
 //! \return node_id on success, negative on error
 int32_t add_node_id(cosmosstruc *cinfo, string node_name, uint8_t node_id)
 {
@@ -13904,9 +13904,9 @@ int32_t add_node_id(cosmosstruc *cinfo, string node_name, uint8_t node_id)
 
 //! Updates the node id of the given node name.
 //! If an entry for the node_name does not exist, a new entry will be added.
-//! @param cinfo Pointer to the ::cosmosstruc to use.
-//! @param node_name Name of the node to update
-//! @param node_id New ID of the node
+//! \param cinfo Pointer to the ::cosmosstruc to use.
+//! \param node_name Name of the node to update
+//! \param node_id New ID of the node
 //! \return node_id on success, negative on error
 int32_t change_node_id(cosmosstruc *cinfo, string node_name, uint8_t node_id)
 {
@@ -13920,8 +13920,8 @@ int32_t change_node_id(cosmosstruc *cinfo, string node_name, uint8_t node_id)
 }
 
 //! Remove the entry for the node name.
-//! @param cinfo Pointer to the ::cosmosstruc to use.
-//! @param node_name Name of the node to remove
+//! \param cinfo Pointer to the ::cosmosstruc to use.
+//! \param node_name Name of the node to remove
 //! \return node_id on success, negative if the node name was not found
 int32_t remove_node_id(cosmosstruc *cinfo, string node_name)
 {

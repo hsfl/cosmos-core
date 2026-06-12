@@ -348,7 +348,7 @@ int32_t PosAccel(locstruc* loc, physicsstruc* phys)
 }
 
 /**
- * @brief Acceleration for a lunar orbiter, integrating in the ECI frame.
+ * \brief Acceleration for a lunar orbiter, integrating in the ECI frame.
  *
  * The GJ integrator operates on pos.eci.s/v/a (Earth-centred inertial).
  * Moon gravity is the central body; Earth and Sun are third-body perturbations.

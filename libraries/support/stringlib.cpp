@@ -211,10 +211,10 @@ uint16_t string_parse(char *string, char *words[], uint16_t wmax) {
 
 /// Replace every occurance of a substring within a string with another subtring.
 /** Search through a string for every instance of a specified substring, then replace. For internal use.
-    @param	str		string to search through
-    @param	from	substring to replace
-    @param	to		substring to be replaced with
-    @return	n/a
+    \param	str		string to search through
+    \param	from	substring to replace
+    \param	to		substring to be replaced with
+    \return	n/a
 */
 string string_replace(string str, const string& from, const string& to)
 {
@@ -322,13 +322,13 @@ double StringParser::getFieldNumberAsDouble(uint32_t index)
 int StringParser::getFieldNumberAsInteger(uint32_t index) { return getFieldNumberAsDouble(index); }
 
 /**
- * @brief Convert byte array to human-readable string
+ * \brief Convert byte array to human-readable string
  *
- * @param buffer Pointer to byte array
- * @param size Length of array
- * @param ascii If true, converts alphanumeric and whitespace ascii values to equivalent ascii character
- * @param start Offset to start in buffer
- * @return Human-readable string
+ * \param buffer Pointer to byte array
+ * \param size Length of array
+ * \param ascii If true, converts alphanumeric and whitespace ascii values to equivalent ascii character
+ * \param start Offset to start in buffer
+ * \return Human-readable string
  */
 string to_hex_string(uint8_t* buffer, uint16_t size, bool ascii, uint16_t start)
 {
@@ -338,12 +338,12 @@ string to_hex_string(uint8_t* buffer, uint16_t size, bool ascii, uint16_t start)
 }
 
 /**
- * @brief Convert byte vector to human-readable string
+ * \brief Convert byte vector to human-readable string
  * 
- * @param buffer Byte vector
- * @param ascii If true, converts alphanumeric and whitespace ascii values to equivalent ascii character
- * @param start Offset to start in buffer
- * @return Human-readable string
+ * \param buffer Byte vector
+ * \param ascii If true, converts alphanumeric and whitespace ascii values to equivalent ascii character
+ * \param start Offset to start in buffer
+ * \return Human-readable string
  */
 string to_hex_string(const vector<uint8_t> &buffer, bool ascii, uint16_t start)
 {

@@ -1703,11 +1703,11 @@ int32_t Agent::req_setvalue(string &request, string &output, Agent* agent) {
 }
 
 /**
- * @brief Agent::req_set_value (Namespace 2.0)
- * @param request
- * @param response
- * @param agent
- * @return
+ * \brief Agent::req_set_value (Namespace 2.0)
+ * \param request
+ * \param response
+ * \param agent
+ * \return
  */
 int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
     // remove function call and space ('set_value ')
@@ -4361,11 +4361,11 @@ int32_t Agent::set_activity_period(double period)
 }
 
 /**
-     * @brief Agent::add_device
-     * @param name piecename
-     * @param type of device
-     * @param device pointer to devicestruc
-     * @return status (negative on error)
+     * \brief Agent::add_device
+     * \param name piecename
+     * \param type of device
+     * \param device pointer to devicestruc
+     * \return status (negative on error)
      */
 int32_t Agent::add_device(string name, DeviceType type, devicestruc **device)
 {
@@ -4380,11 +4380,11 @@ int32_t Agent::add_device(string name, DeviceType type, devicestruc **device)
 }
 
 /**
-     * @brief Agent::device_property_name
-     * @param device (piecename) - for looking up the device index
-     * @param property
-     * @param name reference to output (ex: device_imu_alpha_000)
-     * @return status (negative on error)
+     * \brief Agent::device_property_name
+     * \param device (piecename) - for looking up the device index
+     * \param property
+     * \param name reference to output (ex: device_imu_alpha_000)
+     * \return status (negative on error)
      */
 int32_t Agent::device_property_name(string device, string property, string &name)
 {
@@ -4418,13 +4418,13 @@ int32_t Agent::device_property_name(string device, string property, string &name
 }
 
 /**
-     * @brief creating and storing an alias for a device property
+     * \brief creating and storing an alias for a device property
      *   ex: creating alias from device_imu_alpha_000 to imu_acceleration
-     * @param devicename piecename - for looking up the device index
-     * @param propertyname
-     * @param alias name that will replace property name in alias
-     * @param error reference for returning an error
-     * @return status (negative on error)
+     * \param devicename piecename - for looking up the device index
+     * \param propertyname
+     * \param alias name that will replace property name in alias
+     * \param error reference for returning an error
+     * \return status (negative on error)
      */
 int32_t Agent::create_device_value_alias(string devicename, string propertyname, string alias)
 {
@@ -4438,11 +4438,11 @@ int32_t Agent::create_device_value_alias(string devicename, string propertyname,
 }
 
 /**
-     * @brief creating a direct alias (Namespace 1.0 method)
+     * \brief creating a direct alias (Namespace 1.0 method)
      *   ex: creating alias from device_imu_alpha_000 to imu_acceleration
-     * @param cosmosname the default SOH name
-     * @param alias name that will replace cosmosname
-     * @return error
+     * \param cosmosname the default SOH name
+     * \param alias name that will replace cosmosname
+     * \return error
      */
 int32_t Agent::create_alias(string cosmosname, string alias)
 {
@@ -4501,11 +4501,11 @@ double Agent::get_value(string jsonname)
 }
 
 /**
-     * @brief Agent::get_device_values
-     * @param device device name or piece name
-     * @param props property names
-     * @param json json string of device values {"name1": value ,"name2": value2}
-     * @return status (negative on error)
+     * \brief Agent::get_device_values
+     * \param device device name or piece name
+     * \param props property names
+     * \param json json string of device values {"name1": value ,"name2": value2}
+     * \return status (negative on error)
      */
 int32_t Agent::get_device_values(string device, vector<string> props, string &json)
 {

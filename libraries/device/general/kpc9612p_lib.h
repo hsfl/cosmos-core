@@ -31,8 +31,11 @@
  * * Contains definitions and functions for communicating with
  * * a Kantronix KPC-9612P TNC in KISS mode.
  * * @file kpc9612p_lib.h
- * * @brief KPC-9612P controller includes
+ * * \brief KPC-9612P controller includes
  * */
+
+//! \ingroup devices
+//! \defgroup kpc9612p Kantronics KPC-9612P TNC KISS mode device library.
 
 #ifndef _KPC9612PLIB_H
 #define _KPC9612PLIB_H 1

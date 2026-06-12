@@ -64,12 +64,12 @@ namespace Cosmos {
                 int32_t Init(const string address, const uint16_t port);
 
                 /**
-                 * @brief
+                 * \brief
                  *
-                 * @param level Severity level of the message
-                 * @param location Where the message is from
-                 * @param msg The actual string message to log
-                 * @return 0 on success, negative on error
+                 * \param level Severity level of the message
+                 * \param location Where the message is from
+                 * \param msg The actual string message to log
+                 * \return 0 on success, negative on error
                  */
                 int32_t log_msg(Level level, string location, std::string &msg);
                 int32_t log_msg(Level level, string location, json11::Json &msg);

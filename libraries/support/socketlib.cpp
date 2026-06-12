@@ -1544,12 +1544,12 @@ int32_t Udp::socketOpen()
 }
 
 /**
- * @brief Converts a hostname to an ip address
+ * \brief Converts a hostname to an ip address
  * 
- * @param hostname Host name to convert.
- * @param ipaddr Successful conversion stored here.
- * @param response Error messages, if any.
- * @return 0 on success, negative on error
+ * \param hostname Host name to convert.
+ * \param ipaddr Successful conversion stored here.
+ * \param response Error messages, if any.
+ * \return 0 on success, negative on error
  */
 int32_t hostnameToIP(const string hostname, string& ipaddr, string& response)
 {
