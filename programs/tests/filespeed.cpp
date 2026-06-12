@@ -10,7 +10,7 @@
 
 /* Buffer large enough for any block size we'll test.
    Must be aligned for O_DIRECT (which requires sector-aligned memory). */
-#define BUF_SIZE 70000000
+#define BUF_SIZE 1100000000
 #define DIRECT_BLOCK 4096      /* native block size for O_DIRECT alignment */
 
 static char raw_buf[BUF_SIZE + DIRECT_BLOCK];  /* extra room for alignment */
