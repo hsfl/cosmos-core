@@ -426,29 +426,40 @@ int32_t pos_eci(locstruc &loc)
     }
 
     // Set closest
-    double moongrav = MMOON / (length_rv(loc.pos.sci.s) * length_rv(loc.pos.sci.s));
-    double earthgrav = MEARTH / (length_rv(loc.pos.eci.s) * length_rv(loc.pos.eci.s));
+    rvector icrf_s = rv_add(loc.pos.eci.s, loc.pos.extra.sun2earth.s);
+    rvector sci_s = rv_sub(icrf_s, loc.pos.extra.sun2moon.s);
+    double moongrav  = MMOON  / (length_rv(sci_s)          * length_rv(sci_s));
+    double earthgrav = MEARTH / (length_rv(loc.pos.eci.s)  * length_rv(loc.pos.eci.s));
     loc.pos.extra.closest = COSMOS_EARTH;
     if (earthgrav < moongrav)
     {
         loc.pos.extra.closest = COSMOS_MOON;
     }
-    pos_lvlh(loc);
 
     // Set adjoining positions
-    if (loc.pos.eci.pass > loc.pos.icrf.pass)
-    {
-        pos_eci2icrf(loc);
-        pos_icrf(loc);
-    }
     if (loc.pos.eci.pass > loc.pos.geoc.pass)
     {
         pos_eci2geoc(loc);
         pos_geoc(loc);
     }
+    if (loc.pos.eci.pass > loc.pos.icrf.pass)
+    {
+        pos_eci2icrf(loc);
+        pos_icrf(loc);
+    }
+    if (loc.pos.eci.pass > loc.pos.sci.pass)
+    {
+        if (loc.pos.eci.pass > loc.pos.icrf.pass)
+        {
+            pos_eci2icrf(loc);
+        }
+        pos_icrf2sci(loc);
+        pos_sci(loc);           // sci → selc → selg handled inside pos_sci
+    }
+    pos_lvlh(loc);              // now has geod AND selg valid for both Earth and Moon
 
     // Set related attitude
-    loc.att.icrf.pass = loc.pos.eci.pass;
+    loc.att.icrf.pass = loc.att.selc.pass = loc.pos.eci.pass;
     return 0;
 }
 
@@ -478,15 +489,16 @@ int32_t pos_sci(locstruc &loc)
         return iretn;
     }
 
-    // Set closest
-    double moongrav = MMOON / (length_rv(loc.pos.sci.s) * length_rv(loc.pos.sci.s));
-    double earthgrav = MEARTH / (length_rv(loc.pos.eci.s) * length_rv(loc.pos.eci.s));
+    // Set closest — derive eci_s from sci without relying on loc.pos.eci.s
+    rvector icrf_s = rv_add(loc.pos.sci.s, loc.pos.extra.sun2moon.s);
+    rvector eci_s  = rv_sub(icrf_s, loc.pos.extra.sun2earth.s);
+    double moongrav  = MMOON  / (length_rv(loc.pos.sci.s) * length_rv(loc.pos.sci.s));
+    double earthgrav = MEARTH / (length_rv(eci_s)          * length_rv(eci_s));
     loc.pos.extra.closest = COSMOS_EARTH;
     if (earthgrav < moongrav)
     {
         loc.pos.extra.closest = COSMOS_MOON;
     }
-    pos_lvlh(loc);
 
     // Set adjoining positions
     if (loc.pos.sci.pass > loc.pos.icrf.pass)
@@ -499,9 +511,21 @@ int32_t pos_sci(locstruc &loc)
         pos_sci2selc(loc);
         pos_selc(loc);
     }
-
-    // Set related attitude
-    loc.att.icrf.pass = loc.pos.sci.pass;
+    if (loc.pos.sci.pass > loc.pos.eci.pass)
+    {
+        if (loc.pos.sci.pass > loc.pos.icrf.pass)   // only if not already done above
+        {
+            pos_sci2icrf(loc);
+        }
+        pos_icrf2eci(loc);
+        if (loc.pos.sci.pass > loc.pos.geoc.pass)
+        {
+            pos_eci2geoc(loc);
+            pos_geoc(loc);
+        }
+    }
+    pos_lvlh(loc);              // geoc, sci, selg all valid now
+    loc.att.icrf.pass = loc.att.selc.pass = loc.pos.sci.pass;
     return 0;
 }
 
@@ -1182,6 +1206,8 @@ int32_t geoc2geod(cartpos &geoc, geoidpos &geod)
     p = sqrt(geoc.s.col[0] * geoc.s.col[0] + geoc.s.col[1] * geoc.s.col[1]);
     nh = sqrt(p * p + geoc.s.col[2] * geoc.s.col[2]) - REARTHM;
     phi = atan2(geoc.s.col[2], p);
+
+    int32_t maximum_iteration_counter = std::numeric_limits<uint16_t>::max();
     do
     {
         h = nh;
@@ -1196,6 +1222,10 @@ int32_t geoc2geod(cartpos &geoc, geoidpos &geod)
         else
         {
             nh =  - rn;
+        }
+        if (--maximum_iteration_counter < 0)
+        {
+            return COSMOS_GENERAL_ERROR_TIMEOUT;
         }
     } while (fabs(nh - h) > .01);
 
@@ -3224,15 +3254,15 @@ int32_t peri2cart(cartpos cart, Quaternion &qcart)
 }
 
 /**
-         * @brief Converts RIC coordinates to ECI
+         * \brief Converts RIC coordinates to ECI
          *
          * Requires origin's position and velocity to be set.
          * Returns RIC-offsetted position and velocity in result.
          *
-         * @param orig Origin of the RIC frame in ECI
-         * @param ric Offset from origin of RIC frame, [0,1,2] = [R,I,C]
-         * @param result Converted ECI coordinates
-         * @return int32_t 0 on success, negative on error
+         * \param orig Origin of the RIC frame in ECI
+         * \param ric Offset from origin of RIC frame, [0,1,2] = [R,I,C]
+         * \param result Converted ECI coordinates
+         * \return int32_t 0 on success, negative on error
          */
 int32_t ric2eci(cartpos orig, rvector ric, cartpos& result)
 {
@@ -3240,15 +3270,15 @@ int32_t ric2eci(cartpos orig, rvector ric, cartpos& result)
 }
 
 /**
-         * @brief Converts RIC coordinates to ECI
+         * \brief Converts RIC coordinates to ECI
          *
          * Requires origin's position and velocity to be set.
          * Returns RIC-offsetted position and velocity in result.
          *
-         * @param orig Origin of the RIC frame in ECI
-         * @param ric Offset from origin of RIC frame, [x, y, z] = [R,I,C]
-         * @param result Converted ECI coordinates
-         * @return int32_t 0 on success, negative on error
+         * \param orig Origin of the RIC frame in ECI
+         * \param ric Offset from origin of RIC frame, [x, y, z] = [R,I,C]
+         * \param result Converted ECI coordinates
+         * \return int32_t 0 on success, negative on error
          */
 int32_t ric2eci(cartpos orig, Vector ric, cartpos& result)
 {
@@ -3299,14 +3329,14 @@ int32_t ric2eci(cartpos orig, Vector ric, cartpos& result)
 
 // JIMNOTE: not sure about this one, should probably call ric2eci
 /**
-         * @brief Converts Origin coordinates to RIC offset coordinates
+         * \brief Converts Origin coordinates to RIC offset coordinates
          *
          * Requires loc.pos to be fully set.
          * Leaves RIC offset position, velocity and acceleration in loc.
          *
-         * @param ric ::cartpos RIC offsets to apply
-         * @param loc ::locstruc containing Origin to convert
-         * @return int32_t 0 on success, negative on error
+         * \param ric ::cartpos RIC offsets to apply
+         * \param loc ::locstruc containing Origin to convert
+         * \return int32_t 0 on success, negative on error
          */
 int32_t pos_ric2eci(cartpos ric, locstruc& loc)
 {
@@ -3380,14 +3410,14 @@ int32_t pos_ric2eci(cartpos ric, locstruc& loc)
 }
 
 /**
-         * @brief Converts Origin coordinates to LVLH offset coordinates
+         * \brief Converts Origin coordinates to LVLH offset coordinates
          *
          * Convert position as if it was Origin (zero LVLH offsets) into Offset (LVLH offsets applied).
          * Leaves LVLH offset position, velocity and acceleration in loc.pos.lvlh.
          *
-         * @param loc ::locstruc containing Origin to convert to Offset
-         * @param lvlh ::cartpos LVLH offsets to apply
-         * @return int32_t 0 on success, negative on error
+         * \param loc ::locstruc containing Origin to convert to Offset
+         * \param lvlh ::cartpos LVLH offsets to apply
+         * \return int32_t 0 on success, negative on error
          */
 int32_t pos_origin2lvlh(locstruc *loc)
 {
@@ -3481,13 +3511,13 @@ int32_t pos_origin2lvlh(locstruc& loc)
 }
 
 /**
-         * @brief Converts LVLH offset coordinates to base coordinates
+         * \brief Converts LVLH offset coordinates to base coordinates
          *
          * Requires loc.pos to be fully set with current LVLH offset position.
          *
-         * @param loc ::locstruc containing Offset to convert to Origin
-         * @param lvlh ::cartpos LVLH offsets to apply
-         * @return int32_t 0 on success, negative on error
+         * \param loc ::locstruc containing Offset to convert to Origin
+         * \param lvlh ::cartpos LVLH offsets to apply
+         * \return int32_t 0 on success, negative on error
          */
 int32_t pos_lvlh2origin(locstruc* loc)
 {
@@ -3542,14 +3572,14 @@ int32_t pos_lvlh2origin(locstruc& loc)
 }
 
 /**
-         * @brief Converts LVLH offset coordinates to base coordinates
+         * \brief Converts LVLH offset coordinates to base coordinates
          *
          * Requires lvlh.pos to be fully set with current LVLH offset position.
          * Requires geoc.pos to be fully set with current LVLH offset position.
          *
-         * @param loc ::locstruc containing Offset to convert to Origin
-         * @param lvlh ::cartpos LVLH offsets to apply
-         * @return int32_t 0 on success, negative on error
+         * \param loc ::locstruc containing Offset to convert to Origin
+         * \param lvlh ::cartpos LVLH offsets to apply
+         * \return int32_t 0 on success, negative on error
          */
 int32_t pos_lvlh2geoc(locstruc *base, locstruc *geoc)
 {
@@ -3578,14 +3608,14 @@ int32_t pos_lvlh2geoc(locstruc &base, locstruc &geoc)
 }
 
 /**
-         * @brief Converts GEOC based LVLH offset coordinates to base coordinates
+         * \brief Converts GEOC based LVLH offset coordinates to base coordinates
          *
          * Requires lvlh.pos to be fully set with current LVLH offset position.
          * Requires geoc.pos to be fully set with current LVLH offset position.
          *
-         * @param loc ::locstruc containing Offset to convert to Origin
-         * @param lvlh ::cartpos LVLH offsets to apply
-         * @return int32_t 0 on success, negative on error
+         * \param loc ::locstruc containing Offset to convert to Origin
+         * \param lvlh ::cartpos LVLH offsets to apply
+         * \return int32_t 0 on success, negative on error
          */
 int32_t pos_geoc2lvlh(locstruc *geoc, locstruc *base)
 {
@@ -3609,14 +3639,14 @@ int32_t pos_geoc2lvlh(locstruc &geoc, locstruc &base)
 
 // JIMNOTE: this function is wrong and should be removed
 /**
-         * @brief Converts Origin coordinates to RIC offset coordinates
+         * \brief Converts Origin coordinates to RIC offset coordinates
          *
          * Convert RIC coordinates to equivalent LVLH coordinates.
          *
-         * @param radius ::radius of orbit at location
-         * @param loc ::locstruc containing Origin to convert to Offset
-         * @param lvlh ::cartpos RIC offsets to apply
-         * @return int32_t 0 on success, negative on error
+         * \param radius ::radius of orbit at location
+         * \param loc ::locstruc containing Origin to convert to Offset
+         * \param lvlh ::cartpos RIC offsets to apply
+         * \return int32_t 0 on success, negative on error
          */
 int32_t ric2lvlh(double radius, cartpos ric, cartpos& lvlh)
 {
@@ -3677,14 +3707,14 @@ int32_t ric2lvlh(double radius, cartpos ric, cartpos& lvlh)
 // JIMNOTE: this function is wrong and should be removed
 // EJP: if something is wrong, then it should be fixed, not removed
 /**
-         * @brief Converts RIC offset coordinates to LVLH coordinates
+         * \brief Converts RIC offset coordinates to LVLH coordinates
          *
          * Requires loc.pos to be fully set with current RIC offset position.
          *
-         * @param radius ::radius of orbit at location
-         * @param loc ::locstruc containing Offset to convert to Origin
-         * @param ric ::cartpos RIC offsets to apply
-         * @return int32_t 0 on success, negative on error
+         * \param radius ::radius of orbit at location
+         * \param loc ::locstruc containing Offset to convert to Origin
+         * \param ric ::cartpos RIC offsets to apply
+         * \return int32_t 0 on success, negative on error
          */
 int32_t lvlh2ric(double radius, cartpos lvlh, cartpos& ric)
 {
@@ -3743,11 +3773,11 @@ int32_t lvlh2ric(double radius, cartpos lvlh, cartpos& ric)
 }
 
 /**
- * @brief Converts the ECI position and velocity of a point to an LVLH position and velocity relative to another ECI origin point.
+ * \brief Converts the ECI position and velocity of a point to an LVLH position and velocity relative to another ECI origin point.
  * 
- * @param origin The origin of the LVLH frame, in ECI
- * @param point The point to transform, in ECI
- * @return Position and velocity of point in LVLH frame
+ * \param origin The origin of the LVLH frame, in ECI
+ * \param point The point to transform, in ECI
+ * \return Position and velocity of point in LVLH frame
  */
 Convert::cartpos eci2lvlh(Convert::cartpos origin, Convert::cartpos point)
 {
@@ -4396,9 +4426,9 @@ int lines2eci(double utc, vector<tlestruc> lines, cartpos &eci)
 
 /**
          * SGP4 propagator algoritm
-         * @param utc Specified time as Modified Julian Date
-         * @param tle Two Line Element structure, given as pointer to a ::Cosmos::Convert::tlestruc
-         * @param pos_teme result from SGP4 algorithm is a cartesian state given in TEME frame, as pointer to a ::Cosmos::Convert::cartpos
+         * \param utc Specified time as Modified Julian Date
+         * \param tle Two Line Element structure, given as pointer to a ::Cosmos::Convert::tlestruc
+         * \param pos_teme result from SGP4 algorithm is a cartesian state given in TEME frame, as pointer to a ::Cosmos::Convert::cartpos
          */
 int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
 {
@@ -5178,9 +5208,9 @@ int32_t eci2tle2(cartpos eci, tlestruc &tle)
 
 /**
          * Convert a Two Line Element into a location at the specified time.
-         * @param utc Specified time as Modified Julian Date
-         * @param tle Two Line Element, given as pointer to a ::Cosmos::Convert::tlestruc
-         * @param eci Converted location, given as pointer to a ::Cosmos::Convert::cartpos
+         * \param utc Specified time as Modified Julian Date
+         * \param tle Two Line Element, given as pointer to a ::Cosmos::Convert::tlestruc
+         * \param eci Converted location, given as pointer to a ::Cosmos::Convert::cartpos
          */
 int tle2eci(double utc, tlestruc tle, cartpos &eci)
 {

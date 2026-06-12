@@ -231,10 +231,23 @@ namespace Cosmos {
  * \param mjd Modified Julian Day
  * \return Calendar representation in ::calstruc
 */
-        calstruc mjd2cal(double mjd)
+        calstruc mjd2cal(double mjd, uint8_t resolution)
         {
             static double lmjd = 0.;
             static calstruc date;
+
+            switch (resolution)
+            {
+            case 3:
+                mjd = static_cast<uint32_t>(mjd * 24. + 0.5) / 24.;
+                break;
+            case 2:
+                mjd = static_cast<uint32_t>(mjd * 1440. + 0.5) / 1440.;
+                break;
+            case 1:
+                mjd = static_cast<uint64_t>(mjd * 86400. + 0.5) / 86400.;
+                break;
+            }
 
             if (lmjd != mjd)
             {
@@ -1056,10 +1069,10 @@ namespace Cosmos {
         }
 
         /**
-         * @brief Set system clock
-         * @param utc_to New MJD to set system clock to
-         * @param limit If the delta between the current MJD and utc_to is greater than this argument (in seconds), clock will not be set. A value of 0 will force the change.
-         * @return The delta in seconds
+         * \brief Set system clock
+         * \param utc_to New MJD to set system clock to
+         * \param limit If the delta between the current MJD and utc_to is greater than this argument (in seconds), clock will not be set. A value of 0 will force the change.
+         * \return The delta in seconds
          */
         double set_local_clock(double utc_to, float limit)
         {

@@ -123,13 +123,13 @@ uint16_t CRC16::calc(uint8_t *message, uint16_t size)
 }
 
 /**
- * @brief Read file data into a buffer, using a pre-read buffer to minimize I/O.
+ * \brief Read file data into a buffer, using a pre-read buffer to minimize I/O.
  * 
- * @param file File to read from
- * @param dest Destination buffer to read data into
- * @param offset Offset into the file to read from
- * @param size Number of bytes to read from the file
- * @return Number of bytes read or negative on error.
+ * \param file File to read from
+ * \param dest Destination buffer to read data into
+ * \param offset Offset into the file to read from
+ * \param size Number of bytes to read from the file
+ * \return Number of bytes read or negative on error.
  */
 static int32_t buffered_read(FILE* file, uint8_t* dest, size_t offset, size_t size)
 {

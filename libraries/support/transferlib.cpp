@@ -879,13 +879,13 @@ namespace Cosmos {
         }
 
         /**
-         * @brief Clears out the incoming or outgoing tx_entry.
+         * \brief Clears out the incoming or outgoing tx_entry.
          * 
          *  Resets the queue to a clean state. If there are temp files, then those
          *  are cleared out too.
          * 
-         * @param tx The incoming or outgoing tx_entry to clear out
-         * @return int32_t 0 on success, negative on error
+         * \param tx The incoming or outgoing tx_entry to clear out
+         * \return int32_t 0 on success, negative on error
          */
         int32_t clear_tx_entry(tx_entry& tx)
         {
@@ -911,12 +911,12 @@ namespace Cosmos {
         }
 
         /**
-         * @brief Closes file pointers for the incoming or outgoing tx_entry.
+         * \brief Closes file pointers for the incoming or outgoing tx_entry.
          * 
          * Use to flush current progress.
          * 
-         * @param tx The incoming or outgoing tx_entry
-         * @return int32_t 0 on success, negative on error
+         * \param tx The incoming or outgoing tx_entry
+         * \return int32_t 0 on success, negative on error
          */
         int32_t flush_tx_entry(tx_entry& tx)
         {

@@ -27,6 +27,9 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+//! \ingroup devices
+//! \defgroup spp CCSDS Space Packet Protocol (SPP) library.
+
 #ifndef SPP_H
 #define SPP_H
 

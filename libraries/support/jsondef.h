@@ -656,8 +656,14 @@ namespace Cosmos
             //! Numeric Telemetry
             NTELEM=34,
             //! String Telemetry
-            //! List count
             STELEM=35,
+            //! Cryogenic Cooler
+            COOLER=36,
+            //! Lens
+            LENS=37,
+            //! BlackBody
+            BB=38,
+            //! List count
             COUNT,
             //! Not a Component
             NONE=UINT16_MAX
@@ -839,7 +845,7 @@ class sim_param	{
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
-		@return A json11 JSON object containing every member variable within the class
+		\return A json11 JSON object containing every member variable within the class
 	*/
 	json11::Json to_json() const {
 		return json11::Json::object {
@@ -884,8 +890,8 @@ class sim_param	{
 
 	/// Set class contents from JSON string
 	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-		@param	s	JSON-formatted string to set class contents to
-		@return n/a
+		\param	s	JSON-formatted string to set class contents to
+		\return n/a
 	*/
 	void from_json(const string& s) {
 		string error;
@@ -979,7 +985,7 @@ class sim_param	{
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -993,8 +999,8 @@ class sim_param	{
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s)	{
                 string error;
@@ -1092,7 +1098,7 @@ class sim_param	{
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -1103,8 +1109,8 @@ class sim_param	{
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -1295,7 +1301,7 @@ class sim_param	{
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -1319,8 +1325,8 @@ class sim_param	{
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -1401,7 +1407,7 @@ class sim_param	{
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 //		vector<uint16_t> v_pub = vector<uint16_t>(pub, pub+AGENTMAXIF);
@@ -1423,8 +1429,8 @@ class sim_param	{
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -1538,7 +1544,7 @@ class sim_param	{
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return A json11 JSON object containing every member variable within the class
+        \return A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -1605,8 +1611,8 @@ class sim_param	{
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -1926,7 +1932,7 @@ class sim_param	{
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -1957,8 +1963,8 @@ class sim_param	{
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -2030,7 +2036,7 @@ class sim_param	{
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -2043,8 +2049,8 @@ class sim_param	{
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -2115,7 +2121,7 @@ class sim_param	{
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -2126,8 +2132,8 @@ class sim_param	{
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -2187,7 +2193,7 @@ class sim_param	{
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -2214,8 +2220,8 @@ class sim_param	{
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -2276,7 +2282,7 @@ class sim_param	{
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -2287,8 +2293,8 @@ class sim_param	{
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -2330,7 +2336,7 @@ class sim_param	{
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -2344,8 +2350,8 @@ class sim_param	{
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -2392,7 +2398,7 @@ class sim_param	{
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -2408,8 +2414,8 @@ class sim_param	{
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -2496,7 +2502,7 @@ class sim_param	{
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -2530,8 +2536,8 @@ class sim_param	{
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -2632,7 +2638,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -2662,8 +2668,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -2752,7 +2758,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -2762,8 +2768,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -2784,7 +2790,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -2794,8 +2800,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -2825,7 +2831,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -2844,8 +2850,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -2885,7 +2891,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 vector<uint16_t> v_keyidx = vector<uint16_t>(keyidx, keyidx+MAXPLOADKEYCNT);
@@ -2899,8 +2905,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -2940,7 +2946,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -2956,8 +2962,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -2984,7 +2990,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -2994,8 +3000,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -3031,7 +3037,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -3048,8 +3054,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -3070,6 +3076,35 @@ union as a ::devicestruc.
             }
         };
 
+
+        //! Lens information
+        struct lensstruc : public devicestruc
+        {
+            //! Current State - Bit 0 = homed, bit 1 = moving
+            uint8_t status;
+            //! Current position
+            int32_t index;
+
+            json11::Json to_json() const {
+                return json11::Json::object {
+                    { "status" , static_cast<int>(status) },
+                    { "index"   , index },
+                };
+            }
+
+            void from_json(const string& s) {
+                string error;
+                json11::Json parsed = json11::Json::parse(s,error);
+                if(error.empty()) {
+                    if(!parsed["status"].is_null()) { status = parsed["status"].int_value(); }
+                    if(!parsed["index"].is_null()) { index = parsed["index"].long_value(); }
+                } else {
+                    cerr<<"ERROR: <"<<error<<">"<<endl;
+                }
+                return;
+            }
+        };
+
         //! Magnetometer structure
         struct magstruc : public devicestruc
         {
@@ -3082,7 +3117,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -3094,8 +3129,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -3123,7 +3158,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -3135,8 +3170,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -3178,7 +3213,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -3197,8 +3232,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -3241,7 +3276,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 vector<float> v_npoly = vector<float>(npoly, npoly+sizeof(npoly)/sizeof(npoly[0]));
@@ -3259,8 +3294,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -3283,6 +3318,34 @@ union as a ::devicestruc.
                     if(!parsed["tc"].is_null()) { tc = parsed["tc"].number_value(); }
                     if(!parsed["rmom"].is_null()) { rmom = parsed["rmom"].number_value(); }
                     if(!parsed["mom"].is_null()) { mom = parsed["mom"].number_value(); }
+                } else {
+                    cerr<<"ERROR: <"<<error<<">"<<endl;
+                }
+                return;
+            }
+        };
+
+        //! Cooler information
+        struct coolerstruc : public devicestruc
+        {
+            //! Current State
+            uint8_t status;
+            //! Temperature setpoint
+            float setpoint;
+
+            json11::Json to_json() const {
+                return json11::Json::object {
+                    { "status" , static_cast<int>(status) },
+                    { "setpoint"   , setpoint },
+                };
+            }
+
+            void from_json(const string& s) {
+                string error;
+                json11::Json parsed = json11::Json::parse(s,error);
+                if(error.empty()) {
+                    if(!parsed["status"].is_null()) { status = parsed["status"].int_value(); }
+                    if(!parsed["setpoint"].is_null()) { setpoint = parsed["setpoint"].number_value(); }
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }
@@ -3315,7 +3378,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -3331,8 +3394,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -3372,7 +3435,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -3384,8 +3447,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -3439,7 +3502,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -3463,8 +3526,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -3516,7 +3579,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -3533,8 +3596,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -3597,7 +3660,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -3623,8 +3686,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -3696,7 +3759,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -3722,8 +3785,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -3799,7 +3862,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -3827,8 +3890,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -3878,7 +3941,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -3893,8 +3956,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -3939,7 +4002,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -3958,8 +4021,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -3982,6 +4045,38 @@ union as a ::devicestruc.
             }
         };
 
+        struct bbstruc : public devicestruc
+        {
+            //! Angular position
+            float setpoint = 0.f;
+
+            /// Convert class contents to JSON object
+            /** Returns a json11 JSON object of the class
+        \return	A json11 JSON object containing every member variable within the class
+    */
+            json11::Json to_json() const {
+                return json11::Json::object {
+                    { "setpoint" , setpoint }
+                };
+            }
+
+            /// Set class contents from JSON string
+            /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
+    */
+            void from_json(const string& s) {
+                string error;
+                json11::Json parsed = json11::Json::parse(s,error);
+                if(error.empty()) {
+                    if(!parsed["setpoint"].is_null()) { setpoint = parsed["setpoint"].number_value(); }
+                } else {
+                    cerr<<"ERROR: <"<<error<<">"<<endl;
+                }
+                return;
+            }
+        };
+
         //! Heater Structure definition
         /*! This structure holds the description of a heaters.
 */
@@ -3993,7 +4088,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -4004,8 +4099,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -4031,7 +4126,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -4043,8 +4138,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -4065,14 +4160,14 @@ union as a ::devicestruc.
         {
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const { return json11::Json::object {}; }
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -4097,7 +4192,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -4111,8 +4206,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -4140,7 +4235,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -4151,8 +4246,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -4174,14 +4269,14 @@ union as a ::devicestruc.
         {
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const { return json11::Json::object {}; }
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -4200,7 +4295,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -4210,8 +4305,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -4241,7 +4336,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -4256,8 +4351,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -4288,7 +4383,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -4301,8 +4396,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -4329,7 +4424,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 vector<uint16_t> v_mcidx = vector<uint16_t>(mcidx, mcidx+sizeof(mcidx)/sizeof(mcidx[0]));
@@ -4341,8 +4436,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -4370,7 +4465,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -4380,8 +4475,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -4403,7 +4498,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -4413,8 +4508,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -4440,7 +4535,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 vector<float> v_temps = vector<float>(temps, temps+sizeof(temps)/sizeof(temps[0]));
@@ -4453,8 +4548,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -4483,6 +4578,8 @@ union as a ::devicestruc.
             int16_t lstep;
             uint16_t pwidth = 0;
             uint16_t pheight = 0;
+            uint16_t frate = 0;
+            float itime = 0.f;
             float width = 0.f;
             float height = 0.f;
             float flength = 0.f;
@@ -4505,13 +4602,15 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
                     { "lstep" , lstep },
                     { "pwidth" , pwidth },
                     { "pheight", pheight },
+                    { "frate", frate },
+                    { "itime", itime },
                     { "width"  , width },
                     { "height" , height },
                     { "flength", flength },
@@ -4526,8 +4625,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -4536,6 +4635,8 @@ union as a ::devicestruc.
                     if(!parsed["lstep"].is_null()) { lstep = parsed["lstep"].long_value(); }
                     if(!parsed["pwidth"].is_null()) { pwidth = parsed["pwidth"].long_value(); }
                     if(!parsed["pheight"].is_null()) { pheight = parsed["pheight"].long_value(); }
+                    if(!parsed["frate"].is_null()) { frate = parsed["frate"].long_value(); }
+                    if(!parsed["itime"].is_null()) { itime = parsed["itime"].number_value(); }
                     if(!parsed["width"].is_null()) { width = parsed["width"].number_value(); }
                     if(!parsed["height"].is_null()) { height = parsed["height"].number_value(); }
                     if(!parsed["flength"].is_null()) { flength = parsed["flength"].number_value(); }
@@ -4559,14 +4660,14 @@ union as a ::devicestruc.
         {
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const { return json11::Json::object {}; }
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -4591,7 +4692,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
 
             json11::Json to_json() const {
@@ -4605,8 +4706,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -4701,7 +4802,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 vector<uint32_t> v_tidx = vector<uint32_t>(tidx, tidx+sizeof(tidx)/sizeof(tidx[0]));
@@ -4736,8 +4837,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -4819,7 +4920,7 @@ union as a ::devicestruc.
                 vector<trianglestruc>(triangles).swap(triangles);
             }
 
-            double dt = 0.;
+            double dt = 0.; //!< Physics time step [s]
             //! Time step in Julian days
             double dtj = 0.;
             //! Simulated starting time in MJD
@@ -4829,51 +4930,51 @@ union as a ::devicestruc.
             //! Offset factor for simulated time (simtime = mjdaccel * realtime + mjddiff)
             double mjddiff = 0.;
 
-            float hcap = 900.f;
-            float mass = 1.f;
-            float temp = 600.f;
-            float heat = 600. * 900. * 1.;
-            float radiation;
-            float area = .001f;
-            float battcap = 36000.f;
-            float battlev = 0.f;
-            float powgen = 0.f;
-            float powuse = 0.f;
+            float hcap = 900.f; //!< Total node heat capacity [J/K]
+            float mass = 1.f; //!< Total node mass [kg]
+            float temp = 600.f; //!< Average node temperature [K]
+            float heat = 600. * 900. * 1.; //!< Stored thermal energy in the node [J]
+            float radiation; //!< Net radiation power (absorbed minus emitted) [W]
+            float area = .001f; //!< Total effective cross-sectional area [m²]
+            float battcap = 36000.f; //!< Total battery capacity [J]
+            float battlev = 0.f; //!< Current battery charge level [J]
+            float powgen = 0.f; //!< Current power generation rate [W]
+            float powuse = 0.f; //!< Current power consumption rate [W]
 
             //! Simulation mode as listed in \def defs_physics
             int32_t mode = 0;
-            Vector ftorque;
-            Vector atorque;
-            Vector rtorque;
-            Vector gtorque;
-            Vector htorque;
-            Vector hmomentum;
-            Vector ctorque;
-            Vector fdrag;
-            Vector adrag;
-            Vector rdrag;
-            Vector thrust;
-            Vector fpush;
-            Vector moi = Vector(1.,1.,1.);
-            Vector com;
-            double maxthrust;
-            double maxtorque;
+            Vector ftorque; //!< Torque due to atmospheric drag on flat surfaces [N·m]
+            Vector atorque; //!< Torque due to atmospheric pressure (attitude-dependent drag) [N·m]
+            Vector rtorque; //!< Torque due to radiation pressure [N·m]
+            Vector gtorque; //!< Torque due to gravity gradient [N·m]
+            Vector htorque; //!< Torque due to magnetic hysteresis [N·m]
+            Vector hmomentum; //!< Total stored angular momentum (e.g. reaction wheels) [kg·m²/s]
+            Vector ctorque; //!< Control torque commanded by attitude control system [N·m]
+            Vector fdrag; //!< Force due to atmospheric drag on flat surfaces [N]
+            Vector adrag; //!< Force due to atmospheric pressure (attitude-dependent) [N]
+            Vector rdrag; //!< Force due to radiation pressure [N]
+            Vector thrust; //!< Total thrust force vector [N]
+            Vector fpush; //!< External push force vector [N]
+            Vector moi = Vector(1.,1.,1.); //!< Moment of inertia tensor diagonal (principal axes) [kg·m²]
+            Vector com; //!< Center of mass in body frame [m]
+            double maxthrust; //!< Maximum available thrust [N]
+            double maxtorque; //!< Maximum available torque [N·m]
 
             //! Vector of all structures in node.
             vector <strucstruc> strucs;
-            uint32_t struc_cnt = 0;
+            uint32_t struc_cnt = 0; //!< Number of structures in strucs vector
 
             //! Vector of all faces in node.
             vector <facestruc> faces;
-            uint32_t face_cnt = 0;
+            uint32_t face_cnt = 0; //!< Number of faces in faces vector
 
             //! Vector of all triangles in node.
             vector <trianglestruc> triangles;
-            uint32_t triangle_cnt = 0;
+            uint32_t triangle_cnt = 0; //!< Number of triangles in triangles vector
 
             //! vector of all vertices in node.
             vector <Vector> vertices;
-            uint32_t vertex_cnt;
+            uint32_t vertex_cnt; //!< Number of vertices in vertices vector
 
             //! Vector of all normals in node.
 //            vector <vertexstruc> normals;
@@ -4881,7 +4982,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -4930,8 +5031,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& js) {
                 string error;
@@ -5056,16 +5157,16 @@ union as a ::devicestruc.
             //! Operational state
             uint16_t state = 0;
 
-            uint16_t flags = 0;
-            int16_t powmode = 0;
+            uint16_t flags = 0; //!< Node status flags (bitmask)
+            int16_t powmode = 0; //!< Power mode index (positive = surplus, negative = deficit)
             //! Seconds Node will be down
             uint32_t downtime = 0;
             //! Alt/Az/Range info
-            float azfrom = 0.f;
-            float elfrom = 0.f;
-            float azto = 0.f;
-            float elto = 0.f;
-            float range = 0.f;
+            float azfrom = 0.f; //!< Azimuth from this node to the ground station [rad]
+            float elfrom = 0.f; //!< Elevation from this node to the ground station [rad]
+            float azto = 0.f; //!< Azimuth from the ground station to this node [rad]
+            float elto = 0.f; //!< Elevation from the ground station to this node [rad]
+            float range = 0.f; //!< Slant range to the ground station [m]
             //! MJD Offset between system UT and simulated UT
             double utcoffset = 0.;
             //! Overall Node time
@@ -5080,11 +5181,11 @@ union as a ::devicestruc.
             Convert::locstruc loc_req;
 			//! Standard Deviation for location estimates
             Convert::locstruc loc_std;
-            physicsstruc phys;
+            physicsstruc phys; //!< Physical model parameters (mass, geometry, power, thermal)
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -5114,8 +5215,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& js) {
                 string error;
@@ -5164,16 +5265,19 @@ union as a ::devicestruc.
             {
                 size_t total = sizeof(devspecstruc);
                 total += ant.capacity() * sizeof(antstruc);
+                total += bb.capacity() * sizeof(bbstruc);
                 total += batt.capacity() * sizeof(battstruc);
                 total += bcreg.capacity() * sizeof(bcregstruc);
                 total += bus.capacity() * sizeof(busstruc);
                 total += cam.capacity() * sizeof(camstruc);
+                total += cooler.capacity() * sizeof(coolerstruc);
                 total += cpu.capacity() * sizeof(cpustruc);
                 total += disk.capacity() * sizeof(diskstruc);
                 total += gps.capacity() * sizeof(gpsstruc);
                 total += gyro.capacity() * sizeof(gyrostruc);
                 total += htr.capacity() * sizeof(htrstruc);
                 total += imu.capacity() * sizeof(imustruc);
+                total += lens.capacity() * sizeof(lensstruc);
                 total += mag.capacity() * sizeof(magstruc);
                 total += mcc.capacity() * sizeof(mccstruc);
                 total += motr.capacity() * sizeof(motrstruc);
@@ -5205,16 +5309,19 @@ union as a ::devicestruc.
             void shrinkusage()
             {
                 vector<antstruc>(ant).swap(ant);
+                vector<bbstruc>(bb).swap(bb);
                 vector<battstruc>(batt).swap(batt);
                 vector<bcregstruc>(bcreg).swap(bcreg);
                 vector<busstruc>(bus).swap(bus);
                 vector<camstruc>(cam).swap(cam);
+                vector<coolerstruc>(cooler).swap(cooler);
                 vector<cpustruc>(cpu).swap(cpu);
                 vector<diskstruc>(disk).swap(disk);
                 vector<gpsstruc>(gps).swap(gps);
                 vector<gyrostruc>(gyro).swap(gyro);
                 vector<htrstruc>(htr).swap(htr);
                 vector<imustruc>(imu).swap(imu);
+                vector<lensstruc>(lens).swap(lens);
                 vector<magstruc>(mag).swap(mag);
                 vector<mccstruc>(mcc).swap(mcc);
                 vector<motrstruc>(motr).swap(motr);
@@ -5245,14 +5352,17 @@ union as a ::devicestruc.
             //            uint16_t all_cnt = 0;
             uint16_t ant_cnt = 0;
             uint16_t batt_cnt = 0;
+            uint16_t bb_cnt = 0;
             uint16_t bus_cnt = 0;
             uint16_t cam_cnt = 0;
+            uint16_t cooler_cnt = 0;
             uint16_t cpu_cnt = 0;
             uint16_t disk_cnt = 0;
             uint16_t gps_cnt = 0;
             uint16_t gyro_cnt = 0;
             uint16_t htr_cnt = 0;
             uint16_t imu_cnt = 0;
+            uint16_t lens_cnt = 0;
             uint16_t mag_cnt = 0;
             uint16_t mcc_cnt = 0;
             uint16_t motr_cnt = 0;
@@ -5282,15 +5392,18 @@ union as a ::devicestruc.
 
             vector<antstruc>ant;
             vector<battstruc>batt;
+            vector<bbstruc>bb;
             vector<bcregstruc>bcreg;
             vector<busstruc>bus;
             vector<camstruc>cam;
+            vector<coolerstruc>cooler;
             vector<cpustruc>cpu;
             vector<diskstruc>disk;
             vector<gpsstruc>gps;
             vector<gyrostruc>gyro;
             vector<htrstruc>htr;
             vector<imustruc>imu;
+            vector<lensstruc>lens;
             vector<magstruc>mag;
             vector<mccstruc>mcc;
             vector<motrstruc>motr;
@@ -5319,21 +5432,24 @@ union as a ::devicestruc.
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
                     //                    { "all_cnt", all_cnt },
                     { "ant_cnt", ant_cnt },
                     { "batt_cnt", batt_cnt },
+                    { "bb_cnt", bb_cnt },
                     { "bus_cnt", bus_cnt },
                     { "cam_cnt", cam_cnt },
+                    { "cooler_cnt", cooler_cnt },
                     { "cpu_cnt", cpu_cnt },
                     { "disk_cnt", disk_cnt },
                     { "gps_cnt", gps_cnt },
                     { "gyro_cnt", gyro_cnt },
                     { "htr_cnt", htr_cnt },
                     { "imu_cnt", imu_cnt },
+                    { "cooler_cnt", cooler_cnt },
                     { "mag_cnt", mag_cnt },
                     { "mcc_cnt", mcc_cnt },
                     { "motr_cnt", motr_cnt },
@@ -5363,15 +5479,18 @@ union as a ::devicestruc.
                     //                    { "all", all },
                     { "ant", ant },
                     { "batt", batt },
+                    { "bb", bb },
                     { "bcreg", bcreg },
                     { "bus", bus },
                     { "cam", cam },
+                    { "cooler", cooler },
                     { "cpu", cpu },
                     { "disk", disk },
                     { "gps", gps },
                     { "gyro", gyro },
                     { "htr", htr },
                     { "imu", imu },
+                    { "cooler", cooler },
                     { "mag", mag },
                     { "mcc", mcc },
                     { "motr", motr },
@@ -5402,8 +5521,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -5412,15 +5531,17 @@ union as a ::devicestruc.
                     //                    if(!p["all_cnt"].is_null()) { all_cnt = p["all_cnt"].long_value(); }
                     if(!p["ant_cnt"].is_null()) { ant_cnt = p["ant_cnt"].long_value(); }
                     if(!p["batt_cnt"].is_null()) { batt_cnt = p["batt_cnt"].long_value(); }
+                    if(!p["bb_cnt"].is_null()) { bb_cnt = p["bb_cnt"].long_value(); }
                     if(!p["bus_cnt"].is_null()) { bus_cnt = p["bus_cnt"].long_value(); }
                     if(!p["cam_cnt"].is_null()) { cam_cnt = p["cam_cnt"].long_value(); }
-
+                    if(!p["cooler_cnt"].is_null()) { cooler_cnt = p["cooler_cnt"].long_value(); }
                     if(!p["cpu_cnt"].is_null()) { cpu_cnt = p["cpu_cnt"].long_value(); }
                     if(!p["disk_cnt"].is_null()) { disk_cnt = p["disk_cnt"].long_value(); }
                     if(!p["gps_cnt"].is_null()) { gps_cnt = p["gps_cnt"].long_value(); }
                     if(!p["gyro_cnt"].is_null()) { gyro_cnt = p["gyro_cnt"].long_value(); }
                     if(!p["htr_cnt"].is_null()) { htr_cnt = p["htr_cnt"].long_value(); }
                     if(!p["imu_cnt"].is_null()) { imu_cnt = p["imu_cnt"].long_value(); }
+                    if(!p["cooler_cnt"].is_null()) { cooler_cnt = p["cooler_cnt"].long_value(); }
                     if(!p["mag_cnt"].is_null()) { mag_cnt = p["mag_cnt"].long_value(); }
 
                     if(!p["mcc_cnt"].is_null()) { mcc_cnt = p["mcc_cnt"].long_value(); }
@@ -5463,6 +5584,9 @@ union as a ::devicestruc.
                     for(size_t i = 0; i < batt.size(); ++i) {
                         if(!p["batt"][i].is_null()) { batt[i].from_json(p["batt"][i].dump()); }
                     }
+                    for(size_t i = 0; i < bb.size(); ++i) {
+                        if(!p["bb"][i].is_null()) { bb[i].from_json(p["bb"][i].dump()); }
+                    }
                     for(size_t i = 0; i < bcreg.size(); ++i) {
                         if(!p["bcreg"][i].is_null()) { bcreg[i].from_json(p["bcreg"][i].dump()); }
                     }
@@ -5472,6 +5596,9 @@ union as a ::devicestruc.
 
                     for(size_t i = 0; i < cam.size(); ++i) {
                         if(!p["cam"][i].is_null()) { cam[i].from_json(p["cam"][i].dump()); }
+                    }
+                    for(size_t i = 0; i < cooler.size(); ++i) {
+                        if(!p["cooler"][i].is_null()) { cooler[i].from_json(p["cooler"][i].dump()); }
                     }
                     for(size_t i = 0; i < cpu.size(); ++i) {
                         if(!p["cpu"][i].is_null()) { cpu[i].from_json(p["cpu"][i].dump()); }
@@ -5491,6 +5618,9 @@ union as a ::devicestruc.
 
                     for(size_t i = 0; i < imu.size(); ++i) {
                         if(!p["imu"][i].is_null()) { imu[i].from_json(p["imu"][i].dump()); }
+                    }
+                    for(size_t i = 0; i < cooler.size(); ++i) {
+                        if(!p["cooler"][i].is_null()) { cooler[i].from_json(p["cooler"][i].dump()); }
                     }
                     for(size_t i = 0; i < mag.size(); ++i) {
                         if(!p["mag"][i].is_null()) { mag[i].from_json(p["mag"][i].dump()); }
@@ -6187,8 +6317,8 @@ union as a ::devicestruc.
 
             /// Checks if provided name exists within Namespace 2.0
             /**
-        @param	s	string representing name to search for
-        @return Returns true if name exists. Returns false if not.
+        \param	s	string representing name to search for
+        \return Returns true if name exists. Returns false if not.
     */
             bool name_exists(const string& s)
             {
@@ -6197,13 +6327,13 @@ union as a ::devicestruc.
 
             /// Returns the length of the map used to represent Namespace 2.0
             /**
-        @return Size size_t of the map used to represent Namespace 2.0
+        \return Size size_t of the map used to represent Namespace 2.0
     */
             size_t size()	{	return names.size();	}
 
             /// Prints every name within Namespace 2.0
             /**	For debug use.
-        @return n/a
+        \return n/a
     */
             void print_all_names() const	{
                 name_map::const_iterator it = names.begin();
@@ -6215,7 +6345,7 @@ union as a ::devicestruc.
 
             /// Prints every name and the associated type within Namespace 2.0
             /**	For debug use.
-        @return n/a
+        \return n/a
     */
             void print_all_names_types() const	{
                 name_map::const_iterator n = names.begin();
@@ -6232,7 +6362,7 @@ union as a ::devicestruc.
 
             /// Prints every name and the associated value and type within Namespace 2.0
             /**	For debug use.
-        @return n/a
+        \return n/a
     */
             void print_all_names_types_values() const	{
                 name_map::const_iterator n = names.begin();
@@ -6276,7 +6406,7 @@ union as a ::devicestruc.
 
             /// Get every name within Namespace 2.0
             /** Returns a vector of strings containing every name within Namespace 2.0.
-        @return Vector of strings of all names within Namespace 2.0.
+        \return Vector of strings of all names within Namespace 2.0.
     */
             vector<string> get_all_names() const	{
                 vector<string> all_names;
@@ -6290,10 +6420,10 @@ union as a ::devicestruc.
 
             /// Adds a name, memory location, and datatype to Namespace 2.0
             /** Associates a name with a specific memory location of the COSMOS Data Structure (::cosmosstruc) and a specific data type.  Multiple names may point to the same memory address.  Names may point to primitive datatypes, user-defined objects, vectors of primitive datatypes, or vectors of user-defined objects.  Whitespace and all punctuation besides unescaped double quotes are supported for inclusion in names.
-        @param	s	string representing name of data
-        @param	v	void* representing memory address of data
-        @param	t	string representing datatype of data
-        @return	n/a
+        \param	s	string representing name of data
+        \param	v	void* representing memory address of data
+        \param	t	string representing datatype of data
+        \return	n/a
 
     */
             void add_name(const string& s, void* v, string t)	{
@@ -6305,8 +6435,8 @@ union as a ::devicestruc.
 
             /// Removes a name, memory location, and datatype from Namespace 2.0.
             /** Removes a single entry added into Namespace 2.0 with #add_name().
-        @param	s	string representing name of data to remove
-        @return n/a
+        \param	s	string representing name of data to remove
+        \return n/a
     */
             void remove_name(const string& s) {
                 names.erase(s);
@@ -6315,8 +6445,8 @@ union as a ::devicestruc.
 
             /// Removes names from Namespace 2.0 recursively.
             /** Removes reference to memory location and data type associated with the provided name, then searches through Namespace 2.0 removing entries for all children of the provided name. E.g., if provided the name of an array, will remove the entry associated with the array and also the entries of every one of its elements.
-        @param	s	string representing name of data (and its children) to remove
-        @return n/a
+        \param	s	string representing name of data (and its children) to remove
+        \return n/a
     */
             void remove_name_recursive(const string& s) {
                 auto p = names.lower_bound(s);
@@ -6351,15 +6481,15 @@ union as a ::devicestruc.
 
             /// Add default names for every accessible memory location within the COSMOS Data Structure (Cosmos::Support::cosmosstruc) to Namespace 2.0.
             /** Provide a default name for every accessible memory location within the COSMOS Data Structure (Cosmos::Support::cosmosstruc) for Namespace 2.0. Naming convention follows the exact representation of the object in code. E.g., default name for `equation[0].name` is `"equation[0].name"`.
-        @param none
-        @return n/a
+        \param none
+        \return n/a
     */
             void add_default_names();
 
             /// Gets the name associated with the provided memory address in Namespace 2.0.
             /** Searches through Namespace 2.0 and returns the first name associated with the provided memory address.
-        @param	v	void pointer to memory address of an entry within Namespace 2.0 to search for
-        @return	string name of memory address associated with \p v. Returns empty string if address is not found.
+        \param	v	void pointer to memory address of an entry within Namespace 2.0 to search for
+        \return	string name of memory address associated with \p v. Returns empty string if address is not found.
     */
             string get_name(void* v)	{
                 name_map::const_iterator it = names.begin();
@@ -6370,8 +6500,8 @@ union as a ::devicestruc.
 
             /// Gets the data type associated with the provided name in Namespace 2.0.
             /** Finds the data type associated with the provided name in Namespace 2.0.
-        @param	s	string representing name to search for
-        @return	string representing the data type associated with the provided name. Returns empty string if name is not found.
+        \param	s	string representing name to search for
+        \return	string representing the data type associated with the provided name. Returns empty string if name is not found.
     */
             string get_type(const string& s) const	{
                 type_map::const_iterator it = types.find(s);
@@ -6381,8 +6511,8 @@ union as a ::devicestruc.
 
             /// Gets the pointer to the memory address associated with the provided name in Namespace 2.0.
             /** Searches through Namespace 2.0 and returns a pointer to the associated memory address casted into the data type given to the template.
-        @param	s	string representing name to search for
-        @return	type casted pointer to associated memory address. Returns `nullptr` if name is not found.
+        \param	s	string representing name to search for
+        \return	type casted pointer to associated memory address. Returns `nullptr` if name is not found.
     */
             template<class T>
             T* get_pointer(const string& s) const	{
@@ -6393,8 +6523,8 @@ union as a ::devicestruc.
 
             /// Gets the pointer to the memory address associated with the provided name in Namespace 2.0.
             /** Searches through Namespace 2.0 and returns a void pointer to the associated memory address.
-            @param	s	string representing name to search for
-            @return	void pointer to associated memory address. Returns `nullptr` if name is not found.
+            \param	s	string representing name to search for
+            \return	void pointer to associated memory address. Returns `nullptr` if name is not found.
             */
             void* get_pointer(const string& s) const	{
                 name_map::const_iterator it = names.find(s);
@@ -6404,8 +6534,8 @@ union as a ::devicestruc.
 
             /// Gets the value of the data associated with the provided name in Namespace 2.0.
             /** Searches through Namespace 2.0 and returns the value of the dereferenced pointer to the associated memory address.
-        @param	s	string representing name to search for
-        @return	value of the data pointed to by the pointer of the associated name. Returns a new instance of type `T` if name is not found.
+        \param	s	string representing name to search for
+        \return	value of the data pointed to by the pointer of the associated name. Returns a new instance of type `T` if name is not found.
     */
             template<class T>
             T get_value(const string& s) const	{
@@ -6427,9 +6557,9 @@ union as a ::devicestruc.
 
             /// Sets the value of the data associated with the provided name in Namespace 2.0.
             /** Searches through Namespace 2.0 and sets the value of the data pointed to by the pointer to the memory address associated with the provided name.
-        @param	s	string representing name to search for
-        @param	value	new value to set the data to
-        @return	n/a
+        \param	s	string representing name to search for
+        \param	value	new value to set the data to
+        \return	n/a
     */
             template<class T>
             void set_value(const string& s, const T& value) const	{
@@ -6441,8 +6571,8 @@ union as a ::devicestruc.
 
             /// Sets the data in Namespace 2.0 with a JSON-formatted string.
             /** Searches through Namespace 2.0 and sets the value of the appropriate data by parsing the provided JSON-formatted string. The name used to search Namespace 2.0 is the key of the first entry in the JSON-formatted string.
-        @param	json	JSON formatted string to set the data to
-        @return	n/a
+        \param	json	JSON formatted string to set the data to
+        \return	n/a
     */
             void set_json(const string& json) 	{
                 //cout<<"\tJSON received = <"<<json<<">"<<endl;
@@ -6938,8 +7068,8 @@ union as a ::devicestruc.
 
             /// Gets a JSON-formatted string of the data associated with the provided name in Namespace 2.0.
             /** Searches through Namespace 2.0 and gets the JSON-formatted string of the data pointed to by the pointer to the memory address associated with the provided name.
-        @param	s	string representing name to search for
-        @return	JSON-formatted string of data. Returns empty string if name is not found.
+        \param	s	string representing name to search for
+        \return	JSON-formatted string of data. Returns empty string if name is not found.
     */
             template<class T>
             string get_json(const string& s)	{
@@ -6954,8 +7084,8 @@ union as a ::devicestruc.
             // get called from agents (no template)
             /// Gets a JSON-formatted string of the data associated with the provided name in Namespace 2.0. (Non-template version)
             /** Searches through Namespace 2.0 and gets the JSON-formatted string of the data pointed to by the pointer to the memory address associated with the provided name.
-        @param	s	string representing name to search for
-        @return	JSON-formatted string of data. Returns empty string if name is not found.
+        \param	s	string representing name to search for
+        \return	JSON-formatted string of data. Returns empty string if name is not found.
     */
             string get_json(const string& s)	{
                 if(name_exists(s))  {
@@ -7205,10 +7335,10 @@ union as a ::devicestruc.
 
             /// Replace every occurance of a substring within a string with another subtring.
             /** Search through a string for every instance of a specified substring, then replace. For internal use.
-				@param	str		string to search through
-				@param	from	substring to replace
-				@param	to		substring to be replaced with
-				@return	n/a
+				\param	str		string to search through
+				\param	from	substring to replace
+				\param	to		substring to be replaced with
+				\return	n/a
 			*/
             void replace(string& str, const string& from, const string& to) {
                 if(from.empty()) return;
@@ -7222,8 +7352,8 @@ union as a ::devicestruc.
 
             /// Pretty-fy text
             /** Takes an input JSON-formatted string and makes it more readable. For internal use.
-				@param	js		JSON-formatted string
-				@return	n/a
+				\param	js		JSON-formatted string
+				\return	n/a
 			*/
             string pretty_form(string& js)	{
 
@@ -7266,8 +7396,8 @@ union as a ::devicestruc.
 
             /// Gets a human-readable JSON-formatted string of the data associated with the provided name in Namespace 2.0.
             /** Searches through Namespace 2.0 and gets the JSON-formatted string of the data pointed to by the pointer to the memory address associated with the provided name.
-        @param	s	string representing name to search for
-        @return	JSON-formatted string of data. Returns empty string if name is not found.
+        \param	s	string representing name to search for
+        \return	JSON-formatted string of data. Returns empty string if name is not found.
     */
             template<class T>
             string get_json_pretty(const string& s)	{
@@ -7283,8 +7413,8 @@ union as a ::devicestruc.
 
             /// Gets a human-readable JSON-formatted string of the data associated with the provided name in Namespace 2.0. (Non-template version)
             /** Searches through Namespace 2.0 and gets the JSON-formatted string of the data pointed to by the pointer to the memory address associated with the provided name.
-        @param	s	string representing name to search for
-        @return	JSON-formatted string of data. Returns empty string if name is not found.
+        \param	s	string representing name to search for
+        \return	JSON-formatted string of data. Returns empty string if name is not found.
     */
             string get_json_pretty(const string& s)	{
                 if(name_exists(s))	{
@@ -7302,7 +7432,7 @@ union as a ::devicestruc.
 
             /// Convert class contents to a JSON object
             /** Returns a json11 JSON object of the COSMOS Data Structure (::cosmosstruc)
-        @return	A json11 JSON object containing every member variable within the COSMOS Data Structure (::cosmosstruc)
+        \return	A json11 JSON object containing every member variable within the COSMOS Data Structure (::cosmosstruc)
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -7338,8 +7468,8 @@ union as a ::devicestruc.
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -7405,8 +7535,8 @@ union as a ::devicestruc.
 
             /// Checks if operator is left-associative
             /**	For internal use.
-        @param	a	char representing operator to check left-associativity for
-        @return Returns true if operator is left-associative. Returns false if not.
+        \param	a	char representing operator to check left-associativity for
+        \return Returns true if operator is left-associative. Returns false if not.
     */
             bool left_ass(char a)	{
                 if(a == '+')	return true;
@@ -7420,9 +7550,9 @@ union as a ::devicestruc.
 
             /// Checks if two operators have equal precedence.
             /**	For internal use.
-        @param	a	char representing operator
-        @param	b	char representing operator
-        @return Returns true if operators have equal precedence. Returns false if not.
+        \param	a	char representing operator
+        \param	b	char representing operator
+        \return Returns true if operators have equal precedence. Returns false if not.
     */
             bool equal_ass(char a, char b)	{
                 if(a == '+' && b == '+')	return true;
@@ -7460,9 +7590,9 @@ union as a ::devicestruc.
 
             /// Checks for higher operator precedence
             /**	For internal use.
-        @param	a	char representing operator
-        @param	b	char representing operator
-        @return Returns true if operator `a` has higher precedence than operator `b`. Returns false if not.
+        \param	a	char representing operator
+        \param	b	char representing operator
+        \return Returns true if operator `a` has higher precedence than operator `b`. Returns false if not.
     */
             bool higher(char a, char b)	{
 
@@ -7501,9 +7631,9 @@ union as a ::devicestruc.
 
             /// Applies an arithmetic operation between two values
             /**	Two operands are popped from the `answer` stack, and one operator is popped from the `ops` stack. The result of the operation is pushed onto the `answer` stack. For internal use.
-        @param	ops		stack of operators
-        @param	answer	stack of operands
-        @return Returns -1 if `answer` does not contain at least 2 operands. Returns 0 if operation was successfully applied.
+        \param	ops		stack of operators
+        \param	answer	stack of operands
+        \return Returns -1 if `answer` does not contain at least 2 operands. Returns 0 if operation was successfully applied.
     */
             int apply_op(stack<char>& ops, stack<double>& answer)	{
                 if(answer.size()<2) return -1;
@@ -7530,8 +7660,8 @@ union as a ::devicestruc.
 
             /// Evaluate the expression of a python?Matlab? equation
             /**	Parses a python?Matlab? formatted string and evaluates the expression
-        @param	str	string representing a python?Matlab? formatted expression
-        @return Returns a double type result of the expression. Returns *NaN* if an error is encountered.
+        \param	str	string representing a python?Matlab? formatted expression
+        \return Returns a double type result of the expression. Returns *NaN* if an error is encountered.
     */
             double equationator(const string& str)	{
                 string eq(str);

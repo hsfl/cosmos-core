@@ -31,6 +31,7 @@
  * 	\brief pic include file.
 */
 
+//! \ingroup devices
 /*!	\defgroup pic PIC16 Communications device library.
  * @{
  * PIC16 Device Library.
@@ -49,6 +50,7 @@
 #include "support/jsonlib.h"
 
 //! \ingroup pic
+//! \ingroup devices
 //!	\defgroup pic_constants PIC constants
 //!	@{
 
@@ -86,6 +88,7 @@
 
 
 //! \ingroup pic
+//! \ingroup devices
 //! \defgroup pic_typedefs PIC type definitions
 //! @{
 enum

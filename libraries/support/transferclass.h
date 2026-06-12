@@ -50,22 +50,22 @@ namespace Cosmos {
             ERROR_ABORT = -1,   //!< Error occurred, return from the current function
         };
         /**
-         * @brief Virtual interface to send packets.
+         * \brief Virtual interface to send packets.
          */
         class Sender {
         public:
             virtual ~Sender() = default;
             /**
-             * @brief Send a packet.
+             * \brief Send a packet.
              * 
-             * @param packet The packet to send. It is expected for implementations to handle the packet's serialization.
-             * @return int32_t Returns 0 on success, or an error code on failure that signals to the transfer process what to do next.
+             * \param packet The packet to send. It is expected for implementations to handle the packet's serialization.
+             * \return int32_t Returns 0 on success, or an error code on failure that signals to the transfer process what to do next.
              */
             virtual SendRetVal send(PacketComm& packet) = 0;
 
             /**
-             * @brief Get the number of packets sent out of this sender object.
-             * @return size_t
+             * \brief Get the number of packets sent out of this sender object.
+             * \return size_t
              */
             size_t get_number_of_packets_sent() const { return num_packets_sent_; }
         

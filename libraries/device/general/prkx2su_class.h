@@ -1,3 +1,6 @@
+//! \ingroup devices
+//! \defgroup prkx2suclass Yaesu PRKX2SU antenna rotator controller class library.
+
 #ifndef PRKX2SU_CLASS_H
 #define PRKX2SU_CLASS_H
 

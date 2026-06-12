@@ -4,7 +4,7 @@
 int main(int argc, char *argv[])
 {
 	gige_handle *handle;
-	char ipaddress[20] = "192.168.200.32";
+    char ipaddress[20] = "192.168.118.91";
 	uint16_t ffc_state = 0;
 //	uint32_t iretn = 0;
 

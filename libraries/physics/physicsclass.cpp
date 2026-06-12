@@ -347,6 +347,105 @@ int32_t PosAccel(locstruc* loc, physicsstruc* phys)
     return 0;
 }
 
+/**
+ * \brief Acceleration for a lunar orbiter, integrating in the ECI frame.
+ *
+ * The GJ integrator operates on pos.eci.s/v/a (Earth-centred inertial).
+ * Moon gravity is the central body; Earth and Sun are third-body perturbations.
+ * pos_eci() populates all ephemeris vectors and the full coordinate chain
+ * including pos.sci (selenocentric) for correct output.
+ *
+ * All vectors are in ECI (Earth-centred). Moon ECI = sun2earth − sun2moon.
+ */
+int32_t LunarPosAccel(locstruc* loc, physicsstruc* phys)
+{
+    // Integrate in SCI (Selenocentric Inertial) — Moon is at the origin and
+    // stationary. Earth and Sun appear as third-body perturbations (frame
+    // acceleration terms). This avoids the reference-frame drift problem that
+    // occurs when integrating in ECI with a moving Moon.
+
+    Vector da, ctpos;
+    double radius;
+
+    loc->pos.sci.a = rv_zero();
+
+    // Populate ephemeris for this UTC (sun2moon, sun2earth velocities etc.)
+    pos_extra(loc->pos.sci.utc, *loc);
+
+    // ── Moon gravity (central body, two-body in SCI) ──────────────────────
+    // In SCI the Moon is at the origin; satellite position IS the sci vector.
+    radius = length_rv(loc->pos.sci.s);
+    if (radius > 1.0)
+    {
+        da = (-GMOON / (radius*radius*radius)) * Vector(loc->pos.sci.s);
+        loc->pos.sci.a = rv_add(loc->pos.sci.a, da.to_rv());
+    }
+
+    // ── Earth third-body perturbation ─────────────────────────────────────
+    // Earth position in SCI = sun2earth.s − sun2moon.s (Moon→Earth vector)
+    {
+        Vector earth_sci = Vector(loc->pos.extra.sun2earth.s)
+                         - Vector(loc->pos.extra.sun2moon.s);
+        // Satellite → Earth in SCI
+        ctpos = earth_sci - Vector(loc->pos.sci.s);
+        radius = ctpos.norm();
+        if (radius > 1.0)
+        {
+            da = (GM / (radius*radius*radius)) * ctpos;
+            loc->pos.sci.a = rv_add(loc->pos.sci.a, da.to_rv());
+        }
+        // Frame correction: Earth's pull on Moon (SCI origin)
+        radius = earth_sci.norm();
+        if (radius > 1.0)
+        {
+            da = (GM / (radius*radius*radius)) * earth_sci;
+            loc->pos.sci.a = rv_sub(loc->pos.sci.a, da.to_rv());
+        }
+    }
+
+    // ── Sun third-body perturbation ───────────────────────────────────────
+    // Sun position in SCI = −sun2moon.s (Sun→Moon reversed)
+    {
+        Vector sun_sci = -1. * Vector(loc->pos.extra.sun2moon.s);
+        ctpos = sun_sci - Vector(loc->pos.sci.s);
+        radius = ctpos.norm();
+        if (radius > 1.0)
+        {
+            da = (GSUN / (radius*radius*radius)) * ctpos;
+            loc->pos.sci.a = rv_add(loc->pos.sci.a, da.to_rv());
+        }
+        // Frame correction: Sun's pull on Moon (SCI origin)
+        radius = sun_sci.norm();
+        if (radius > 1.0)
+        {
+            da = (GSUN / (radius*radius*radius)) * sun_sci;
+            loc->pos.sci.a = rv_sub(loc->pos.sci.a, da.to_rv());
+        }
+    }
+
+    // ── Non-gravitational forces ──────────────────────────────────────────
+    Quaternion iratt = Quaternion(loc->att.icrf.s).conjugate();
+    if (phys->adrag.norm() > 0.)
+        loc->pos.sci.a = rv_add(loc->pos.sci.a, iratt.irotate(phys->adrag).to_rv());
+    if (phys->rdrag.norm() > 0.)
+        loc->pos.sci.a = rv_add(loc->pos.sci.a, iratt.irotate(phys->rdrag).to_rv());
+    if (phys->fdrag.norm() > 0.)
+        loc->pos.sci.a = rv_add(loc->pos.sci.a, iratt.irotate(phys->fdrag).to_rv());
+    if (phys->thrust.norm() > 0.)
+        loc->pos.sci.a = rv_add(loc->pos.sci.a, iratt.irotate(phys->thrust).to_rv());
+
+    // NaN guard
+    for (int k = 0; k < 3; ++k)
+        if (std::isnan(loc->pos.sci.a.col[k])) loc->pos.sci.a.col[k] = 0.;
+
+    // Do NOT call pos_sci() here — it would overwrite sci.a via pos_icrf2sci()
+    // which sets sci.a = icrf.a - sun2moon.a (kinematic, not our gravity).
+    // pos_sci() is called by the output pipeline after each propagation step.
+
+    return 0;
+}
+
+
 //! Calculate atmospheric density
 /*! Calculate atmospheric density at indicated Latitute/Longitude/Altitude using the
          * NRLMSISE-00 atmospheric model.
@@ -985,6 +1084,7 @@ int32_t Structure::Setup(string stype)
                         "U3","U3X","U3Y","U3XY",
                         "U6","U6X","U6Y","U6XY",
                         "U12","U12X","U12Y","U12XY",
+                        "U16","U16X","U16Y","U16XY",
                         "HEX65W80H"
                     }, {0});
     }
@@ -1068,6 +1168,27 @@ int32_t Structure::Setup(Type type)
     case U12XY:
         iretn = add_u(2, 2, 3, XY);
         break;
+    case U16:
+        iretn = add_u(2, 2, 4, NoPanel);
+        break;
+    case U16X:
+        iretn = add_u(2, 2, 4, X);
+        break;
+    case U16XX:
+        iretn = add_u(2, 2, 4, XX);
+        break;
+    case U16Y:
+        iretn = add_u(2, 2, 4, Y);
+        break;
+    case U16YY:
+        iretn = add_u(2, 2, 4, YY);
+        break;
+    case U16XY:
+        iretn = add_u(2, 2, 4, XY);
+        break;
+    case U16XXYY:
+        iretn = add_u(2, 2, 4, XXYY);
+        break;
     case HEX65W80H:
         iretn = add_hex(.65, .80, XY);
         break;
@@ -1139,6 +1260,61 @@ int32_t Structure::add_u(double x, double y, double z, ExternalPanelType type)
         add_panel("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -y/2., z/2.), Vector(-x/2., -y/2., z/2.), .01, 2, 0.);
         add_panel("panel+y", Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., z + y/2., -z/2.), Vector(-x/2., z + y/2., -z/2.), .01);
         add_panel("panel-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -z - y/2., -z/2.), Vector(-x/2., -z - y/2., -z/2.), .01);
+
+        add_panel("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .01);
+        add_panel("external-z", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., -y/2., -z/2.), .01);
+        break;
+    case XX:
+        // ±X body faces — no solar cells (panels deployed from here)
+        add_panel("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .01, 2, 0.);
+        add_panel("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., -y/2., z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., y/2., -z/2.), .01, 2, 0.);
+        // First panel segment (same as X)
+        add_panel("panel+x",  Vector(    x/2., -y/2., -z/2.), Vector(    x/2.,  y/2., -z/2.), Vector(  z+x/2.,  y/2., -z/2.), Vector(  z+x/2., -y/2., -z/2.), .01);
+        add_panel("panel-x",  Vector(   -x/2., -y/2., -z/2.), Vector(   -x/2.,  y/2., -z/2.), Vector( -z-x/2.,  y/2., -z/2.), Vector( -z-x/2., -y/2., -z/2.), .01);
+        // Second panel segment
+        add_panel("panel+x2", Vector(  z+x/2., -y/2., -z/2.), Vector(  z+x/2.,  y/2., -z/2.), Vector(2*z+x/2.,  y/2., -z/2.), Vector(2*z+x/2., -y/2., -z/2.), .01);
+        add_panel("panel-x2", Vector( -z-x/2., -y/2., -z/2.), Vector( -z-x/2.,  y/2., -z/2.), Vector(-2*z-x/2., y/2., -z/2.), Vector(-2*z-x/2., -y/2., -z/2.), .01);
+
+        // ±Y and ±Z body faces — normal external panels with solar cells
+        add_panel("external+y", Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., y/2., -z/2.), .01);
+        add_panel("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -y/2., z/2.), Vector(-x/2., -y/2., z/2.), .01);
+        add_panel("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .01);
+        add_panel("external-z", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., -y/2., -z/2.), .01);
+        break;
+
+    case YY:
+        // ±Y body faces — no solar cells
+        add_panel("external+y", Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., y/2., -z/2.), .01, 2, 0.);
+        add_panel("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -y/2., z/2.), Vector(-x/2., -y/2., z/2.), .01, 2, 0.);
+        // First panel segment (same as Y)
+        add_panel("panel+y",  Vector(-x/2.,     y/2., -z/2.), Vector( x/2.,     y/2., -z/2.), Vector( x/2.,   z+y/2., -z/2.), Vector(-x/2.,   z+y/2., -z/2.), .01);
+        add_panel("panel-y",  Vector(-x/2.,    -y/2., -z/2.), Vector( x/2.,    -y/2., -z/2.), Vector( x/2.,  -z-y/2., -z/2.), Vector(-x/2.,  -z-y/2., -z/2.), .01);
+        // Second panel segment
+        add_panel("panel+y2", Vector(-x/2.,   z+y/2., -z/2.), Vector( x/2.,   z+y/2., -z/2.), Vector( x/2., 2*z+y/2., -z/2.), Vector(-x/2., 2*z+y/2., -z/2.), .01);
+        add_panel("panel-y2", Vector(-x/2.,  -z-y/2., -z/2.), Vector( x/2.,  -z-y/2., -z/2.), Vector( x/2.,-2*z-y/2., -z/2.), Vector(-x/2.,-2*z-y/2., -z/2.), .01);
+
+        // ±X and ±Z body faces — normal
+        add_panel("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .01);
+        add_panel("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., -y/2., z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., y/2., -z/2.), .01);
+        add_panel("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .01);
+        add_panel("external-z", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., -y/2., -z/2.), .01);
+        break;
+
+    case XXYY:
+        // ±X and ±Y body faces — no solar cells (all replaced by deployed panels)
+        add_panel("external+x", Vector(x/2., -y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., -y/2., z/2.), .01, 2, 0.);
+        add_panel("external-x", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., -y/2., z/2.), Vector(-x/2., y/2., z/2.), Vector(-x/2., y/2., -z/2.), .01, 2, 0.);
+        add_panel("panel+x",  Vector(    x/2., -y/2., -z/2.), Vector(    x/2.,  y/2., -z/2.), Vector(  z+x/2.,  y/2., -z/2.), Vector(  z+x/2., -y/2., -z/2.), .01);
+        add_panel("panel-x",  Vector(   -x/2., -y/2., -z/2.), Vector(   -x/2.,  y/2., -z/2.), Vector( -z-x/2.,  y/2., -z/2.), Vector( -z-x/2., -y/2., -z/2.), .01);
+        add_panel("panel+x2", Vector(  z+x/2., -y/2., -z/2.), Vector(  z+x/2.,  y/2., -z/2.), Vector(2*z+x/2.,  y/2., -z/2.), Vector(2*z+x/2., -y/2., -z/2.), .01);
+        add_panel("panel-x2", Vector( -z-x/2., -y/2., -z/2.), Vector( -z-x/2.,  y/2., -z/2.), Vector(-2*z-x/2., y/2., -z/2.), Vector(-2*z-x/2., -y/2., -z/2.), .01);
+
+        add_panel("external+y", Vector(-x/2., y/2., -z/2.), Vector(-x/2., y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(x/2., y/2., -z/2.), .01, 2, 0.);
+        add_panel("external-y", Vector(-x/2., -y/2., -z/2.), Vector(x/2., -y/2., -z/2.), Vector(x/2., -y/2., z/2.), Vector(-x/2., -y/2., z/2.), .01, 2, 0.);
+        add_panel("panel+y",  Vector(-x/2.,     y/2., -z/2.), Vector( x/2.,     y/2., -z/2.), Vector( x/2.,   z+y/2., -z/2.), Vector(-x/2.,   z+y/2., -z/2.), .01);
+        add_panel("panel-y",  Vector(-x/2.,    -y/2., -z/2.), Vector( x/2.,    -y/2., -z/2.), Vector( x/2.,  -z-y/2., -z/2.), Vector(-x/2.,  -z-y/2., -z/2.), .01);
+        add_panel("panel+y2", Vector(-x/2.,   z+y/2., -z/2.), Vector( x/2.,   z+y/2., -z/2.), Vector( x/2., 2*z+y/2., -z/2.), Vector(-x/2., 2*z+y/2., -z/2.), .01);
+        add_panel("panel-y2", Vector(-x/2.,  -z-y/2., -z/2.), Vector( x/2.,  -z-y/2., -z/2.), Vector( x/2.,-2*z-y/2., -z/2.), Vector(-x/2.,-2*z-y/2., -z/2.), .01);
 
         add_panel("external+z", Vector(-x/2., -y/2., z/2.), Vector(x/2., -y/2., z/2.), Vector(x/2., y/2., z/2.), Vector(-x/2., y/2., z/2.), .01);
         add_panel("external-z", Vector(-x/2., -y/2., -z/2.), Vector(-x/2., y/2., -z/2.), Vector(x/2., y/2., -z/2.), Vector(x/2., -y/2., -z/2.), .01);
@@ -1924,6 +2100,10 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
         lvlhposition = new LvlhPositionPropagator(&currentinfo, dt);
         lvlhposition->Init();
         break;
+    case Propagator::Type::PositionLunar:
+        lunarposition = new LunarPositionPropagator(&currentinfo, dt, 6);
+        lunarposition->Init();
+        break;
     default:
         inposition = new InertialPositionPropagator(&currentinfo, dt);
         inposition->Init();
@@ -1998,6 +2178,16 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     {
         pos_geod(currentinfo.node.loc);
     }
+    else if (ptype == Propagator::PositionLunar)
+    {
+        {
+            rvector saved_a = currentinfo.node.loc.pos.sci.a;
+            currentinfo.node.loc.pos.eci.pass = 0;
+            pos_sci(currentinfo.node.loc);
+            currentinfo.node.loc.pos.sci.a = saved_a;
+        }
+        LunarPosAccel(&currentinfo.node.loc, &currentinfo.node.phys);
+    }
     else
     {
         pos_eci(currentinfo.node.loc);
@@ -2032,8 +2222,10 @@ int32_t State::Propagate(double nextutc)
         nextutc = currentinfo.node.utc + dtj;
     }
 
+    ElapsedTime et;
     while ((nextutc - currentinfo.node.utc) > dtj / 2.)
     {
+        if (et.split() > 300.) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
         PhysCalc(&currentinfo.node.loc, &currentinfo.node.phys);
 
         // Thermal
@@ -2063,6 +2255,9 @@ int32_t State::Propagate(double nextutc)
         case Propagator::Type::PositionLvlh:
             static_cast<LvlhPositionPropagator *>(lvlhposition)->Propagate(currentinfo.node.loc);
             break;
+        case Propagator::Type::PositionLunar:
+            static_cast<LunarPositionPropagator *>(lunarposition)->Propagate(nextutc);
+            break;
         default:
             break;
         }
@@ -2070,6 +2265,15 @@ int32_t State::Propagate(double nextutc)
         if (ptype == Propagator::PositionGeo)
         {
             pos_geod(currentinfo.node.loc);
+        }
+        else if (ptype == Propagator::PositionLunar)
+        {
+            {
+                rvector saved_a = currentinfo.node.loc.pos.sci.a;
+                currentinfo.node.loc.pos.eci.pass = 0;
+                pos_sci(currentinfo.node.loc);
+                currentinfo.node.loc.pos.sci.a = saved_a;
+            }
         }
         else
         {
@@ -2432,8 +2636,10 @@ int32_t IterativeAttitudePropagator::Propagate(double nextutc)
     {
         nextutc = currentutc + dtj;
     }
+    ElapsedTime et;
     while ((nextutc - currentutc) > dtj / 2.)
     {
+        if (et.split() > 300.) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
         currentutc += dtj;
         // Calculate new a from ftorque
         currentinfo->node.phys.ctorque = currentinfo->node.phys.ftorque;
@@ -2640,8 +2846,10 @@ int32_t ThermalPropagator::Propagate(double nextutc)
     {
         nextutc = currentutc + dtj;
     }
+    ElapsedTime et;
     while ((nextutc - currentutc) > dtj / 2.)
     {
+        if (et.split() > 300.) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
         currentutc += dtj;
         double energyd = 0.;
         double heatratio = currentinfo->node.phys.heat / currentinfo->node.phys.mass;
@@ -2768,8 +2976,10 @@ int32_t ElectricalPropagator::Propagate(double nextutc)
     {
         nextutc = currentutc + dtj;
     }
+    ElapsedTime et;
     while ((nextutc - currentutc) > dtj / 2.)
     {
+        if (et.split() > 300.) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
         currentutc += dtj;
 
         currentinfo->node.phys.powgen = 0.;
@@ -2895,6 +3105,7 @@ int32_t ElectricalPropagator::Propagate(double nextutc)
 
 int32_t OrbitalEventGenerator::Init()
 {
+    currentutc = currentinfo->node.loc.utc;
     time_start = currentinfo->node.loc.utc;
     currentinfo->event_tick = (time_start + currentinfo->event_tick) - time_start;
     time_end = time_start + currentinfo->event_tick;
@@ -2922,8 +3133,10 @@ int32_t OrbitalEventGenerator::Propagate(double nextutc)
     {
         nextutc = currentutc + dtj;
     }
+    ElapsedTime et;
     while ((nextutc - currentutc) > dtj / 2.)
     {
+        if (et.split() > 300.) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
         currentutc += dtj;
 
         check_all_event(false);
@@ -3589,6 +3802,7 @@ int32_t OrbitalEventGenerator::check_target_event(const targetstruc& target, boo
             eventstruc target_event;
             target_event.name = "TARGLOS_" + target.name;
             target_event.type = EVENT_TYPE_TARGLOS;
+            target_event.utc = currentutc;
             target_event.dtime = currentutc - target_AoS[target.name].utc;
             target_event.value = target_AoS[target.name].azto;
             target_event.az = target_AoS[target.name].azto;
@@ -3648,7 +3862,8 @@ int32_t OrbitalEventGenerator::check_target_event(const targetstruc& target, boo
         eventstruc target_event;
         target_event.name = "TARGAOS_" + target.name;
         target_event.type = EVENT_TYPE_TARG;
-        target_event.utc = target_AoS[target.name].utc;
+        target_AoS[target.name].utc = currentutc;          // set it first
+        target_event.utc = currentutc;                     // then use it
         target_event.dtime = 0.;
         target_event.value = target_AoS[target.name].elto;
         target_event.az = target_AoS[target.name].azto;
@@ -3670,6 +3885,509 @@ int32_t OrbitalEventGenerator::check_target_event(const targetstruc& target, boo
     {
         return 0;
     }
+}
+
+
+// ============================================================================
+// LunarPositionPropagator — Gauss-Jackson integrator for lunar orbit
+// ============================================================================
+// Identical algorithm to GaussJacksonPositionPropagator.
+// The only substitution: LunarPosAccel() instead of PosAccel(), and no
+// call to pos_eci() / pos_eci2geoc() (state is Moon-centred throughout).
+// Setup() is a verbatim copy of GaussJacksonPositionPropagator::Setup() to
+// avoid any divergence in the coefficient tables.
+// ============================================================================
+
+int32_t LunarPositionPropagator::Setup()
+{
+    step.resize(order+2);
+    binom.resize(order+2);
+    beta.resize(order+2);
+    alpha.resize(order+2);
+    for (uint16_t i=0; i<order+2; ++i)
+    {
+        binom[i].resize(order+2);
+        beta[i].resize(order+1);
+        alpha[i].resize(order+1);
+    }
+    c.resize(order+3);
+    gam.resize(order+2);
+    q.resize(order+3);
+    lam.resize(order+3);
+
+    dtsq = dt * dt;
+    order2 = order/2;
+
+    // Binomial coefficients — same convention as GaussJackson
+    for (uint16_t m=0; m<order+2; m++)
+    {
+        for (uint16_t i=0; i<order+2; i++)
+        {
+            if (m > i)
+                binom[m][i] = 0;
+            else if (m == i)
+                binom[m][i] = 1;
+            else if (m == 0)
+                binom[m][i] = 1;
+            else
+                binom[m][i] = binom[m-1][i-1] + binom[m][i-1];
+        }
+    }
+
+    // GJ c[] coefficients
+    c[0] = 1.;
+    for (uint16_t n=1; n<order+3; n++)
+    {
+        c[n] = 0.;
+        for (uint16_t i=0; i<=n-1; i++)
+            c[n] -= c[i] / (n+1-i);
+    }
+
+    // gam[]
+    gam[0] = c[0];
+    for (uint16_t i=1; i<order+2; i++)
+        gam[i] = gam[i-1] + c[i];
+
+    // beta[][]
+    for (uint16_t i=0; i<order+1; i++)
+    {
+        beta[order+1][i] = gam[i+1];
+        beta[order][i]   = c[i+1];
+        for (uint32_t j=order-1; j<order; --j)
+        {
+            if (!i)
+                beta[j][i] = beta[j+1][i];
+            else
+                beta[j][i] = beta[j+1][i] - beta[j+1][i-1];
+        }
+    }
+
+    // q[]
+    q[0] = 1.;
+    for (uint16_t i=1; i<order+3; i++)
+    {
+        q[i] = 0.;
+        for (uint32_t k=0; k<=i; k++)
+            q[i] += c[k]*c[i-k];
+    }
+
+    // lam[]
+    lam[0] = q[0];
+    for (uint16_t i=1; i<order+3; i++)
+        lam[i] = lam[i-1] + q[i];
+
+    // alpha[][]
+    for (uint16_t i=0; i<order+1; i++)
+    {
+        alpha[order+1][i] = lam[i+2];
+        alpha[order][i]   = q[i+2];
+        for (uint32_t j=order-1; j<order; --j)
+        {
+            if (!i)
+                alpha[j][i] = alpha[j+1][i];
+            else
+                alpha[j][i] = alpha[j+1][i] - alpha[j+1][i-1];
+        }
+    }
+
+    // a[][] and b[][] integrator weights
+    a.resize(order+2);
+    b.resize(order+2);
+    for (uint16_t j=0; j<order+2; j++)
+    {
+        a[j].resize(order+1);
+        b[j].resize(order+1);
+        for (uint16_t m=0; m<order+1; m++)
+        {
+            a[j][order-m] = 0.;
+            b[j][order-m] = 0.;
+            for (uint32_t i=m; i<=order; i++)
+            {
+                a[j][order-m] += alpha[j][i] * binom[m][i];
+                b[j][order-m] += beta[j][i]  * binom[m][i];
+            }
+            a[j][order-m] *= pow(-1., m);
+            b[j][order-m] *= pow(-1., m);
+            if (order-m == j)
+                b[j][order-m] += 0.5;
+        }
+    }
+
+    return 0;
+}
+
+int32_t LunarPositionPropagator::Init()
+{
+    // Seed the GJ history using Kepler's equation with lunar GM, then
+    // initialise the sum-of-sums (ss, s) accumulators via Converge().
+    // Mirrors GaussJacksonPositionPropagator::Init() exactly, substituting
+    // GMOON for Earth GM and eci2kep/kep2eci for our lunar Kepler solver.
+
+    // Convert initial state from selenocentric to true ECI by adding Moon's ECI position.
+    // The flo block set pos.eci to the selenocentric Kepler state.
+    // Use pos.sci to convert correctly to true ECI via pos_sci().
+    {
+        cartpos &sci = currentinfo->node.loc.pos.sci;
+        cartpos &eci = currentinfo->node.loc.pos.eci;
+        sci.s   = eci.s;      // copy selenocentric position
+        sci.v   = eci.v;      // copy selenocentric velocity
+        sci.a   = rv_zero();
+        sci.utc = eci.utc;
+        sci.pass = eci.pass + 1;   // must be > eci.pass to trigger sci→eci conversion
+        pos_sci(currentinfo->node.loc);   // → populates pos.eci with true ECI
+        std::fprintf(stderr, "[LunarPosInit v11] t0=%.6f  r_sci=%.1fkm  vx_sci=%.2f  vz_sci=%.2f\n",
+            sci.utc, Vector(sci.s).norm()/1000., sci.v.col[0], sci.v.col[2]);
+    }
+    LunarPosAccel(&currentinfo->node.loc, &currentinfo->node.phys);
+
+    initialloc  = currentinfo->node.loc;
+    initialphys = currentinfo->node.phys;
+    currentinfo->node.phys.utc = currentinfo->node.loc.utc;
+
+    loc_clear(step[order+1].loc);
+
+    // Place initial state at step[order2] — the GJ anchor slot
+    step[order2].loc = currentinfo->node.loc;
+
+    // Derive Keplerian elements from the SCI state (Moon-centred)
+    const cartpos &sci0 = currentinfo->node.loc.pos.sci;
+    Vector r0(sci0.s), v0(sci0.v);
+    double rmag = r0.norm();
+    double vmag = v0.norm();
+    double sma  = 1.0 / (2.0/rmag - vmag*vmag/GMOON);
+    Vector h0   = r0.cross(v0);
+    double p    = h0.norm()*h0.norm() / GMOON;
+    double ecc  = sqrt(std::max(0., 1.0 - p/sma));
+    double mm   = sqrt(GMOON / (sma*sma*sma));
+
+    double vr    = r0.dot(v0) / rmag;
+    double cosE0 = (1.0 - rmag/sma) / (ecc > 1e-9 ? ecc : 1.0);
+    double sinE0 = (ecc > 1e-9) ? vr*(1.0-ecc*cosE0)/(sma*mm*ecc) : 0.0;
+    double E0    = (ecc > 1e-9) ? atan2(sinE0, cosE0) : 0.0;
+    double ma0   = E0 - ecc*sin(E0);
+
+    // Perifocal frame
+    Vector r0hat = r0.normalize();
+    Vector e_vec = v0.cross(h0)/GMOON - r0hat;
+    Vector P_hat = (ecc > 1e-9) ? e_vec.normalize() : r0hat;
+    Vector W_hat = h0.normalize();
+    Vector Q_hat = W_hat.cross(P_hat);
+
+    auto kepler_state = [&](int32_t steps_from_centre) -> locstruc
+    {
+        double delta_t = (double)steps_from_centre * dt;
+        double ma = ma0 + mm*delta_t;
+        double E  = ma;
+        for (int iter = 0; iter < 100; ++iter)
+        {
+            double dE = (ma - E + ecc*sin(E)) / (1.0 - ecc*cos(E));
+            E += dE;
+            if (fabs(dE) < 1e-12) break;
+        }
+        double ta    = 2.0*atan2(sqrt(1.+ecc)*sin(E/2.), sqrt(1.-ecc)*cos(E/2.));
+        double p_slr = sma*(1.-ecc*ecc);
+        double r_mag = p_slr / (1.+ecc*cos(ta));
+        double sqmup = sqrt(GMOON/p_slr);
+        Vector pos   = r_mag*(cos(ta)*P_hat + sin(ta)*Q_hat);
+        Vector vel   = sqmup*(-sin(ta)*P_hat + (ecc+cos(ta))*Q_hat);
+
+        locstruc loc = step[order2].loc;
+        loc.utc = step[order2].loc.utc + delta_t/86400.;
+        // Set SCI (Moon-centred); pos_sci() converts to true ECI for the GJ integrator
+        loc.pos.sci.utc = loc.pos.eci.utc = loc.utc;
+        for (int k = 0; k < 3; ++k)
+        {
+            loc.pos.sci.s.col[k] = pos[k];
+            loc.pos.sci.v.col[k] = vel[k];
+            loc.pos.sci.a.col[k] = 0.;
+        }
+        loc.pos.eci.pass = 0;  // force pos_sci to convert sci→eci
+        pos_sci(loc);   // populates all frames from SCI
+        return loc;
+    };
+
+    // Fill history steps — pos_sci() gives correct ECI for each step's UTC
+    for (int32_t i = (int32_t)order2 - 1; i >= 0; --i)
+    {
+        step[i].loc = kepler_state(i - (int32_t)order2);
+        LunarPosAccel(&step[i].loc, &currentinfo->node.phys);
+    }
+    for (int32_t i = (int32_t)order2 + 1; i <= (int32_t)order; ++i)
+    {
+        step[i].loc = kepler_state(i - (int32_t)order2);
+        LunarPosAccel(&step[i].loc, &currentinfo->node.phys);
+    }
+    LunarPosAccel(&step[order2].loc, &currentinfo->node.phys);
+
+    // Initialise sum-of-sums accumulators via Converge()
+    int32_t iretn = Converge();
+    currentinfo->node.phys.utc = currentinfo->node.loc.utc;
+    currentutc = step[order2].loc.utc;
+    return iretn;
+}
+
+int32_t LunarPositionPropagator::Propagate(double nextutc)
+{
+    if (nextutc == 0.)
+    {
+        nextutc = currentutc + dtj;
+    }
+
+    ElapsedTime et;
+    while ((nextutc - currentutc) > dtj / 2.)
+    {
+        if (et.split() > 300.) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
+        currentutc += dtj;
+        //                Vector normal, unitv, unitx, unitp, unitp1, unitp2;
+        //                Vector lunitp1(.1,.1,0.);
+        //                Vector tvector;
+        step[order+1].loc.utc = step[order+1].loc.pos.utc = step[order+1].loc.pos.sci.utc = step[order].loc.pos.sci.utc + dtj;
+        
+        // Predict
+        // Calculate S(order/2+1)
+        step[order+1].ss.col[0] = step[order].ss.col[0] + step[order].s.col[0] + step[order].loc.pos.sci.a.col[0]/2.;
+        step[order+1].ss.col[1] = step[order].ss.col[1] + step[order].s.col[1] + step[order].loc.pos.sci.a.col[1]/2.;
+        step[order+1].ss.col[2] = step[order].ss.col[2] + step[order].s.col[2] + step[order].loc.pos.sci.a.col[2]/2.;
+
+        // Calculate Sum(order/2+1) for a and b
+        step[order+1].sb = step[order+1].sa = rv_zero();
+        for (uint16_t k=0; k<=order; k++)
+        {
+            step[order+1].sb.col[0] += b[order+1][k] * step[k].loc.pos.sci.a.col[0];
+            step[order+1].sa.col[0] += a[order+1][k] * step[k].loc.pos.sci.a.col[0];
+            step[order+1].sb.col[1] += b[order+1][k] * step[k].loc.pos.sci.a.col[1];
+            step[order+1].sa.col[1] += a[order+1][k] * step[k].loc.pos.sci.a.col[1];
+            step[order+1].sb.col[2] += b[order+1][k] * step[k].loc.pos.sci.a.col[2];
+            step[order+1].sa.col[2] += a[order+1][k] * step[k].loc.pos.sci.a.col[2];
+        }
+
+        // Calculate pos.v(order/2+1)
+        step[order+1].loc.pos.sci.v.col[0] = this->dt * (step[order].s.col[0] + step[order].loc.pos.sci.a.col[0]/2. + step[order+1].sb.col[0]);
+        step[order+1].loc.pos.sci.v.col[1] = this->dt * (step[order].s.col[1] + step[order].loc.pos.sci.a.col[1]/2. + step[order+1].sb.col[1]);
+        step[order+1].loc.pos.sci.v.col[2] = this->dt * (step[order].s.col[2] + step[order].loc.pos.sci.a.col[2]/2. + step[order+1].sb.col[2]);
+
+        // Calculate pos.s(order/2+1)
+        step[order+1].loc.pos.sci.s.col[0] = this->dtsq * (step[order+1].ss.col[0] + step[order+1].sa.col[0]);
+        step[order+1].loc.pos.sci.s.col[1] = this->dtsq * (step[order+1].ss.col[1] + step[order+1].sa.col[1]);
+        step[order+1].loc.pos.sci.s.col[2] = this->dtsq * (step[order+1].ss.col[2] + step[order+1].sa.col[2]);
+        step[order+1].loc.pos.sci.pass++;
+        // Correct
+        // Update inherent accelerations for this location
+        LunarPosAccel(&step[order+1].loc, &currentinfo->node.phys);
+
+        // Calculate s(order/2+1)
+        step[order+1].s.col[0] = step[order].s.col[0] + (step[order].loc.pos.sci.a.col[0]+step[order+1].loc.pos.sci.a.col[0])/2.;
+        step[order+1].s.col[1] = step[order].s.col[1] + (step[order].loc.pos.sci.a.col[1]+step[order+1].loc.pos.sci.a.col[1])/2.;
+        step[order+1].s.col[2] = step[order].s.col[2] + (step[order].loc.pos.sci.a.col[2]+step[order+1].loc.pos.sci.a.col[2])/2.;
+
+        // Shift everything over 1
+        for (uint16_t j=0; j<=order; j++)
+        {
+            step[j] = step[j+1];
+        }
+
+        // Adjust for any thrust
+        if (currentinfo->node.phys.fpush.norm() && currentinfo->node.phys.mass)
+        {
+            Vector dacc = (1./currentinfo->node.phys.mass) * currentinfo->node.phys.fpush;
+            step[order2].loc.pos.sci.s = rv_add(step[order2].loc.pos.sci.s, 0.5 * dtsq * dacc.to_rv());
+            step[order2].loc.pos.sci.v = rv_add(step[order2].loc.pos.sci.v, dt * dacc.to_rv());
+            {
+                rvector saved_a = step[order2].loc.pos.sci.a;
+                step[order2].loc.pos.eci.pass = 0;
+                pos_sci(step[order2].loc);
+                step[order2].loc.pos.sci.a = saved_a;  // restore: pos_icrf2sci() clobbers sci.a
+            }
+            Converge();   // re-seed sum-of-sums after thrust
+        }
+
+    }
+
+    cartpos tlvlh = currentinfo->node.loc.pos.lvlh;
+    currentinfo->node.loc.pos = step[order2].loc.pos;
+    // Force pos_sci() to convert sci→eci by making eci.pass stale
+    currentinfo->node.loc.pos.eci.pass = 0;
+    {
+        rvector saved_a = currentinfo->node.loc.pos.sci.a;
+        pos_sci(&currentinfo->node.loc);
+        currentinfo->node.loc.pos.sci.a = saved_a;
+    }
+
+    // Temporary diagnostic
+    static int prop_count = 0;
+    if (++prop_count <= 2) {
+        std::fprintf(stderr, "[LunarProp step %d] sci.sz=%.1f eci.sz=%.1f sci.vz=%.4f sci.az=%.6f sci.pass=%u\n",
+            prop_count, step[order2].loc.pos.sci.s.col[2], step[order2].loc.pos.eci.s.col[2],
+            step[order2].loc.pos.sci.v.col[2], step[order2].loc.pos.sci.a.col[2], step[order2].loc.pos.sci.pass);
+    }
+    currentinfo->node.loc.pos.lvlh = tlvlh;
+    for (uint16_t i=order; i<=order; --i)
+    {
+        if (nextutc >= currentinfo->node.loc.pos.utc - dtj / 2.)
+        {
+            break;
+        }
+        tlvlh = currentinfo->node.loc.pos.lvlh;
+        currentinfo->node.loc.pos = step[i].loc.pos;
+        currentinfo->node.loc.pos.lvlh = tlvlh;
+        currentinfo->node.loc.utc = currentinfo->node.loc.pos.utc;
+    }
+
+    //    Vector fp = currentinfo->node.phys.fpush;
+    currentinfo->node.phys.fpush.clear();
+
+    //    static double lastutc=0.0;
+    //    if (lastutc != step[0].loc.pos.sci.utc)
+    //    {
+    //        lastutc = step[0].loc.pos.sci.utc;
+    //    }
+    //    else
+    //    {
+    //        printf("%u\tutc:\t%.13f\t", tcount++, step[0].loc.pos.sci.utc);
+    //        for (uint16_t i=1; i<=order; ++i)
+    //        {
+    //            rvector dsa = step[i].loc.pos.eci.s - step[i-1].loc.pos.eci.s;
+    //            rvector dva = step[i].loc.pos.eci.v - step[i-1].loc.pos.eci.v;
+    //            rvector dsb = step[i-1].loc.pos.eci.v + .5 * step[i-1].loc.pos.eci.a;
+    //            rvector dvb = step[i-1].loc.pos.eci.a;
+    //            printf("\tds:\t%.2f", length_rv(dsa));
+    //            printf("\tdv:\t%.3f", length_rv(dva));
+    //            printf("\tfp:\t%.4f", fp.norm());
+    //        }
+    //        printf("\n");
+    //        fflush(stdout);
+    //    }
+
+    return 0;
+}
+
+int32_t LunarPositionPropagator::Converge()
+{
+    uint32_t c_cnt, cflag=0, k;
+    rvector oldsa;
+
+    LunarPosAccel(&currentinfo->node.loc, &currentinfo->node.phys);
+
+    c_cnt = 0;
+    do
+    {
+        step[order2].s.col[0] = step[order2].loc.pos.sci.v.col[0]/this->dt;
+        step[order2].s.col[1] = step[order2].loc.pos.sci.v.col[1]/this->dt;
+        step[order2].s.col[2] = step[order2].loc.pos.sci.v.col[2]/this->dt;
+        for (k=0; k<=order; k++)
+        {
+            step[order2].s.col[0] -= b[order2][k] * step[k].loc.pos.sci.a.col[0];
+            step[order2].s.col[1] -= b[order2][k] * step[k].loc.pos.sci.a.col[1];
+            step[order2].s.col[2] -= b[order2][k] * step[k].loc.pos.sci.a.col[2];
+        }
+        for (uint16_t n=1; n<=order2; n++)
+        {
+            step[order2+n].s.col[0] = step[order2+n-1].s.col[0] + (step[order2+n].loc.pos.sci.a.col[0]+step[order2+n-1].loc.pos.sci.a.col[0])/2;
+            step[order2+n].s.col[1] = step[order2+n-1].s.col[1] + (step[order2+n].loc.pos.sci.a.col[1]+step[order2+n-1].loc.pos.sci.a.col[1])/2;
+            step[order2+n].s.col[2] = step[order2+n-1].s.col[2] + (step[order2+n].loc.pos.sci.a.col[2]+step[order2+n-1].loc.pos.sci.a.col[2])/2;
+            step[order2-n].s.col[0] = step[order2-n+1].s.col[0] - (step[order2-n].loc.pos.sci.a.col[0]+step[order2-n+1].loc.pos.sci.a.col[0])/2;
+            step[order2-n].s.col[1] = step[order2-n+1].s.col[1] - (step[order2-n].loc.pos.sci.a.col[1]+step[order2-n+1].loc.pos.sci.a.col[1])/2;
+            step[order2-n].s.col[2] = step[order2-n+1].s.col[2] - (step[order2-n].loc.pos.sci.a.col[2]+step[order2-n+1].loc.pos.sci.a.col[2])/2;
+        }
+
+        step[order2].ss.col[0] = step[order2].loc.pos.sci.s.col[0]/this->dtsq;
+        step[order2].ss.col[1] = step[order2].loc.pos.sci.s.col[1]/this->dtsq;
+        step[order2].ss.col[2] = step[order2].loc.pos.sci.s.col[2]/this->dtsq;
+        for (k=0; k<=order; k++)
+        {
+            step[order2].ss.col[0] -= a[order2][k] * step[k].loc.pos.sci.a.col[0];
+            step[order2].ss.col[1] -= a[order2][k] * step[k].loc.pos.sci.a.col[1];
+            step[order2].ss.col[2] -= a[order2][k] * step[k].loc.pos.sci.a.col[2];
+        }
+        for (uint16_t n=1; n<=order2; n++)
+        {
+            step[order2+n].ss.col[0] = step[order2+n-1].ss.col[0] + step[order2+n-1].s.col[0] + (step[order2+n-1].loc.pos.sci.a.col[0])/2;
+            step[order2+n].ss.col[1] = step[order2+n-1].ss.col[1] + step[order2+n-1].s.col[1] + (step[order2+n-1].loc.pos.sci.a.col[1])/2;
+            step[order2+n].ss.col[2] = step[order2+n-1].ss.col[2] + step[order2+n-1].s.col[2] + (step[order2+n-1].loc.pos.sci.a.col[2])/2;
+            step[order2-n].ss.col[0] = step[order2-n+1].ss.col[0] - step[order2-n+1].s.col[0] + (step[order2-n+1].loc.pos.sci.a.col[0])/2;
+            step[order2-n].ss.col[1] = step[order2-n+1].ss.col[1] - step[order2-n+1].s.col[1] + (step[order2-n+1].loc.pos.sci.a.col[1])/2;
+            step[order2-n].ss.col[2] = step[order2-n+1].ss.col[2] - step[order2-n+1].s.col[2] + (step[order2-n+1].loc.pos.sci.a.col[2])/2;
+        }
+
+        for (uint16_t n=0; n<=order; n++)
+        {
+            if (n == order2)
+                continue;
+            step[n].sb = step[n].sa = rv_zero();
+            for (k=0; k<=order; k++)
+            {
+                step[n].sb.col[0] += b[n][k] * step[k].loc.pos.sci.a.col[0];
+                step[n].sa.col[0] += a[n][k] * step[k].loc.pos.sci.a.col[0];
+                step[n].sb.col[1] += b[n][k] * step[k].loc.pos.sci.a.col[1];
+                step[n].sa.col[1] += a[n][k] * step[k].loc.pos.sci.a.col[1];
+                step[n].sb.col[2] += b[n][k] * step[k].loc.pos.sci.a.col[2];
+                step[n].sa.col[2] += a[n][k] * step[k].loc.pos.sci.a.col[2];
+            }
+        }
+
+        for (uint16_t n=1; n<=order2; n++)
+        {
+            for (int32_t i=-1; i<2; i+=2)
+            {
+                cflag = 0;
+
+                // Save current acceleration for comparison with next iteration
+                oldsa.col[0] = step[order2+i*n].loc.pos.sci.a.col[0];
+                oldsa.col[1] = step[order2+i*n].loc.pos.sci.a.col[1];
+                oldsa.col[2] = step[order2+i*n].loc.pos.sci.a.col[2];
+
+                // Calculate new probable position and velocity
+                step[order2+i*n].loc.pos.sci.v.col[0] = this->dt * (step[order2+i*n].s.col[0] + step[order2+i*n].sb.col[0]);
+                step[order2+i*n].loc.pos.sci.v.col[1] = this->dt * (step[order2+i*n].s.col[1] + step[order2+i*n].sb.col[1]);
+                step[order2+i*n].loc.pos.sci.v.col[2] = this->dt * (step[order2+i*n].s.col[2] + step[order2+i*n].sb.col[2]);
+                step[order2+i*n].loc.pos.sci.s.col[0] = this->dtsq * (step[order2+i*n].ss.col[0] + step[order2+i*n].sa.col[0]);
+                step[order2+i*n].loc.pos.sci.s.col[1] = this->dtsq * (step[order2+i*n].ss.col[1] + step[order2+i*n].sa.col[1]);
+                step[order2+i*n].loc.pos.sci.s.col[2] = this->dtsq * (step[order2+i*n].ss.col[2] + step[order2+i*n].sa.col[2]);
+
+                // Convert ECI→SCI directly — pos_eci() cascade can corrupt eci.s
+                step[order2+i*n].loc.pos.sci.pass++;
+                {
+                    rvector saved_a = step[order2+i*n].loc.pos.sci.a;
+                    step[order2+i*n].loc.pos.eci.pass = 0;
+                    pos_sci(step[order2+i*n].loc);
+                    step[order2+i*n].loc.pos.sci.a = saved_a;  // restore: pos_icrf2sci() clobbers sci.a
+                }
+                att_icrf2lvlh(&step[order2+i*n].loc);
+                //		eci2earth(&step[order2+i*n].loc.pos,&step[order2+i*n].att);
+
+                // Calculate acceleration at new position
+                LunarPosAccel(&step[order2+i*n].loc, &currentinfo->node.phys);
+
+                // Compare acceleration at new position to previous iteration
+                if (fabs(oldsa.col[0]-step[order2+i*n].loc.pos.sci.a.col[0])>1e-14 || fabs(oldsa.col[1]-step[order2+i*n].loc.pos.sci.a.col[1])>1e-14 || fabs(oldsa.col[2]-step[order2+i*n].loc.pos.sci.a.col[2])>1e-14)
+                    cflag = 1;
+            }
+        }
+        c_cnt++;
+    } while (c_cnt<10 && cflag);
+
+    cartpos tlvlh = currentinfo->node.loc.pos.lvlh;
+    currentinfo->node.loc = step[order2].loc;
+    currentinfo->node.loc.pos.lvlh = tlvlh;
+    ++currentinfo->node.loc.pos.sci.pass;
+    LunarPosAccel(&currentinfo->node.loc, &currentinfo->node.phys);
+    // Convert ECI→SCI directly to avoid pos_eci() cascade corruption
+    {
+        rvector saved_a = currentinfo->node.loc.pos.sci.a;
+    currentinfo->node.loc.pos.eci.pass = 0;
+        pos_sci(&currentinfo->node.loc);
+        currentinfo->node.loc.pos.sci.a = saved_a;  // restore: pos_icrf2sci() clobbers sci.a
+    }
+    return 0;
+}
+
+int32_t LunarPositionPropagator::Reset(double nextutc)
+{
+    currentinfo->node.loc = initialloc;
+    currentutc = currentinfo->node.loc.pos.utc;
+    Init();
+    Propagate(nextutc);
+    return 0;
 }
 
 int32_t InertialPositionPropagator::Init()
@@ -3734,8 +4452,10 @@ int32_t LvlhPositionPropagator::Propagate(locstruc &loc)
 {
     double nextutc = loc.pos.geod.utc;
     pos_lvlh2origin(currentinfo->node.loc);
+    ElapsedTime et;
     while ((nextutc - currentutc) > dtj / 2.)
     {
+        if (et.split() > 300.) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
         currentutc += dtj;
         currentinfo->node.loc.pos.lvlh.utc = currentutc;
         currentinfo->node.loc.pos.lvlh.a += dt * currentinfo->node.loc.pos.lvlh.j;
@@ -3774,7 +4494,7 @@ int32_t GeoPositionPropagator::Propagate(double nextutc)
     currentinfo->node.loc.pos.geod = initialloc.pos.geod;
     currentutc = nextutc;
     currentinfo->node.loc.pos.geod.utc = nextutc;
-    currentinfo->node.loc.pos.geod.pass = currentinfo->node.loc.pos.eci.pass + 1;
+    currentinfo->node.loc.pos.geod.pass = currentinfo->node.loc.pos.sci.pass + 1;
     pos_geod(currentinfo->node.loc);
     //            PosAccel(currentinfo->node.loc, currentinfo->node.phys);
 
@@ -3803,27 +4523,29 @@ int32_t IterativePositionPropagator::Propagate(double nextutc)
     {
         nextutc = currentutc + dtj;
     }
+    ElapsedTime et;
     while ((nextutc - currentutc) > dtj / 2.)
     {
+        if (et.split() > 300.) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
         currentutc += dtj;
-        currentinfo->node.loc.pos.eci.utc = currentutc;
-        currentinfo->node.loc.pos.eci.s += dt * (currentinfo->node.loc.pos.eci.v + dt * ((1/2.) * currentinfo->node.loc.pos.eci.a + dt * (1.6) * currentinfo->node.loc.pos.eci.j));
-        currentinfo->node.loc.pos.eci.v += dt * (currentinfo->node.loc.pos.eci.a + (dt / 2.) * currentinfo->node.loc.pos.eci.j);
-        currentinfo->node.loc.pos.eci.a += dt * currentinfo->node.loc.pos.eci.j;
+        currentinfo->node.loc.pos.sci.utc = currentutc;
+        currentinfo->node.loc.pos.sci.s += dt * (currentinfo->node.loc.pos.sci.v + dt * ((1/2.) * currentinfo->node.loc.pos.sci.a + dt * (1.6) * currentinfo->node.loc.pos.sci.j));
+        currentinfo->node.loc.pos.sci.v += dt * (currentinfo->node.loc.pos.sci.a + (dt / 2.) * currentinfo->node.loc.pos.sci.j);
+        currentinfo->node.loc.pos.sci.a += dt * currentinfo->node.loc.pos.sci.j;
 
         //        rvector ds = rv_smult(.5 * dt * dt, currentinfo->node.loc.pos.eci.a);
         //        ds = rv_add(ds, rv_smult(dt, currentinfo->node.loc.pos.eci.v));
         //        currentinfo->node.loc.pos.eci.s = rv_add(currentinfo->node.loc.pos.eci.s, ds);
         //        currentinfo->node.loc.pos.eci.v = rv_add(currentinfo->node.loc.pos.eci.v, rv_smult(dt, currentinfo->node.loc.pos.eci.a));
-        //        currentinfo->node.loc.pos.eci.utc = currentutc;
+        //        currentinfo->node.loc.pos.sci.utc = currentutc;
 
         // Update acceleration for the new position
         PosAccel(currentinfo->node.loc, currentinfo->node.phys);
         // Apply external accelerations
-        // currentinfo->node.loc.pos.eci.a = rv_add(currentinfo->node.loc.pos.eci.a, rv_smult(1./currentinfo->node.phys.mass, currentinfo->node.phys.fpush.to_rv()));
+        // currentinfo->node.loc.pos.sci.a = rv_add(currentinfo->node.loc.pos.sci.a, rv_smult(1./currentinfo->node.phys.mass, currentinfo->node.phys.fpush.to_rv()));
         // Clearing external accelerations TODO: consider if this is desireable
         // currentinfo->node.phys.fpush.clear();
-        // currentinfo->node.loc.pos.eci.pass++;
+        // currentinfo->node.loc.pos.sci.pass++;
         // pos_eci(currentinfo->node.loc);
     }
 
@@ -3833,7 +4555,7 @@ int32_t IterativePositionPropagator::Propagate(double nextutc)
 //int32_t TlePositionPropagator::Init(tlestruc tle)
 //{
 //    tle2eci(currentutc, currentinfo->node.loc.tle, currentinfo->node.loc.pos.eci);
-//    currentinfo->node.loc.pos.eci.pass++;
+//    currentinfo->node.loc.pos.sci.pass++;
 //    PosAccel(currentinfo->node.loc, currentinfo->node.phys);
 //    pos_eci(currentinfo->node.loc);
 
@@ -3863,11 +4585,13 @@ int32_t TlePositionPropagator::Propagate(double nextutc)
     {
         nextutc = currentutc + dtj;
     }
+    ElapsedTime et;
     while ((nextutc - currentutc) > dtj / 2.)
     {
+        if (et.split() > 300.) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
         currentutc += dtj;
         tle2eci(currentutc, currentinfo->node.loc.tle, currentinfo->node.loc.pos.eci);
-        currentinfo->node.loc.pos.eci.pass++;
+        currentinfo->node.loc.pos.sci.pass++;
         pos_eci(currentinfo->node.loc);
         PosAccel(currentinfo->node.loc, currentinfo->node.phys);
     }
@@ -4272,8 +4996,10 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
         nextutc = currentutc + dtj;
     }
 
+    ElapsedTime et;
     while ((nextutc - currentutc) > dtj / 2.)
     {
+        if (et.split() > 300.) { return COSMOS_GENERAL_ERROR_TIMEOUT; }
         currentutc += dtj;
         //                Vector normal, unitv, unitx, unitp, unitp1, unitp2;
         //                Vector lunitp1(.1,.1,0.);
@@ -4347,6 +5073,16 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
     cartpos tlvlh = currentinfo->node.loc.pos.lvlh;
     currentinfo->node.loc.pos = step[order2].loc.pos;
     currentinfo->node.loc.pos.lvlh = tlvlh;
+
+    // Sync sci frame from eci using pos_extra ephemeris, bypassing pass-counter cascade.
+    // pos_eci() would trigger pos_icrf() → pos_sci() → pos_icrf2eci() which overwrites
+    // eci.s with SCI-derived values. Instead, directly convert eci→icrf→sci here.
+    {
+        pos_extra(currentinfo->node.loc.pos.eci.utc, currentinfo->node.loc);
+        pos_eci2icrf(currentinfo->node.loc);
+        pos_icrf2sci(currentinfo->node.loc);
+        currentinfo->node.loc.pos.sci.pass = currentinfo->node.loc.pos.eci.pass;
+    }
     for (uint16_t i=order; i<=order; --i)
     {
         if (nextutc >= currentinfo->node.loc.pos.utc - dtj / 2.)

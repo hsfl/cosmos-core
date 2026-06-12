@@ -27,6 +27,9 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+//! \ingroup devices
+//! \defgroup serialclass Serial port device class library.
+
 #ifndef SERIALCLASS_H
 #define SERIALCLASS_H
 

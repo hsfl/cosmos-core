@@ -176,7 +176,7 @@ namespace Cosmos {
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -191,8 +191,8 @@ namespace Cosmos {
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& js) {
                 string error;
@@ -227,7 +227,7 @@ namespace Cosmos {
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -238,8 +238,8 @@ namespace Cosmos {
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& js) {
                 string error;
@@ -270,7 +270,7 @@ namespace Cosmos {
                 return total;
             }
 
-            double utc = 0.;
+            double utc = 0.; //!< UTC timestamp of position [MJD]
             //! Position vector
             gvector s;
             //! Velocity vector
@@ -282,7 +282,7 @@ namespace Cosmos {
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -296,8 +296,8 @@ namespace Cosmos {
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& js) {
                 string error;
@@ -331,7 +331,7 @@ namespace Cosmos {
                 return total;
             }
 
-            double utc = 0.;
+            double utc = 0.; //!< UTC timestamp of position [MJD]
             //! Position vector
             svector s;
             //! Velocity vector
@@ -343,7 +343,7 @@ namespace Cosmos {
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -357,8 +357,8 @@ namespace Cosmos {
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& js) {
                 string error;
@@ -381,14 +381,14 @@ namespace Cosmos {
 
         struct aattstruc
         {
-            double utc = 0.;
-            avector s;
-            avector v;
-            avector a;
+            double utc = 0.; //!< UTC timestamp of attitude [MJD]
+            avector s; //!< Attitude Euler angles (0th derivative) [rad]
+            avector v; //!< Angular velocity (1st derivative) [rad/s]
+            avector a; //!< Angular acceleration (2nd derivative) [rad/s²]
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -400,8 +400,8 @@ namespace Cosmos {
             }
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& js) {
                 string error;
@@ -424,10 +424,10 @@ namespace Cosmos {
         // TODO: add struct description
         struct quatatt
         {
-            double utc;
-            quaternion s;
-            rvector v;
-            rvector a;
+            double utc; //!< UTC timestamp of attitude [MJD]
+            quaternion s; //!< Attitude quaternion (0th derivative)
+            rvector v; //!< Angular velocity (1st derivative) [rad/s]
+            rvector a; //!< Angular acceleration (2nd derivative) [rad/s²]
         };
 
         ::std::ostream& operator << (::std::ostream& out, const quatatt& a);
@@ -439,7 +439,7 @@ namespace Cosmos {
 */
         struct dcmatt
         {
-            double utc = 0.;
+            double utc = 0.; //!< UTC timestamp of attitude [MJD]
             //! 0th derivative
             rmatrix s;
             //! 1st derivative
@@ -449,7 +449,7 @@ namespace Cosmos {
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -462,8 +462,8 @@ namespace Cosmos {
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& js) {
                 string error;
@@ -497,7 +497,7 @@ namespace Cosmos {
                 return total;
             }
 
-            double utc = 0.;
+            double utc = 0.; //!< UTC timestamp of attitude [MJD]
             //! 0th derivative: Quaternion
             quaternion s = {{0., 0., 0.}, 0.}; //q
             //! 1st derivative: Omega - angular velocity
@@ -509,7 +509,7 @@ namespace Cosmos {
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -523,8 +523,8 @@ namespace Cosmos {
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& js) {
                 string error;
@@ -564,7 +564,7 @@ namespace Cosmos {
             rvector h;
             //! Solar Beta Angle in radians
             double beta;
-            double eta;
+            double eta; //!< Orbit parameter: sqrt(1 - e²), auxiliary eccentricity factor
             //! Orbital Inclination in radians
             double i;
             //! Right Ascension of the Ascending Node in radians
@@ -581,9 +581,9 @@ namespace Cosmos {
             double ea;
             //! Mean Motion
             double mm;
-            double dmm;
-            double ddmm;
-            double fa;
+            double dmm; //!< Mean motion first time derivative [rad/s²]
+            double ddmm; //!< Mean motion second time derivative [rad/s³]
+            double fa; //!< Flight path angle (angle between velocity vector and local horizon) [rad]
         };
 
         ::std::ostream& operator << (::std::ostream& out, const kepstruc& a);
@@ -592,9 +592,9 @@ namespace Cosmos {
         // TODO: add struct description
         struct bodypos
         {
-            double sepangle;
-            double size;
-            double radiance;
+            double sepangle; //!< Angular separation between the satellite and the body's limb as seen from the sun [rad]
+            double size; //!< Angular radius of the body as seen from the satellite [rad]
+            double radiance; //!< Irradiance received from the body at the satellite [W/m²]
         };
 
         ::std::ostream& operator << (::std::ostream& out, const bodypos& a);
@@ -612,43 +612,43 @@ namespace Cosmos {
             //! Dynamical Barycentric Time
             double tdb = 0.;
             //! Transform from ICRF to Geocentric
-            rmatrix j2e;
-            rmatrix dj2e;
-            rmatrix ddj2e;
+            rmatrix j2e; //!< Rotation matrix: ICRF to Earth-centered Earth-fixed (ECEF/ITRS)
+            rmatrix dj2e; //!< First time derivative of j2e [1/s]
+            rmatrix ddj2e; //!< Second time derivative of j2e [1/s²]
             //! Transform from Geocentric to ICRF
-            rmatrix e2j;
-            rmatrix de2j;
-            rmatrix dde2j;
-            rmatrix j2t;
-            rmatrix j2s;
-            rmatrix t2j;
-            rmatrix s2j;
-            rmatrix s2t;
-            rmatrix ds2t;
-            rmatrix t2s;
-            rmatrix dt2s;
+            rmatrix e2j; //!< Rotation matrix: ECEF/ITRS to ICRF
+            rmatrix de2j; //!< First time derivative of e2j [1/s]
+            rmatrix dde2j; //!< Second time derivative of e2j [1/s²]
+            rmatrix j2t; //!< Rotation matrix: ICRF to ITRS (true-of-date)
+            rmatrix j2s; //!< Rotation matrix: ICRF to Selenocentric (Moon-fixed)
+            rmatrix t2j; //!< Rotation matrix: ITRS to ICRF
+            rmatrix s2j; //!< Rotation matrix: Selenocentric to ICRF
+            rmatrix s2t; //!< Rotation matrix: Selenocentric to ITRS
+            rmatrix ds2t; //!< First time derivative of s2t [1/s]
+            rmatrix t2s; //!< Rotation matrix: ITRS to Selenocentric
+            rmatrix dt2s; //!< First time derivative of t2s [1/s]
             //! Transform between LVLH and ECI/SCI
-            quaternion l2e;
-            quaternion e2l;
+            quaternion l2e; //!< Rotation quaternion: LVLH to ECI (or SCI)
+            quaternion e2l; //!< Rotation quaternion: ECI (or SCI) to LVLH
             //! Transform between LVLH and GEOC
-            quaternion l2g;
-            quaternion g2l;
-            rmatrix l2p;
-            rmatrix p2l;
-            rmatrix dl2p;
-            rmatrix dp2l;
-            rmatrix ddl2p;
-            rmatrix ddp2l;
+            quaternion l2g; //!< Rotation quaternion: LVLH to Geocentric
+            quaternion g2l; //!< Rotation quaternion: Geocentric to LVLH
+            rmatrix l2p; //!< Rotation matrix: LVLH to perifocal frame
+            rmatrix p2l; //!< Rotation matrix: perifocal to LVLH
+            rmatrix dl2p; //!< First time derivative of l2p [1/s]
+            rmatrix dp2l; //!< First time derivative of p2l [1/s]
+            rmatrix ddl2p; //!< Second time derivative of l2p [1/s²]
+            rmatrix ddp2l; //!< Second time derivative of p2l [1/s²]
             //! Misc
-            cartpos sun2earth;
-            gvector sungeo;
-            cartpos sun2moon;
-            gvector moongeo;
-            uint16_t closest = 0;
+            cartpos sun2earth; //!< Cartesian position of Earth relative to the Sun (ICRF) [m, m/s, m/s²]
+            gvector sungeo; //!< Geodetic position of the sub-solar point on Earth [rad, rad, m]
+            cartpos sun2moon; //!< Cartesian position of the Moon relative to the Sun (ICRF) [m, m/s, m/s²]
+            gvector moongeo; //!< Selenographic position of the sub-Earth point on the Moon [rad, rad, m]
+            uint16_t closest = 0; //!< Index of closest body (COSMOS_EARTH, COSMOS_MOON, etc.)
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -685,8 +685,8 @@ namespace Cosmos {
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& s) {
                 string error;
@@ -733,12 +733,12 @@ namespace Cosmos {
         //! In units **for** the SGP4 propagator (not NORAD TLE itself).
         struct tlestruc
         {
-            double utc = 0.;
+            double utc = 0.; //!< Epoch of the TLE [MJD]
             // JIMNOTE: remove magic number
 //            string name = string(25, ' ');
-            string name = " ";
-            uint32_t snumber = 0;
-            string id = " ";
+            string name = " "; //!< Satellite name from TLE line 0
+            uint32_t snumber = 0; //!< NORAD satellite catalog number
+            string id = " "; //!< International designator (COSPAR ID)
             //! Drag (1/Earth radii)
             double bstar = 0.;
             //! Inclination (radians)
@@ -757,11 +757,11 @@ namespace Cosmos {
             double dmm = 0.;
             //! Mean motion second derivative (radians / minute)
             double ddmm = 0.;
-            uint32_t orbit = 0;
+            uint32_t orbit = 0; //!< Revolution number at epoch
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -784,8 +784,8 @@ namespace Cosmos {
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& js) {
                 string error;
@@ -834,7 +834,7 @@ namespace Cosmos {
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -846,8 +846,8 @@ namespace Cosmos {
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& js) {
                 string error;
@@ -868,17 +868,17 @@ namespace Cosmos {
 
         struct posstruc
         {
-            double utc = 0.;
-            cartpos icrf;
-            cartpos eci;
-            cartpos sci;
-            cartpos geoc;
-            cartpos selc;
-            cartpos lvlh;
-            geoidpos geod;
-            geoidpos selg;
-            spherpos geos;
-            extrapos extra;
+            double utc = 0.; //!< UTC timestamp of position [MJD]
+            cartpos icrf; //!< Position in International Celestial Reference Frame (solar barycentric) [m, m/s, m/s²]
+            cartpos eci; //!< Position in Earth-Centered Inertial frame (J2000) [m, m/s, m/s²]
+            cartpos sci; //!< Position in Seleno-Centered Inertial frame (Moon-centered inertial) [m, m/s, m/s²]
+            cartpos geoc; //!< Position in Geocentric (ECEF/ITRS) frame [m, m/s, m/s²]
+            cartpos selc; //!< Position in Selenocentric (Moon-fixed) frame [m, m/s, m/s²]
+            cartpos lvlh; //!< Position in Local Vertical Local Horizontal frame relative to reference [m, m/s, m/s²]
+            geoidpos geod; //!< Position in Geodetic (WGS-84) coordinates [rad, rad, m]
+            geoidpos selg; //!< Position in Selenographic coordinates [rad, rad, m]
+            spherpos geos; //!< Position in Geocentric spherical coordinates [rad, rad, m]
+            extrapos extra; //!< Pre-computed auxiliary quantities (frame transforms, Sun/Moon geometry)
             //! Separation between sun/satellite and sun/limbofearth vectors in radians
             float earthsep = 0.f;
             //! Separation between sun/satellite and sun/limbofmoon vectors in radians
@@ -894,7 +894,7 @@ namespace Cosmos {
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -921,8 +921,8 @@ namespace Cosmos {
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& js) {
                 string error;
@@ -974,17 +974,17 @@ namespace Cosmos {
                 return total;
             }
 
-            double utc = 0.;
-            qatt topo;
-            qatt lvlh;
-            qatt geoc;
-            qatt selc;
-            qatt icrf;
-            extraatt extra;
+            double utc = 0.; //!< UTC timestamp of attitude [MJD]
+            qatt topo; //!< Attitude relative to topocentric (local horizon) frame
+            qatt lvlh; //!< Attitude relative to Local Vertical Local Horizontal frame
+            qatt geoc; //!< Attitude relative to Geocentric (ECEF/ITRS) frame
+            qatt selc; //!< Attitude relative to Selenocentric (Moon-fixed) frame
+            qatt icrf; //!< Attitude relative to ICRF (inertial) frame
+            extraatt extra; //!< Pre-computed auxiliary quantities (body-frame rotation matrices)
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -1000,8 +1000,8 @@ namespace Cosmos {
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& js) {
                 string error;
@@ -1029,7 +1029,7 @@ namespace Cosmos {
         {
             //! Master time for location, in Modified Julian Day
             double utc = 0.;
-            tlestruc tle;
+            tlestruc tle; //!< Two-Line Element set used for SGP4 propagation
             //! Cosmos::Support::posstruc for this time.
             posstruc pos;
             //! Cosmos::Support::attstruc for this time.
@@ -1037,7 +1037,7 @@ namespace Cosmos {
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -1050,8 +1050,8 @@ namespace Cosmos {
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param	s	JSON-formatted string to set class contents to
-        @return n/a
+        \param	s	JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& js) {
                 string error;
@@ -1110,7 +1110,7 @@ namespace Cosmos {
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
-        @return	A json11 JSON object containing every member variable within the class
+        \return	A json11 JSON object containing every member variable within the class
     */
             json11::Json to_json() const {
                 return json11::Json::object {
@@ -1127,8 +1127,8 @@ namespace Cosmos {
 
             /// Set class contents from JSON string
             /** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-        @param  s   JSON-formatted string to set class contents to
-        @return n/a
+        \param  s   JSON-formatted string to set class contents to
+        \return n/a
     */
             void from_json(const string& js) {
                 string error;

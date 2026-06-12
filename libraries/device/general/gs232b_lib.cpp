@@ -36,7 +36,7 @@
 
 /**
 * Internal descriptor for cssl serial control of GS-232B.
-* @brief GS-232B serial handle
+* \brief GS-232B serial handle
 */
 static cssl_t *gs232b_serial = NULL;
 
@@ -45,11 +45,11 @@ static gs232b_state ant_state;
 /**
 * Connects to a Yaesu GS-232B computer controller, which in turn
 * drives a Yaesu G-5500 antenna controller.
-* @param dev pointer to a character string with the serial port it is
+* \param dev pointer to a character string with the serial port it is
 * connected to.
-* @see cssl_start
-* @see cssl_open
-* @see cssl_setflowcontrol
+* \see cssl_start
+* \see cssl_open
+* \see cssl_setflowcontrol
 */
 int32_t gs232b_connect(string dev)
 {
@@ -117,9 +117,9 @@ int32_t gs232b_disconnect()
 /**
 * Routine to use in blocking mode. Reads the serial port until a New
 * Line is received, then returns entire buffer.
-* @param buf Pointer to a char buffer
-* @param buflen 32 bit signed integer indicating the maximum size of the buffer
-* @return 32 bit signed integer containing the number of bytes read.
+* \param buf Pointer to a char buffer
+* \param buflen 32 bit signed integer indicating the maximum size of the buffer
+* \return 32 bit signed integer containing the number of bytes read.
 */
 int32_t gs232b_getdata(char *buf, int32_t buflen)
 {
@@ -164,7 +164,7 @@ int32_t gs232b_getdata(char *buf, int32_t buflen)
 /**
 * Routine to help calibrate rotor offset on specified axis. Turns
 * calibration mode on in GS-232B.
-* @param axis 32 bit signed integer , 0 = Azimuth, 1 = Elevation
+* \param axis 32 bit signed integer , 0 = Azimuth, 1 = Elevation
 */
 int32_t gs232b_offset_wait(int32_t axis)
 {
@@ -304,7 +304,7 @@ int32_t gs232b_goto(float az, float el)
 /**
 * Routine to stop current action. Whatever the current command is, it will
 * cancelled before completeion.
-* @return 0 or negative error.
+* \return 0 or negative error.
 */
 int32_t gs232b_stop()
 {

@@ -25,6 +25,7 @@ uint16_t realtime=1;
 uint16_t summarize=0;
 uint16_t settle=0;
 uint16_t printevent=0;
+uint16_t jsonevent=0;
 uint16_t postevent=0;
 double initialutc = 60107.01;
 double endutc = 0.;
@@ -32,10 +33,11 @@ double deltautc = 0.;
 string formation = "string";
 double spacing = 1000.;
 string realmname = "propagate";
-string orbitfile = "orbit.dat";
-string satfile = "sats.dat";
+string orbitfile = "";
+string satfile = "";
 string targetfile = "targets.dat";
 string tlefile = "tle.dat";
+string dump ="";
 string pointingfile;
 map<uint32_t, vector<Physics::Simulator::pointing_info>> pschedule;
 double runcount = 1500;
@@ -88,6 +90,61 @@ int main(int argc, char *argv[])
     sim->Init(simdt, realmname);
     sim->ParseOrbitFile();
     sim->ParseSatFile(satfile);
+
+    if (!dump.empty())
+    {
+        Physics::Simulator::StateList::iterator sit = sim->GetNode(dump);
+        if (sit != sim->cnodes.end())
+        {
+            json_dump_node(&(*sit)->currentinfo);
+        }
+        exit (1);
+    }
+
+    if (jsonevent)
+    {
+        printf("{\"sats\":[\n");
+        for (uint16_t i=0; i<sim->cnodes.size(); ++i)
+        {
+            if (i)
+            {
+                printf(",");
+            }
+            printf("{\"node\":\"%s\",\"triangles\":[\n", sim->cnodes[i]->currentinfo.node.name.c_str());
+            for (uint16_t it=0; it<sim->cnodes[i]->currentinfo.node.phys.triangles.size(); ++it)
+            {
+                if (it)
+                {
+                    printf(",");
+                }
+                // printf("{\"v0\":");
+                Vector v0 = sim->cnodes[i]->currentinfo.node.phys.vertices[sim->cnodes[i]->currentinfo.node.phys.triangles[it].tidx[0]];
+                printf("{\"x0\":%f,\"y0\":%f,\"z0\":%f,", v0.x, v0.y, v0.z);
+                Vector v1 = sim->cnodes[i]->currentinfo.node.phys.vertices[sim->cnodes[i]->currentinfo.node.phys.triangles[it].tidx[1]];
+                printf("\"x1\":%f,\"y1\":%f,\"z1\":%f,", v1.x, v1.y, v1.z);
+                Vector v2 = sim->cnodes[i]->currentinfo.node.phys.vertices[sim->cnodes[i]->currentinfo.node.phys.triangles[it].tidx[2]];
+                printf("\"x2\":%f,\"y2\":%f,\"z2\":%f}", v2.x, v2.y, v2.z);
+                // printf(",\"v1\":");
+                // v1 = sim->cnodes[i]->currentinfo.node.phys.vertices[sim->cnodes[i]->currentinfo.node.phys.triangles[it].tidx[0]];
+                // printf("{\"x0\":%f,\"y0\":%f,\"z0\":%f,", v0.x, v0.y, v0.z);
+                // v1 = sim->cnodes[i]->currentinfo.node.phys.vertices[sim->cnodes[i]->currentinfo.node.phys.triangles[it].tidx[1]];
+                // printf("\"x1\":%f,\"y1\":%f,\"z1\":%f,", v1.x, v1.y, v1.z);
+                // v2 = sim->cnodes[i]->currentinfo.node.phys.vertices[sim->cnodes[i]->currentinfo.node.phys.triangles[it].tidx[2]];
+                // printf("\"x2\":%f,\"y2\":%f,\"z2\":%f}", v2.x, v2.y, v2.z);
+                // printf(",\"v2\":");
+                // v2 = sim->cnodes[i]->currentinfo.node.phys.vertices[sim->cnodes[i]->currentinfo.node.phys.triangles[it].tidx[0]];
+                // printf("{\"x0\":%f,\"y0\":%f,\"z0\":%f,", v0.x, v0.y, v0.z);
+                // v1 = sim->cnodes[i]->currentinfo.node.phys.vertices[sim->cnodes[i]->currentinfo.node.phys.triangles[it].tidx[1]];
+                // printf("\"x1\":%f,\"y1\":%f,\"z1\":%f,", v1.x, v1.y, v1.z);
+                // v2 = sim->cnodes[i]->currentinfo.node.phys.vertices[sim->cnodes[i]->currentinfo.node.phys.triangles[it].tidx[2]];
+                // printf("\"x2\":%f,\"y2\":%f,\"z2\":%f}", v2.x, v2.y, v2.z);
+                printf("\n");
+            }
+            printf("]}\n");
+        }
+        printf("],\n");
+    }
+
     if (satfile.find("/") != string::npos)
     {
         satfile = satfile.substr(satfile.find_last_of('/'));
@@ -136,6 +193,10 @@ int main(int argc, char *argv[])
         sim->Target();
     }
     sim->Metric();
+    if (jsonevent)
+    {
+        printf("\"states\":[\n");
+    }
     while (agent->running() && elapsed < runcount)
     {
         if (settle)
@@ -155,6 +216,14 @@ int main(int argc, char *argv[])
             }
         }
         sim->Formation(formation, spacing);
+        if (jsonevent)
+        {
+            if (elapsed)
+            {
+                printf(",");
+            }
+            printf("{");
+        }
         for (uint16_t i=0; i<sim->cnodes.size(); ++i)
         {
             if (settle && settled[i])
@@ -164,9 +233,18 @@ int main(int argc, char *argv[])
             sumdeltav[i].x = sumdeltav[i].x + sim->dt * fabs(sim->cnodes[i]->currentinfo.node.phys.fpush.x) / sim->cnodes[i]->currentinfo.node.phys.mass;
             sumdeltav[i].y = sumdeltav[i].y + sim->dt * fabs(sim->cnodes[i]->currentinfo.node.phys.fpush.y) / sim->cnodes[i]->currentinfo.node.phys.mass;
             sumdeltav[i].z = sumdeltav[i].z + sim->dt * fabs(sim->cnodes[i]->currentinfo.node.phys.fpush.z) / sim->cnodes[i]->currentinfo.node.phys.mass;
-            delta[i].s = sim->cnodes[i]->currentinfo.node.loc.pos.eci.s - sim->cnodes[i]->currentinfo.node.loc_req.pos.eci.s;
-            delta[i].v = sim->cnodes[i]->currentinfo.node.loc.pos.eci.v - sim->cnodes[i]->currentinfo.node.loc_req.pos.eci.v;
-            delta[i].a = sim->cnodes[i]->currentinfo.node.loc.pos.eci.a - sim->cnodes[i]->currentinfo.node.loc_req.pos.eci.a;
+            if (sim->cnodes[i]->currentinfo.node.loc.pos.extra.closest == COSMOS_MOON)
+            {
+                delta[i].s = sim->cnodes[i]->currentinfo.node.loc.pos.sci.s - sim->cnodes[i]->currentinfo.node.loc_req.pos.sci.s;
+                delta[i].v = sim->cnodes[i]->currentinfo.node.loc.pos.sci.v - sim->cnodes[i]->currentinfo.node.loc_req.pos.sci.v;
+                delta[i].a = sim->cnodes[i]->currentinfo.node.loc.pos.sci.a - sim->cnodes[i]->currentinfo.node.loc_req.pos.sci.a;
+            }
+            else
+            {
+                delta[i].s = sim->cnodes[i]->currentinfo.node.loc.pos.eci.s - sim->cnodes[i]->currentinfo.node.loc_req.pos.eci.s;
+                delta[i].v = sim->cnodes[i]->currentinfo.node.loc.pos.eci.v - sim->cnodes[i]->currentinfo.node.loc_req.pos.eci.v;
+                delta[i].a = sim->cnodes[i]->currentinfo.node.loc.pos.eci.a - sim->cnodes[i]->currentinfo.node.loc_req.pos.eci.a;
+            }
             if (settle && !settled[i] && length_rv(delta[i].s) < 5. && length_rv(delta[i].v) < .5)
             {
                 settled[i] = true;
@@ -210,6 +288,10 @@ int main(int argc, char *argv[])
             {
                 for (eventstruc event : sim->cnodes[i]->currentinfo.event)
                 {
+                    if (event.utc == 0.)
+                    {
+                        continue;
+                    }
                     if (printevent)
                     {
                         string output = "type: event";
@@ -230,22 +312,41 @@ int main(int argc, char *argv[])
                         output += to_label("\tgs", (event.flag & EVENT_FLAG_GS) != 0);
                         printf("%s\n", output.c_str());
                     }
+                    // if (jsonevent)
+                    // {
+                    //     json11::Json jobj = json11::Json::object({
+                    //         {"type", "event"},
+                    //         {"node_name", sim->cnodes[i]->currentinfo.node.name},
+                    //         {"utc", event.utc},
+                    //         {"event_utc", event.utc},
+                    //         {"event_name", event.name},
+                    //         {"event_type", static_cast<int>(event.type)},
+                    //         {"event_flag", static_cast<int>(event.flag)},
+                    //         {"event_el", event.el},
+                    //         {"event_az", event.az},
+                    //         {"geodpos", sim->cnodes[i]->currentinfo.node.loc.pos.geod.s}
+                    //     });
+                    //     string output = jobj.dump();
+                    //     printf("%s\n", output.c_str());
+                    // }
                     if (postevent)
                     {
                         json11::Json jobj = json11::Json::object({
-                            {"type", "event"},
-                            {"node_name", sim->cnodes[i]->currentinfo.node.name},
+                            {"mtype", "event"},
+                            {"node", sim->cnodes[i]->currentinfo.node.name},
                             {"utc", event.utc},
-                            {"event_utc", event.utc},
-                            {"event_name", event.name},
-                            {"event_type", static_cast<int>(event.type)},
-                            {"event_flag", static_cast<int>(event.flag)},
-                            {"event_el", event.el},
-                            {"event_az", event.az},
+                            {"name", event.name},
+                            {"type", static_cast<int>(event.type)},
+                            {"flag", static_cast<int>(event.flag)},
+                            {"el", event.el},
+                            {"az", event.az},
                             {"geodpos", sim->cnodes[i]->currentinfo.node.loc.pos.geod.s}
                         });
                         string output = jobj.dump();
-                        iretn = socket_post(data_channel_out, output.c_str());
+                        if (postevent)
+                        {
+                            iretn = socket_post(data_channel_out, output.c_str());
+                        }
 
                         // Post SOH
                         // string jstring;
@@ -259,6 +360,20 @@ int main(int argc, char *argv[])
                 output += to_label("\tnode", sim->cnodes[i]->currentinfo.node.name);
                 output += to_label("\tdt", to_floating(86400.*(sim->cnodes[i]->currentinfo.node.utc-sim->initialutc), 1));
                 output += to_label("\tutc", to_mjd(sim->cnodes[i]->currentinfo.node.utc));
+                if (sim->cnodes[i]->currentinfo.node.loc.pos.extra.closest == COSMOS_MOON)
+                {
+                    output += to_label("\tscix", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.sci.s.col[0], 1));
+                    output += to_label("\tsciy", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.sci.s.col[1], 1));
+                    output += to_label("\tsciz", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.sci.s.col[2], 1));
+                    output += to_label("\tscivx", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.sci.v.col[0], 2));
+                    output += to_label("\tscivy", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.sci.v.col[1], 2));
+                    output += to_label("\tscivz", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.sci.v.col[2], 2));
+                    output += to_label("\tsciax", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.sci.a.col[0], 3));
+                    output += to_label("\tsciay", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.sci.a.col[1], 3));
+                    output += to_label("\tsciaz", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.sci.a.col[2], 3));
+                }
+                else
+                {
                 output += to_label("\tecix", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.s.col[0], 1));
                 output += to_label("\teciy", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.s.col[1], 1));
                 output += to_label("\teciz", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.s.col[2], 1));
@@ -268,6 +383,7 @@ int main(int argc, char *argv[])
                 output += to_label("\teciax", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.a.col[0], 3));
                 output += to_label("\teciay", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.a.col[1], 3));
                 output += to_label("\teciaz", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.eci.a.col[2], 3));
+                }
                 output += to_label("\tpowerin", to_floating(sim->cnodes[i]->currentinfo.node.phys.powgen, 2));
                 output += to_label("\tpowerout", to_floating(sim->cnodes[i]->currentinfo.node.phys.powuse, 2));
                 sim->cnodes[i]->currentinfo.devspec.cpu[0].load = static_cast <float>(deviceCpu.getLoad());
@@ -291,6 +407,38 @@ int main(int argc, char *argv[])
                 output += to_label("\tdeltav", to_floating(sumdeltav[i].norm(), 3));
                 printf("%s\n", output.c_str());
             }
+            if (jsonevent)
+            {
+                sim->cnodes[i]->currentinfo.devspec.cpu[0].load = static_cast <float>(deviceCpu.getLoad());
+                sim->cnodes[i]->currentinfo.devspec.cpu[0].gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/1073741824.);
+                sim->cnodes[i]->currentinfo.devspec.cpu[0].maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/1073741824.);
+                sim->cnodes[i]->currentinfo.devspec.cpu[0].maxload = deviceCpu.getCpuCount();
+                if (i)
+                {
+                    printf(",");
+                }
+                printf("\"%s\":{\"node\":\"%s\",", sim->cnodes[i]->currentinfo.node.name.c_str(), sim->cnodes[i]->currentinfo.node.name.c_str());
+                printf("\"utc\":%.15f,", sim->cnodes[i]->currentinfo.node.utc);
+                printf("\"icrfatt\":{\"w\":%f,\"x\":%f,\"y\":%f,\"z\":%f},",
+                       sim->cnodes[i]->currentinfo.node.loc.att.icrf.s.w,
+                       sim->cnodes[i]->currentinfo.node.loc.att.icrf.s.d.x,
+                       sim->cnodes[i]->currentinfo.node.loc.att.icrf.s.d.y,
+                       sim->cnodes[i]->currentinfo.node.loc.att.icrf.s.d.z);
+                printf("\"ecipos\":{\"x\":%f,\"y\":%f,\"z\":%f},",
+                       sim->cnodes[i]->currentinfo.node.loc.pos.eci.s.col[0],
+                       sim->cnodes[i]->currentinfo.node.loc.pos.eci.s.col[1],
+                       sim->cnodes[i]->currentinfo.node.loc.pos.eci.s.col[2]);
+                printf("\"lvlhatt\":{\"w\":%f,\"x\":%f,\"y\":%f,\"z\":%f},",
+                       sim->cnodes[i]->currentinfo.node.loc.att.lvlh.s.w,
+                       sim->cnodes[i]->currentinfo.node.loc.att.lvlh.s.d.x,
+                       sim->cnodes[i]->currentinfo.node.loc.att.lvlh.s.d.y,
+                       sim->cnodes[i]->currentinfo.node.loc.att.lvlh.s.d.z);
+                printf("\"lvlhpos\":{\"x\":%f,\"y\":%f,\"z\":%f}",
+                       sim->cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[0],
+                       sim->cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[1],
+                       sim->cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[2]);
+                printf("}\n");
+            }
             if (postevent)
             {
                 sim->cnodes[i]->currentinfo.devspec.cpu[0].load = static_cast <float>(deviceCpu.getLoad());
@@ -298,13 +446,14 @@ int main(int argc, char *argv[])
                 sim->cnodes[i]->currentinfo.devspec.cpu[0].maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/1073741824.);
                 sim->cnodes[i]->currentinfo.devspec.cpu[0].maxload = deviceCpu.getCpuCount();
                 json11::Json jobj = json11::Json::object({
-                    {"type", "soh"},
+                    {"mtype", "soh"},
                     {"utc", sim->cnodes[i]->currentinfo.node.utc},
-                    {"node_name", sim->cnodes[i]->currentinfo.node.name},
+                    {"node", sim->cnodes[i]->currentinfo.node.name},
                     {"pvstrg", sim->cnodes[i]->currentinfo.devspec.pvstrg},
                     {"tsen", sim->cnodes[i]->currentinfo.devspec.tsen},
+                    {"closest", static_cast<int>(sim->cnodes[i]->currentinfo.node.loc.pos.extra.closest)},
                     {"ecipos", sim->cnodes[i]->currentinfo.node.loc.pos.eci},
-                    {"alphatt", sim->cnodes[i]->currentinfo.node.loc.att.icrf},
+                    {"alphaatt", sim->cnodes[i]->currentinfo.node.loc.att.icrf},
                     {"powerin", sim->cnodes[i]->currentinfo.node.phys.powgen},
                     {"powerout", sim->cnodes[i]->currentinfo.node.phys.powuse},
                     {"load", sim->cnodes[i]->currentinfo.devspec.cpu[0].load / sim->cnodes[i]->currentinfo.devspec.cpu[0].maxload},
@@ -312,19 +461,14 @@ int main(int argc, char *argv[])
                 });
                 string output = jobj.dump();
                 iretn = socket_post(data_channel_out, output.c_str());
-                send_telem_to_cosmos_web(&sim->cnodes[i]->currentinfo);
-
-                // Post SOH
-                // string jstring;
-                // agent->post(Agent::AgentMessage::SOH, json_of_list(jstring, sim->cnodes[i]->sohstring, &sim->cnodes[i]->currentinfo));
+                // send_telem_to_cosmos_web(&sim->cnodes[i]->currentinfo);
                 agent->post(Agent::AgentMessage::SOH, output);
             }
         }
-        //        if (printevent)
-        //        {
-        //            printf("\n");
-        //            fflush(stdout);
-        //        }
+        if (jsonevent)
+        {
+            printf("}\n");
+        }
         sim->Propagate();
         sim->Thrust();
         if (pointingfile.length())
@@ -358,32 +502,32 @@ int main(int argc, char *argv[])
                         summaries[i][j].elevation += sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
                         summaries[i][j].elstd += sim->cnodes[i]->currentinfo.target[j].cover[0].elevation * sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
 
-//                        if (summaries[i][j].resmin == 0. || sim->cnodes[i]->currentinfo.target[j].cover[0].resolution < summaries[i][j].resmin)
-//                        {
-//                            summaries[i][j].resmin = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
-//                        }
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].resolution > summaries[i][j].resmax)
-//                        {
-//                            summaries[i][j].resmax = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
-//                        }
+                        //                        if (summaries[i][j].resmin == 0. || sim->cnodes[i]->currentinfo.target[j].cover[0].resolution < summaries[i][j].resmin)
+                        //                        {
+                        //                            summaries[i][j].resmin = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+                        //                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].resolution > summaries[i][j].resmax)
+                        //                        {
+                        //                            summaries[i][j].resmax = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+                        //                        }
 
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth < summaries[i][j].azmin)
-//                        {
-//                            summaries[i][j].azmin = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
-//                        }
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth > summaries[i][j].azmax)
-//                        {
-//                            summaries[i][j].azmax = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
-//                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth < summaries[i][j].azmin)
+                        //                        {
+                        //                            summaries[i][j].azmin = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+                        //                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth > summaries[i][j].azmax)
+                        //                        {
+                        //                            summaries[i][j].azmax = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+                        //                        }
 
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation < summaries[i][j].elmin)
-//                        {
-//                            summaries[i][j].elmin = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
-//                        }
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation > summaries[i][j].elmax)
-//                        {
-//                            summaries[i][j].elmax = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
-//                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation < summaries[i][j].elmin)
+                        //                        {
+                        //                            summaries[i][j].elmin = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+                        //                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation > summaries[i][j].elmax)
+                        //                        {
+                        //                            summaries[i][j].elmax = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+                        //                        }
 
                         ++summaries[i][sim->targets.size()].count;
                         summaries[i][sim->targets.size()].area += sim->cnodes[i]->currentinfo.target[j].cover[0].area;
@@ -395,32 +539,32 @@ int main(int argc, char *argv[])
                         summaries[i][sim->targets.size()].azstd += sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth * sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
                         summaries[i][sim->targets.size()].elstd += sim->cnodes[i]->currentinfo.target[j].cover[0].elevation * sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
 
-//                        if (summaries[i][sim->targets.size()].resmin == 0. || sim->cnodes[i]->currentinfo.target[j].cover[0].resolution < summaries[i][sim->targets.size()].resmin)
-//                        {
-//                            summaries[i][sim->targets.size()].resmin = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
-//                        }
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].resolution > summaries[i][sim->targets.size()].resmax)
-//                        {
-//                            summaries[i][sim->targets.size()].resmax = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
-//                        }
+                        //                        if (summaries[i][sim->targets.size()].resmin == 0. || sim->cnodes[i]->currentinfo.target[j].cover[0].resolution < summaries[i][sim->targets.size()].resmin)
+                        //                        {
+                        //                            summaries[i][sim->targets.size()].resmin = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+                        //                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].resolution > summaries[i][sim->targets.size()].resmax)
+                        //                        {
+                        //                            summaries[i][sim->targets.size()].resmax = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+                        //                        }
 
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth < summaries[i][sim->targets.size()].azmin)
-//                        {
-//                            summaries[i][sim->targets.size()].azmin = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
-//                        }
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth > summaries[i][sim->targets.size()].azmax)
-//                        {
-//                            summaries[i][sim->targets.size()].azmax = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
-//                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth < summaries[i][sim->targets.size()].azmin)
+                        //                        {
+                        //                            summaries[i][sim->targets.size()].azmin = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+                        //                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth > summaries[i][sim->targets.size()].azmax)
+                        //                        {
+                        //                            summaries[i][sim->targets.size()].azmax = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+                        //                        }
 
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation < summaries[i][sim->targets.size()].elmin)
-//                        {
-//                            summaries[i][sim->targets.size()].elmin = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
-//                        }
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation > summaries[i][sim->targets.size()].elmax)
-//                        {
-//                            summaries[i][sim->targets.size()].elmax = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
-//                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation < summaries[i][sim->targets.size()].elmin)
+                        //                        {
+                        //                            summaries[i][sim->targets.size()].elmin = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+                        //                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation > summaries[i][sim->targets.size()].elmax)
+                        //                        {
+                        //                            summaries[i][sim->targets.size()].elmax = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+                        //                        }
 
                         ++summaries[sim->cnodes.size()][sim->targets.size()].count;
                         summaries[sim->cnodes.size()][sim->targets.size()].area += sim->cnodes[i]->currentinfo.target[j].cover[0].area;
@@ -432,32 +576,32 @@ int main(int argc, char *argv[])
                         summaries[sim->cnodes.size()][sim->targets.size()].azstd += sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth * sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
                         summaries[sim->cnodes.size()][sim->targets.size()].elstd += sim->cnodes[i]->currentinfo.target[j].cover[0].elevation * sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
 
-//                        if (summaries[sim->cnodes.size()][sim->targets.size()].resmin == 0. || sim->cnodes[i]->currentinfo.target[j].cover[0].resolution < summaries[sim->cnodes.size()][sim->targets.size()].resmin)
-//                        {
-//                            summaries[sim->cnodes.size()][sim->targets.size()].resmin = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
-//                        }
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].resolution > summaries[sim->cnodes.size()][sim->targets.size()].resmax)
-//                        {
-//                            summaries[sim->cnodes.size()][sim->targets.size()].resmax = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
-//                        }
+                        //                        if (summaries[sim->cnodes.size()][sim->targets.size()].resmin == 0. || sim->cnodes[i]->currentinfo.target[j].cover[0].resolution < summaries[sim->cnodes.size()][sim->targets.size()].resmin)
+                        //                        {
+                        //                            summaries[sim->cnodes.size()][sim->targets.size()].resmin = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+                        //                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].resolution > summaries[sim->cnodes.size()][sim->targets.size()].resmax)
+                        //                        {
+                        //                            summaries[sim->cnodes.size()][sim->targets.size()].resmax = sim->cnodes[i]->currentinfo.target[j].cover[0].resolution;
+                        //                        }
 
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth < summaries[sim->cnodes.size()][sim->targets.size()].azmin)
-//                        {
-//                            summaries[sim->cnodes.size()][sim->targets.size()].azmin = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
-//                        }
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth > summaries[sim->cnodes.size()][sim->targets.size()].azmax)
-//                        {
-//                            summaries[sim->cnodes.size()][sim->targets.size()].azmax = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
-//                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth < summaries[sim->cnodes.size()][sim->targets.size()].azmin)
+                        //                        {
+                        //                            summaries[sim->cnodes.size()][sim->targets.size()].azmin = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+                        //                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth > summaries[sim->cnodes.size()][sim->targets.size()].azmax)
+                        //                        {
+                        //                            summaries[sim->cnodes.size()][sim->targets.size()].azmax = sim->cnodes[i]->currentinfo.target[j].cover[0].azimuth;
+                        //                        }
 
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation < summaries[sim->cnodes.size()][sim->targets.size()].elmin)
-//                        {
-//                            summaries[sim->cnodes.size()][sim->targets.size()].elmin = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
-//                        }
-//                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation > summaries[sim->cnodes.size()][sim->targets.size()].elmax)
-//                        {
-//                            summaries[sim->cnodes.size()][sim->targets.size()].elmax = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
-//                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation < summaries[sim->cnodes.size()][sim->targets.size()].elmin)
+                        //                        {
+                        //                            summaries[sim->cnodes.size()][sim->targets.size()].elmin = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+                        //                        }
+                        //                        if (sim->cnodes[i]->currentinfo.target[j].cover[0].elevation > summaries[sim->cnodes.size()][sim->targets.size()].elmax)
+                        //                        {
+                        //                            summaries[sim->cnodes.size()][sim->targets.size()].elmax = sim->cnodes[i]->currentinfo.target[j].cover[0].elevation;
+                        //                        }
                     }
                 }
             }
@@ -471,6 +615,10 @@ int main(int argc, char *argv[])
         {
             ++elapsed;
         }
+    }
+    if (jsonevent)
+    {
+        printf("]}\n");
     }
     if (summarize)
     {
@@ -697,7 +845,7 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                ++histcnt[0];
+                    ++histcnt[0];
                 }
             }
         }
@@ -1187,6 +1335,11 @@ int32_t parse_control(string args)
         ++argcount;
         printevent = jargs["printevent"].number_value();
     }
+    if (!jargs["jsonevent"].is_null())
+    {
+        ++argcount;
+        jsonevent = jargs["jsonevent"].number_value();
+    }
     if (!jargs["postevent"].is_null())
     {
         ++argcount;
@@ -1231,6 +1384,11 @@ int32_t parse_control(string args)
     //        ++argcount;
     //        minaccelratio = jargs["minaccelratio"].number_value();
     //    }
+    if (!jargs["dump"].is_null())
+    {
+        ++argcount;
+        dump = jargs["dump"].string_value();
+    }
     if (!jargs["satfile"].is_null())
     {
         ++argcount;
@@ -1503,10 +1661,10 @@ int32_t open_cosmos_web_sockets(string cosmos_web_addr)
 }
 
 /**
- * @brief Sends a single node's telems to cosmos web
+ * \brief Sends a single node's telems to cosmos web
  * 
- * @param cinfo cosmosstruc of some node to store telems for
- * @return int32_t 0 on success, negative on failure
+ * \param cinfo cosmosstruc of some node to store telems for
+ * \return int32_t 0 on success, negative on failure
  */
 int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
 {
@@ -1541,7 +1699,7 @@ int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
 }
 
 /**
- * @brief Reset the simulation database
+ * \brief Reset the simulation database
  */
 void reset_db(Physics::Simulator* sim)
 {
@@ -1599,7 +1757,7 @@ void reset_db(Physics::Simulator* sim)
         });
         socket_sendto(cosmos_web_telegraf_channel, jobj.dump());
     }
-    // A bit silly, but reset requires some wait time at the moment 
+    // A bit silly, but reset requires some wait time at the moment
     // cout << "Resetting db..." << endl;
     secondsleep(1.);
 }

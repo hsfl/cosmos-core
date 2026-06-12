@@ -66,7 +66,7 @@ namespace Support
 
 //! Creates a skeleton agent with no setup
 //! \param placeholder Does nothing but provide a different function signature for overloading
-Agent::Agent(uint8_t placeholder) {}
+Agent::Agent(uint8_t) {}
 
 //! Add COSMOS awareness.
 //! Sets up minimum framework for COSMOS awareness. The minimum call makes a nodeless client, setting up the
@@ -930,11 +930,14 @@ int32_t Agent::process_request(string &bufferin, string &bufferout, bool send_re
     //request[i] = 0;
     request.resize(i);
 
-    bufferout = to_unsigned(centisec(), 10) + " " + mjd2iso8601(currentmjd()) + " " + &bufferin[0] + "\n";
+    bufferout = "{";
+    bufferout += "\"centisec\":" + to_unsigned(centisec(), 10) + ",";
+    bufferout += "\"iso8601\":\"" + mjd2iso8601(currentmjd()) + "\",";
+    bufferout += "\"request\":\"" + bufferin + "\"}\n";
     if(reqs.find(request) == reqs.end())
     {
         iretn = AGENT_ERROR_NULL;
-        bufferout += "[NOK] " + std::to_string(iretn);
+        bufferout += "\"[NOK] " + std::to_string(iretn) + "\"";
     }
     else
     {
@@ -1664,16 +1667,22 @@ int32_t Agent::req_get_position(string &request, string &response, Agent* agent)
 
 int32_t Agent::req_get_location(string &request, string &response, Agent *agent)
 {
-    vector<string> args = string_split(request);
     response.clear();
 
-    json11::Json jobj = json11::Json::object({
-        {"node", agent->cinfo->node.name},
-        {"utcoffset", agent->cinfo->node.utcoffset},
-        {"pos", agent->cinfo->node.loc.pos.eci},
-        {"att", agent->cinfo->node.loc.att.icrf}
-    });
-    response = jobj.dump();
+    // json11::Json jobj = json11::Json::object({
+    //     {"node", agent->cinfo->node.name},
+    //     {"utcoffset", agent->cinfo->node.utcoffset},
+    //     {"utc", agent->cinfo->node.utc},
+    //     {"pos", agent->cinfo->node.loc.pos.eci},
+    //     {"att", agent->cinfo->node.loc.att.icrf}
+    // });
+    // response = jobj.dump();
+    response = "{";
+    response += "\"pos\":{\"eci\":";
+    response += agent->cinfo->node.loc.pos.eci.to_json().dump();
+    response += "},\"att\":{\"icrf\":";
+    response += agent->cinfo->node.loc.att.icrf.to_json().dump();
+    response += "}}";
     return response.length();
 }
 
@@ -1694,11 +1703,11 @@ int32_t Agent::req_setvalue(string &request, string &output, Agent* agent) {
 }
 
 /**
- * @brief Agent::req_set_value (Namespace 2.0)
- * @param request
- * @param response
- * @param agent
- * @return
+ * \brief Agent::req_set_value (Namespace 2.0)
+ * \param request
+ * \param response
+ * \param agent
+ * \return
  */
 int32_t Agent::req_set_value(string &request, string &response, Agent* agent) {
     // remove function call and space ('set_value ')
@@ -2781,7 +2790,7 @@ int32_t Agent::req_command(string &request, string &response, Agent *agent)
      * \param agent Pointer to Cosmos::Agent to use.
      * \return 0, or negative error.
      */
-int32_t Agent::req_run_command(string &request, string &response, Agent *agent)
+int32_t Agent::req_run_command(string &request, string &response, Agent*)
 {
     if (request.find(" ") == string::npos)
     {
@@ -2817,7 +2826,7 @@ int32_t Agent::req_add_task(string &request, string &response, Agent *agent)
 /*! Provide a detailed list of all the Channels currently defined
      * \return 0, or negative error.
      */
-int32_t Agent::req_list_channels(string &request, string &response, Agent *agent)
+int32_t Agent::req_list_channels(string&, string &response, Agent *agent)
 {
     response.clear();
     for (uint16_t i=0; i<agent->channels.channel.size(); ++i)
@@ -4293,7 +4302,7 @@ int32_t Agent::get_debug_level()
     return debug_log.Type();
 }
 
-FILE *Agent::get_debug_fd(double mjd)
+FILE *Agent::get_debug_fd(double)
 {
     return debug_log.Open();
 }
@@ -4352,11 +4361,11 @@ int32_t Agent::set_activity_period(double period)
 }
 
 /**
-     * @brief Agent::add_device
-     * @param name piecename
-     * @param type of device
-     * @param device pointer to devicestruc
-     * @return status (negative on error)
+     * \brief Agent::add_device
+     * \param name piecename
+     * \param type of device
+     * \param device pointer to devicestruc
+     * \return status (negative on error)
      */
 int32_t Agent::add_device(string name, DeviceType type, devicestruc **device)
 {
@@ -4371,11 +4380,11 @@ int32_t Agent::add_device(string name, DeviceType type, devicestruc **device)
 }
 
 /**
-     * @brief Agent::device_property_name
-     * @param device (piecename) - for looking up the device index
-     * @param property
-     * @param name reference to output (ex: device_imu_alpha_000)
-     * @return status (negative on error)
+     * \brief Agent::device_property_name
+     * \param device (piecename) - for looking up the device index
+     * \param property
+     * \param name reference to output (ex: device_imu_alpha_000)
+     * \return status (negative on error)
      */
 int32_t Agent::device_property_name(string device, string property, string &name)
 {
@@ -4409,13 +4418,13 @@ int32_t Agent::device_property_name(string device, string property, string &name
 }
 
 /**
-     * @brief creating and storing an alias for a device property
+     * \brief creating and storing an alias for a device property
      *   ex: creating alias from device_imu_alpha_000 to imu_acceleration
-     * @param devicename piecename - for looking up the device index
-     * @param propertyname
-     * @param alias name that will replace property name in alias
-     * @param error reference for returning an error
-     * @return status (negative on error)
+     * \param devicename piecename - for looking up the device index
+     * \param propertyname
+     * \param alias name that will replace property name in alias
+     * \param error reference for returning an error
+     * \return status (negative on error)
      */
 int32_t Agent::create_device_value_alias(string devicename, string propertyname, string alias)
 {
@@ -4429,11 +4438,11 @@ int32_t Agent::create_device_value_alias(string devicename, string propertyname,
 }
 
 /**
-     * @brief creating a direct alias (Namespace 1.0 method)
+     * \brief creating a direct alias (Namespace 1.0 method)
      *   ex: creating alias from device_imu_alpha_000 to imu_acceleration
-     * @param cosmosname the default SOH name
-     * @param alias name that will replace cosmosname
-     * @return error
+     * \param cosmosname the default SOH name
+     * \param alias name that will replace cosmosname
+     * \return error
      */
 int32_t Agent::create_alias(string cosmosname, string alias)
 {
@@ -4492,11 +4501,11 @@ double Agent::get_value(string jsonname)
 }
 
 /**
-     * @brief Agent::get_device_values
-     * @param device device name or piece name
-     * @param props property names
-     * @param json json string of device values {"name1": value ,"name2": value2}
-     * @return status (negative on error)
+     * \brief Agent::get_device_values
+     * \param device device name or piece name
+     * \param props property names
+     * \param json json string of device values {"name1": value ,"name2": value2}
+     * \return status (negative on error)
      */
 int32_t Agent::get_device_values(string device, vector<string> props, string &json)
 {
@@ -5244,6 +5253,11 @@ int32_t Agent::task_add(string command, string source, float timeout)
 int32_t Agent::task_del(uint32_t deci)
 {
     return tasks.Del(deci);
+}
+
+int32_t Agent::task_exists(uint32_t deci)
+{
+    return tasks.Exists(deci);
 }
 
 int32_t Agent::task_iretn(uint16_t number)

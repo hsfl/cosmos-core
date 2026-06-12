@@ -939,10 +939,10 @@ int32_t open_cosmos_web_sockets(string cosmos_web_addr)
 }
 
 /**
- * @brief Sends a single node's telems to cosmos web
+ * \brief Sends a single node's telems to cosmos web
  * 
- * @param cinfo cosmosstruc of some node to store telems for
- * @return int32_t 0 on success, negative on failure
+ * \param cinfo cosmosstruc of some node to store telems for
+ * \return int32_t 0 on success, negative on failure
  */
 int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
 {
@@ -977,7 +977,7 @@ int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
 }
 
 /**
- * @brief Reset the simulation database
+ * \brief Reset the simulation database
  */
 void reset_db(Physics::Simulator* sim)
 {

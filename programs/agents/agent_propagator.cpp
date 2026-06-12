@@ -798,10 +798,10 @@ int32_t parse_target(string args)
 }
 
 /**
- * @brief Sends a single node's telems to cosmos web
+ * \brief Sends a single node's telems to cosmos web
  * 
- * @param cinfo cosmosstruc of some node to store telems for
- * @return int32_t 0 on success, negative on failure
+ * \param cinfo cosmosstruc of some node to store telems for
+ * \return int32_t 0 on success, negative on failure
  */
 int32_t send_telem_to_cosmos_web(cosmosstruc* cinfo)
 {
@@ -1024,7 +1024,7 @@ void send_events_to_cosmos_web()
 }
 
 /**
- * @brief Add devices to simulate to the nodes
+ * \brief Add devices to simulate to the nodes
  */
 void add_sim_devices()
 {
@@ -1060,7 +1060,7 @@ void add_sim_devices()
 }
 
 /**
- * @brief Reset the simulation database
+ * \brief Reset the simulation database
  */
 void reset_db()
 {

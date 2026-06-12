@@ -168,7 +168,7 @@ namespace Cosmos {
         // mjd to another format
         double mjd2year(double mjd);
         double mjd2doy(double mjd);
-        calstruc mjd2cal(double mjd);
+        calstruc mjd2cal(double mjd, uint8_t resolution=0);
         int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day);
         int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day, double &doy);
         string mjdToGregorian(double mjd);

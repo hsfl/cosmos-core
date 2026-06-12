@@ -1,3 +1,6 @@
+//! \ingroup devices
+//! \defgroup unixgpio Unix sysfs GPIO device library.
+
 #ifndef UnixGpio_H
 #define UnixGpio_H
 
