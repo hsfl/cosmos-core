@@ -1,0 +1,25 @@
+#!/bin/tcsh
+cp sats_vis_string_1000.dat sats_vis_string_0500.dat
+cp sats_vis_string_2000.dat sats_vis_string_1500.dat
+cp sats_vis_string_3000.dat sats_vis_string_2500.dat
+cp sats_vis_string_4000.dat sats_vis_string_3500.dat
+cp sats_vis_diamond_1000.dat sats_vis_diamond_0500.dat
+cp sats_vis_diamond_2000.dat sats_vis_diamond_1500.dat
+cp sats_vis_diamond_3000.dat sats_vis_diamond_2500.dat
+cp sats_vis_diamond_4000.dat sats_vis_diamond_3500.dat
+cp sats_vis_spread_1000.dat sats_vis_spread_0500.dat
+cp sats_vis_spread_2000.dat sats_vis_spread_1500.dat
+cp sats_vis_spread_3000.dat sats_vis_spread_2500.dat
+cp sats_vis_spread_4000.dat sats_vis_spread_3500.dat
+cp sats_mwir_string_1000.dat sats_mwir_string_0500.dat
+cp sats_mwir_string_2000.dat sats_mwir_string_1500.dat
+cp sats_mwir_string_3000.dat sats_mwir_string_2500.dat
+cp sats_mwir_string_4000.dat sats_mwir_string_3500.dat
+cp sats_mwir_diamond_1000.dat sats_mwir_diamond_0500.dat
+cp sats_mwir_diamond_2000.dat sats_mwir_diamond_1500.dat
+cp sats_mwir_diamond_3000.dat sats_mwir_diamond_2500.dat
+cp sats_mwir_diamond_4000.dat sats_mwir_diamond_3500.dat
+cp sats_mwir_spread_1000.dat sats_mwir_spread_0500.dat
+cp sats_mwir_spread_2000.dat sats_mwir_spread_1500.dat
+cp sats_mwir_spread_3000.dat sats_mwir_spread_2500.dat
+cp sats_mwir_spread_4000.dat sats_mwir_spread_3500.dat
