@@ -2052,10 +2052,13 @@ int32_t Simulator::Thrust()
         // cnodes[i]->currentinfo.node.loc_req.pos.geoc = cnodes[0]->currentinfo.node.loc.pos.geoc;
         // cnodes[i]->currentinfo.node.loc_req.pos.lvlh = cnodes[i]->currentinfo.node.loc.pos.lvlh;
         // pos_origin2lvlh(cnodes[i]->currentinfo.node.loc_req);
-        UpdatePush(cnodes[i]->currentinfo.node.name, Physics::ControlThrust(cnodes[i]->currentinfo.node.loc.pos.eci, cnodes[i]->currentinfo.node.loc_req.pos.eci, cnodes[i]->currentinfo.mass, cnodes[i]->currentinfo.devspec.thst[0].maxthrust/cnodes[i]->currentinfo.mass, dt));
-        if (i)
+        if (length_rv(cnodes[i]->currentinfo.node.loc_req.pos.eci.s))
         {
-            cnodes[i]->currentinfo.node.loc.pos.eci.s += .1 * (cnodes[i]->currentinfo.node.loc_req.pos.eci.s - cnodes[i]->currentinfo.node.loc.pos.eci.s);
+            UpdatePush(cnodes[i]->currentinfo.node.name, Physics::ControlThrust(cnodes[i]->currentinfo.node.loc.pos.eci, cnodes[i]->currentinfo.node.loc_req.pos.eci, cnodes[i]->currentinfo.mass, cnodes[i]->currentinfo.devspec.thst[0].maxthrust/cnodes[i]->currentinfo.mass, dt));
+            if (i)
+            {
+                cnodes[i]->currentinfo.node.loc.pos.eci.s += .1 * (cnodes[i]->currentinfo.node.loc_req.pos.eci.s - cnodes[i]->currentinfo.node.loc.pos.eci.s);
+            }
         }
     }
     return 0;
