@@ -51,7 +51,7 @@ struct rmatrix
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
-		@return	A json11 JSON object containing every member variable within the class
+		\return	A json11 JSON object containing every member variable within the class
 	*/
 	json11::Json to_json() const {
 		vector<rvector> v_row = vector<rvector>(row, row+sizeof(row)/sizeof(row[0]));
@@ -62,8 +62,8 @@ struct rmatrix
 
 	/// Set class contents from JSON string
 	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-		@param	s	JSON-formatted string to set class contents to
-		@return n/a
+		\param	s	JSON-formatted string to set class contents to
+		\return n/a
 	*/
 	void from_json(const string& s) {
 		string error;
@@ -103,7 +103,7 @@ struct cmatrix
 
 	/// Convert class contents to JSON object
 	/** Returns a json11 JSON object of the class
-		@return	A json11 JSON object containing every member variable within the class
+		\return	A json11 JSON object containing every member variable within the class
 	*/
 	json11::Json to_json() const {
 		return json11::Json::object {
@@ -115,8 +115,8 @@ struct cmatrix
 
 	/// Set class contents from JSON string
 	/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-		@param	s	JSON-formatted string to set class contents to
-		@return n/a
+		\param	s	JSON-formatted string to set class contents to
+		\return n/a
 	*/
 	void from_json(const string& s) {
 		string error;
@@ -417,7 +417,7 @@ namespace  Cosmos {
 
 				/// Convert class contents to JSON object
 				/** Returns a json11 JSON object of the class
-					@return	A json11 JSON object containing every member variable within the class
+					\return	A json11 JSON object containing every member variable within the class
 				*/
 				json11::Json to_json() const {
 					return json11::Json::object {
@@ -429,8 +429,8 @@ namespace  Cosmos {
 			
 				/// Set class contents from JSON string
 				/** Parses the provided JSON-formatted string and sets the class data. String should be formatted like the string returned from #to_json()
-					@param	s	JSON-formatted string to set class contents to
-					@return n/a
+					\param	s	JSON-formatted string to set class contents to
+					\return n/a
 				*/
 				void from_json(const string& s) {
 					string error;

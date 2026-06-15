@@ -31,8 +31,11 @@
  * * Contains definitions and functions for communicating with
  * * a MixW TNC in KISS mode (where TNC auto-generates FCS!).
  * * @file kisstnc_lib.h
- * * @brief KISSTNC controller includes
+ * * \brief KISSTNC controller includes
  * */
+
+//! \ingroup devices
+//! \defgroup kisstnc KISS TNC serial device library.
 
 #ifndef _KISSTNCLIB_H
 #define _KISSTNCLIB_H 1

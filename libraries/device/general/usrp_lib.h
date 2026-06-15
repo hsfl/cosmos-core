@@ -28,6 +28,9 @@
 ********************************************************************/
 
 
+//! \ingroup devices
+//! \defgroup usrp Ettus USRP software-defined radio device library.
+
 #ifndef USRP_LIB_H
 #define USRP_LIB_H
 

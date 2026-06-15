@@ -31,8 +31,11 @@
 * Contains definitions and functions for running a Yaesu GS-232B
 * controller.
 * @file gs232b_lib.h
-* @brief GS-232B controller includes
+* \brief GS-232B controller includes
 */
+
+//! \ingroup devices
+//! \defgroup gs232b Yaesu GS-232B antenna rotator controller device library.
 
 #ifndef _GS232BLIB_H
 #define _GS232BLIB_H 1
@@ -59,7 +62,7 @@
 /**
 * Internal structure containing the state of the GS-232B and its
 * associated G-5500.
-* @brief GS-232B state
+* \brief GS-232B state
 */
 struct gs232b_state
 	{

@@ -31,8 +31,11 @@
 * Contains definitions and functions for running a TS2000
 * controller.
 * @file ts2000_lib.h
-* @brief TS2000 controller includes
+* \brief TS2000 controller includes
 */
+
+//! \ingroup devices
+//! \defgroup ts2000 Kenwood TS-2000 radio transceiver device library.
 
 #ifndef _TS2000LIB_H
 #define _TS2000LIB_H 1
@@ -55,7 +58,7 @@
 
 /**
 * Internal structure containing the state of the TS2000.
-* @brief TS2000 state
+* \brief TS2000 state
 */
 typedef struct
 	{

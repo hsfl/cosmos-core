@@ -9,7 +9,7 @@ class FileSender : public Cosmos::Support::Sender
 {
 public:
     /**
-     * @brief Implementation of the Sender interface that writes packets to a file.
+     * \brief Implementation of the Sender interface that writes packets to a file.
      */
     FileSender() = default;
     void init(const std::string& filename);

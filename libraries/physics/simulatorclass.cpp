@@ -20,14 +20,14 @@ namespace
     static const double SSO_SUN_RATE = D2PI / (365.25 * 86400.); // rad/s
 
     /**
-     * @brief Required inclination for a circular SSO at the given altitude.
+     * \brief Required inclination for a circular SSO at the given altitude.
      *
      * Derived from the J2 nodal precession rate:
      *   dΩ/dt = -(3/2) n J2 (Re/a)² cos(i)
      * Setting dΩ/dt = SSO_SUN_RATE and solving for i.
      *
-     * @param alt_m  Altitude above mean Earth surface (metres)
-     * @return Inclination in radians (retrograde, > π/2, for typical LEO)
+     * \param alt_m  Altitude above mean Earth surface (metres)
+     * \return Inclination in radians (retrograde, > π/2, for typical LEO)
      */
     double sso_inclination(double alt_m)
     {
@@ -39,7 +39,7 @@ namespace
     }
 
     /**
-     * @brief Initial RAAN placing the ascending node at the desired LST.
+     * \brief Initial RAAN placing the ascending node at the desired LST.
      *
      * LST of the ascending node = GMST + RAAN (mod 2π), so
      *   RAAN = (lst_rad - GMST) + (sun_RA offset from noon crossing)
@@ -47,9 +47,9 @@ namespace
      * Convention: LST 12:00 means the node is on the Sun-side (descending
      * passes at midnight).  LST 10:30 → dawn/dusk orbit.
      *
-     * @param lst_hours  Desired local solar time of ascending node (hours, 0–24)
-     * @param utc_mjd    Simulation epoch (MJD)
-     * @return RAAN in radians [0, 2π)
+     * \param lst_hours  Desired local solar time of ascending node (hours, 0–24)
+     * \param utc_mjd    Simulation epoch (MJD)
+     * \return RAAN in radians [0, 2π)
      */
     double sso_raan(double lst_hours, double utc_mjd)
     {
@@ -103,7 +103,7 @@ namespace
     // calculation so the caller can start from the true frozen state.
 
     /**
-     * @brief Frozen eccentricity magnitude for a lunar orbit.
+     * \brief Frozen eccentricity magnitude for a lunar orbit.
      *
      * Uses the first-order secular frozen-orbit condition:
      *   e_f = (5/4) * (RM/a)^2 * (J2 - 5*C22*cos(2*w)) * cos(i) / sin^2(i)
@@ -115,9 +115,9 @@ namespace
      * Reference: Abad, San-Juan & Gavín (2009), "Near Circular Frozen Orbits
      * for the Dopri-CW System of Equations."
      *
-     * @param alt_m  Altitude above mean Moon surface (metres)
-     * @param incl   Inclination (radians)
-     * @return       Frozen eccentricity (dimensionless, ≥ 0)
+     * \param alt_m  Altitude above mean Moon surface (metres)
+     * \param incl   Inclination (radians)
+     * \return       Frozen eccentricity (dimensionless, ≥ 0)
      */
     double flo_frozen_eccentricity(double alt_m, double incl)
     {
@@ -132,9 +132,9 @@ namespace
     }
 
     /**
-     * @brief Circular (seed) orbital speed for a lunar orbit.
-     * @param alt_m  Altitude above mean Moon surface (metres)
-     * @return       Speed in m/s
+     * \brief Circular (seed) orbital speed for a lunar orbit.
+     * \param alt_m  Altitude above mean Moon surface (metres)
+     * \return       Speed in m/s
      */
     double flo_circular_speed(double alt_m)
     {
@@ -143,9 +143,9 @@ namespace
     }
 
     /**
-     * @brief Orbital period for a lunar orbit.
-     * @param alt_m  Altitude above mean Moon surface (metres)
-     * @return       Period in seconds
+     * \brief Orbital period for a lunar orbit.
+     * \param alt_m  Altitude above mean Moon surface (metres)
+     * \return       Period in seconds
      */
     double flo_period(double alt_m)
     {
@@ -154,16 +154,16 @@ namespace
     }
 
     /**
-     * @brief Nodal precession rate (dΩ/dt) for a frozen lunar orbit.
+     * \brief Nodal precession rate (dΩ/dt) for a frozen lunar orbit.
      *
      * First-order J2 secular rate:
      *   dΩ/dt = -(3/2) n J2 (RM/a)² cos(i) / (1-e²)²
      *
      * For a frozen orbit e is small, so (1-e²)² ≈ 1.
      *
-     * @param alt_m  Altitude (m)
-     * @param incl   Inclination (rad)
-     * @return       dΩ/dt in rad/s  (negative = westward for prograde)
+     * \param alt_m  Altitude (m)
+     * \param incl   Inclination (rad)
+     * \return       dΩ/dt in rad/s  (negative = westward for prograde)
      */
     double flo_raan_rate(double alt_m, double incl)
     {
@@ -173,7 +173,7 @@ namespace
     }
 
     /**
-     * @brief Argument-of-perigee drift rate (dω/dt) for a frozen lunar orbit.
+     * \brief Argument-of-perigee drift rate (dω/dt) for a frozen lunar orbit.
      *
      * First-order J2 secular rate:
      *   dω/dt = (3/4) n J2 (RM/a)² (5 cos²i - 1) / (1-e²)²
@@ -182,9 +182,9 @@ namespace
      * model; here we return the J2-only term so callers can verify.
      * For a polar orbit (i = 90°, cos²i = 0): dω/dt = -(3/4) n J2 (RM/a)²
      *
-     * @param alt_m  Altitude (m)
-     * @param incl   Inclination (rad)
-     * @return       dω/dt in rad/s
+     * \param alt_m  Altitude (m)
+     * \param incl   Inclination (rad)
+     * \return       dω/dt in rad/s
      */
     double flo_aop_rate(double alt_m, double incl)
     {
@@ -224,12 +224,12 @@ bool compareByPriority(const Physics::State* left, const Physics::State* right)
     return left->propagation_priority < right->propagation_priority;
 }
 
-//! @brief Add a detector to the list of available detectors in the Sim.
-//! @param fov Full Field of View of the detector in radians.
-//! @param ifov Instrument FOV (single pixel) in radians.
-//! @param specmin Lower wavelength of spectral coverage, in meters.
-//! @param specmax Upper wavelength of spectral coverage, in meters.
-//! @return New number of detectors, or negative error.
+//! \brief Add a detector to the list of available detectors in the Sim.
+//! \param fov Full Field of View of the detector in radians.
+//! \param ifov Instrument FOV (single pixel) in radians.
+//! \param specmin Lower wavelength of spectral coverage, in meters.
+//! \param specmax Upper wavelength of spectral coverage, in meters.
+//! \return New number of detectors, or negative error.
 int32_t Simulator::AddDetector(string name, float fov, float ifov, float specmin, float specmax)
 {
     camstruc det;
@@ -252,12 +252,12 @@ int32_t Simulator::AddDetector(camstruc& det)
 
 }
 
-//! @brief Add a target to the list of available targets in the Sim.
-//! @param name Unique target name.
-//! @param loc Location as ::Convert::locstruc.
-//! @param type Node type.
-//! @param size Size as ::gvector.
-//! @return Current size of target list, or negative error.
+//! \brief Add a target to the list of available targets in the Sim.
+//! \param name Unique target name.
+//! \param loc Location as ::Convert::locstruc.
+//! \param type Node type.
+//! \param size Size as ::gvector.
+//! \return Current size of target list, or negative error.
 
 int32_t Simulator::AddTarget(std::string name, locstruc loc, NODE_TYPE type, gvector size)
 {
@@ -272,12 +272,12 @@ int32_t Simulator::AddTarget(std::string name, locstruc loc, NODE_TYPE type, gve
     return AddTarget(ttarget);
 }
 
-//! @brief Add a target to the list of available targets in the Sim.
-//! @param name Unique target name.
-//! @param loc Location as ::Convert::locstruc.
-//! @param type Node type.
-//! @param area Area of target, in square meters.
-//! @return Current size of target list, or negative error.
+//! \brief Add a target to the list of available targets in the Sim.
+//! \param name Unique target name.
+//! \param loc Location as ::Convert::locstruc.
+//! \param type Node type.
+//! \param area Area of target, in square meters.
+//! \return Current size of target list, or negative error.
 
 int32_t Simulator::AddTarget(std::string name, locstruc loc, NODE_TYPE type, double area)
 {
@@ -292,27 +292,27 @@ int32_t Simulator::AddTarget(std::string name, locstruc loc, NODE_TYPE type, dou
     return AddTarget(ttarget);
 }
 
-//! @brief Add a target to the list of available targets in the Sim.
-//! @param name Unique target name.
-//! @param lat Central latitude of target, in radians.
-//! @param lon Central longitude of target, in radians.
-//! @param alt Central altitude of target, in meters.
-//! @param type Node type.
-//! @return Current size of target list, or negative error.
+//! \brief Add a target to the list of available targets in the Sim.
+//! \param name Unique target name.
+//! \param lat Central latitude of target, in radians.
+//! \param lon Central longitude of target, in radians.
+//! \param alt Central altitude of target, in meters.
+//! \param type Node type.
+//! \return Current size of target list, or negative error.
 
 int32_t Simulator::AddTarget(string name, double lat, double lon, double alt, NODE_TYPE type)
 {
     return AddTarget(name, lat, lon, DPI * 1e6, alt, type);
 }
 
-//! @brief Add a target to the list of available targets in the Sim.
-//! @param name Unique target name.
-//! @param lat Central latitude of target, in radians.
-//! @param lon Central longitude of target, in radians.
-//! @param alt Central altitude of target, in meters.
-//! @param area Area of target, in square meters.
-//! @param type Node type.
-//! @return Current size of target list, or negative error.
+//! \brief Add a target to the list of available targets in the Sim.
+//! \param name Unique target name.
+//! \param lat Central latitude of target, in radians.
+//! \param lon Central longitude of target, in radians.
+//! \param alt Central altitude of target, in meters.
+//! \param area Area of target, in square meters.
+//! \param type Node type.
+//! \return Current size of target list, or negative error.
 
 int32_t Simulator::AddTarget(string name, double lat, double lon, double area, double alt, NODE_TYPE type)
 {
@@ -329,14 +329,14 @@ int32_t Simulator::AddTarget(string name, double lat, double lon, double area, d
     return AddTarget(name, loc, type, area);
 }
 
-//! @brief Add a target to the list of available targets in the Sim.
-//! @param name Unique target name.
-//! @param ullat Upper left latitude of target area.
-//! @param ullon Upper left longitude of target area.
-//! @param lrlat Lower right latitude of target area.
-//! @param lrlon Lower right longitude of target area.
-//! @param type Node type.
-//! @return Current size of target list, or negative error.
+//! \brief Add a target to the list of available targets in the Sim.
+//! \param name Unique target name.
+//! \param ullat Upper left latitude of target area.
+//! \param ullon Upper left longitude of target area.
+//! \param lrlat Lower right latitude of target area.
+//! \param lrlon Lower right longitude of target area.
+//! \param type Node type.
+//! \return Current size of target list, or negative error.
 
 int32_t Simulator::AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, NODE_TYPE type)
 {
@@ -354,9 +354,9 @@ int32_t Simulator::AddTarget(string name, double ullat, double ullon, double lrl
     return AddTarget(name, loc, type, area);
 }
 
-//! @brief Add a target to the list of available targets in the Sim.
-//! @param targ Complete target as ::targetstruc.
-//! @return Current size of target list, or negative error.
+//! \brief Add a target to the list of available targets in the Sim.
+//! \param targ Complete target as ::targetstruc.
+//! \return Current size of target list, or negative error.
 
 int32_t Simulator::AddTarget(targetstruc& targ)
 {
@@ -372,9 +372,9 @@ int32_t Simulator::AddTarget(targetstruc& targ)
     return targets.size();
 }
 
-//! @brief Add orbit from line of JSON in a file.
-//! @param filename Path to file containing satellite information.
-//! @return Number of arguments, or negative error.
+//! \brief Add orbit from line of JSON in a file.
+//! \param filename Path to file containing satellite information.
+//! \return Number of arguments, or negative error.
 
 int32_t Simulator::ParseOrbitFile(string filename)
 {
@@ -423,9 +423,9 @@ int32_t Simulator::ParseOrbitFile(string filename)
     return iretn;
 }
 
-//! @brief Add orbit from line of JSON in a string.
-//! @param args JSON line of orbit arguments.
-//! @return Number of arguments, or negative error.
+//! \brief Add orbit from line of JSON in a string.
+//! \param args JSON line of orbit arguments.
+//! \return Number of arguments, or negative error.
 
 int32_t Simulator::ParseOrbitString(string args)
 {
@@ -820,9 +820,9 @@ int32_t Simulator::ParseOrbitString(string args)
     return argcount;
 }
 
-//! @brief Add satellites from lines of JSON in a file.
-//! @param filename Path to file containing satellite information.
-//! @return Number of satellites, or negative error.
+//! \brief Add satellites from lines of JSON in a file.
+//! \param filename Path to file containing satellite information.
+//! \return Number of satellites, or negative error.
 
 int32_t Simulator::ParseSatFile(string filename)
 {
@@ -870,9 +870,9 @@ int32_t Simulator::ParseSatFile(string filename)
     return cnodes.size();
 }
 
-//! @brief Add single satellite from line of JSON in a string.
-//! @param args JSON line of satellite arguments.
-//! @return Number of arguments, or negative error.
+//! \brief Add single satellite from line of JSON in a string.
+//! \param args JSON line of satellite arguments.
+//! \return Number of arguments, or negative error.
 
 int32_t Simulator::ParseSatString(string args)
 {
@@ -1185,9 +1185,9 @@ int32_t Simulator::ParseSatString(string args)
     return argcount;
 }
 
-//! @brief Add targets from lines of JSON in a file.
-//! @param filename Path to file containing target information.
-//! @return Number of targets, or negative error.
+//! \brief Add targets from lines of JSON in a file.
+//! \param filename Path to file containing target information.
+//! \return Number of targets, or negative error.
 
 int32_t Simulator::ParseTargetFile(string filename)
 {
@@ -1274,9 +1274,9 @@ int32_t Simulator::ParseTargetJson(json11::Json jargs)	{
 }
 
 
-//! @brief Add single target from line of JSON in a string.
-//! @param args JSON line of target arguments.
-//! @return Number of arguments, or negative error.
+//! \brief Add single target from line of JSON in a string.
+//! \param args JSON line of target arguments.
+//! \return Number of arguments, or negative error.
 
 /* given a JSON string of targets formatted this way:
 
@@ -1398,7 +1398,7 @@ int32_t Simulator::ParseTargetString(string line)
     return targets.size();
 }
 
-//! @brief Nudges Node in the desired direction
+//! \brief Nudges Node in the desired direction
 //!
 //!
 int32_t Simulator::NudgeNode(string nodename, cartpos pos, qatt att)
@@ -1543,11 +1543,11 @@ int32_t Simulator::NudgeNode(string nodename, cartpos pos, qatt att)
 }
 
 /**
-         * @brief Addes a node to be propagated, in descending order of priority
+         * \brief Addes a node to be propagated, in descending order of priority
          * 
-         * @param nodename Name of node
-         * @param propagation_priority Lower values are propagated before higher values
-         * @return int32_t 
+         * \param nodename Name of node
+         * \param propagation_priority Lower values are propagated before higher values
+         * \return int32_t 
          */
 Simulator::StateList::iterator Simulator::AddNode(string nodename, uint8_t propagation_priority)
 {
@@ -1584,19 +1584,19 @@ int32_t Simulator::AddNode(string nodename, string stype, Propagator::Type ptype
 }
 
 /**
-         * @brief Add a node with an LVLH position propagator
+         * \brief Add a node with an LVLH position propagator
          * 
-         * @param nodename Name of node
-         * @param stype Structural type
-         * @param ptype Position propagator
-         * @param atype Attitude propagator
-         * @param ttype Thermal propagator
-         * @param etype Electrical propagator
-         * @param oeventtype Orbital Events propagator
-         * @param lvlh LVLH coordinates
-         * @param origineci The origin of the LVLH frame in geocentric frame
-         * @param icrf Attitude of node
-         * @return int32_t 0 on success, negative on error
+         * \param nodename Name of node
+         * \param stype Structural type
+         * \param ptype Position propagator
+         * \param atype Attitude propagator
+         * \param ttype Thermal propagator
+         * \param etype Electrical propagator
+         * \param oeventtype Orbital Events propagator
+         * \param lvlh LVLH coordinates
+         * \param origineci The origin of the LVLH frame in geocentric frame
+         * \param icrf Attitude of node
+         * \return int32_t 0 on success, negative on error
          */
 int32_t Simulator::AddNode(string nodename, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, Convert::cartpos origineci, Convert::cartpos lvlh, Convert::qatt icrf, uint8_t propagation_priority)
 {
@@ -2052,10 +2052,13 @@ int32_t Simulator::Thrust()
         // cnodes[i]->currentinfo.node.loc_req.pos.geoc = cnodes[0]->currentinfo.node.loc.pos.geoc;
         // cnodes[i]->currentinfo.node.loc_req.pos.lvlh = cnodes[i]->currentinfo.node.loc.pos.lvlh;
         // pos_origin2lvlh(cnodes[i]->currentinfo.node.loc_req);
-        UpdatePush(cnodes[i]->currentinfo.node.name, Physics::ControlThrust(cnodes[i]->currentinfo.node.loc.pos.eci, cnodes[i]->currentinfo.node.loc_req.pos.eci, cnodes[i]->currentinfo.mass, cnodes[i]->currentinfo.devspec.thst[0].maxthrust/cnodes[i]->currentinfo.mass, dt));
-        if (i)
+        if (length_rv(cnodes[i]->currentinfo.node.loc_req.pos.eci.s))
         {
-            cnodes[i]->currentinfo.node.loc.pos.eci.s += .1 * (cnodes[i]->currentinfo.node.loc_req.pos.eci.s - cnodes[i]->currentinfo.node.loc.pos.eci.s);
+            UpdatePush(cnodes[i]->currentinfo.node.name, Physics::ControlThrust(cnodes[i]->currentinfo.node.loc.pos.eci, cnodes[i]->currentinfo.node.loc_req.pos.eci, cnodes[i]->currentinfo.mass, cnodes[i]->currentinfo.devspec.thst[0].maxthrust/cnodes[i]->currentinfo.mass, dt));
+            if (i)
+            {
+                cnodes[i]->currentinfo.node.loc.pos.eci.s += .1 * (cnodes[i]->currentinfo.node.loc_req.pos.eci.s - cnodes[i]->currentinfo.node.loc.pos.eci.s);
+            }
         }
     }
     return 0;

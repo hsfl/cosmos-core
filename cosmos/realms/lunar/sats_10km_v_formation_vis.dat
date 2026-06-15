@@ -1,0 +1,5 @@
+{"nodename":"mother","type":"HEX65W80H","maxthrust":0.005,"detector":{"name":"vis","fov":0.04,"ifov":0.00002,"specmin":0.3,"specmax":1.0}}
+{"nodename":"child_01","type":"U12","maxthrust":0.05,"ric":{"r":0,"i":-10000,"c":10000},"detector":{"name":"vis","fov":0.04,"ifov":0.00002,"specmin":0.3,"specmax":1.0}}
+{"nodename":"child_02","type":"U12","maxthrust":0.05,"ric":{"r":0,"i":-20000,"c":-20000},"detector":{"name":"vis","fov":0.04,"ifov":0.00002,"specmin":0.3,"specmax":1.0}}
+{"nodename":"child_03","type":"U12","maxthrust":0.05,"ric":{"r":0,"i":-30000,"c":30000},"detector":{"name":"vis","fov":0.04,"ifov":0.00002,"specmin":0.3,"specmax":1.0}}
+{"nodename":"child_04","type":"U12","maxthrust":0.05,"ric":{"r":0,"i":-40000,"c":-40000},"detector":{"name":"vis","fov":0.04,"ifov":0.00002,"specmin":0.3,"specmax":1.0}}

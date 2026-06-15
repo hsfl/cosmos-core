@@ -27,6 +27,9 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+//! \ingroup devices
+//! \defgroup bbfctns Beaglebone device functions library.
+
 #ifndef DEVICEFCTNS_H
 #define DEVICEFCTNS_H
 

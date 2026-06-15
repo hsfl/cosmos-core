@@ -1,3 +1,6 @@
+//! \ingroup devices
+//! \defgroup netradio Network radio device library.
+
 #ifndef NETRADIO_H
 #define NETRADIO_H
 

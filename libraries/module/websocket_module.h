@@ -22,72 +22,72 @@ namespace Cosmos
 
             WebsocketModule();
             /**
-             * @brief Construct a new Websocket Module object
+             * \brief Construct a new Websocket Module object
              * 
-             * @param packetize_function The PacketComm packetize function to apply before transmitting.
-             * @param unpacketize_function The PacketComm unpacketize function to apply after receiving.
+             * \param packetize_function The PacketComm packetize function to apply before transmitting.
+             * \param unpacketize_function The PacketComm unpacketize function to apply after receiving.
              */
             WebsocketModule(PacketizeFunction packetize_function, PacketizeFunction unpacketize_function) : packetize_function(packetize_function), unpacketize_function(unpacketize_function) {}
 
             /**
-             * @brief Initialize TCP WebsocketModule.
+             * \brief Initialize TCP WebsocketModule.
              * 
-             * @param parent_agent Pointer to this subagent's parent agent
-             * @param ip IP address of destination node
-             * @param port TCP Port
-             * @param channel_name Name of this subagent's channel
-             * @return 0 on success, negative on error
+             * \param parent_agent Pointer to this subagent's parent agent
+             * \param ip IP address of destination node
+             * \param port TCP Port
+             * \param channel_name Name of this subagent's channel
+             * \return 0 on success, negative on error
              */
             int32_t Init(Agent* parent_agent, const string& ip, uint16_t port, const string& channel_name);
 
             /**
-             * @brief Initialize UDP WebsocketModule.
+             * \brief Initialize UDP WebsocketModule.
              * 
-             * @param parent_agent Pointer to this subagent's parent agent
-             * @param ip IP address of destination node, used with port_out
-             * @param port_in UDP Port to listen on
-             * @param port_out UDP Port to send on
-             * @param channel_name Name of this subagent's channel
-             * @return 0 on success, negative on error
+             * \param parent_agent Pointer to this subagent's parent agent
+             * \param ip IP address of destination node, used with port_out
+             * \param port_in UDP Port to listen on
+             * \param port_out UDP Port to send on
+             * \param channel_name Name of this subagent's channel
+             * \return 0 on success, negative on error
              */
             int32_t Init(Agent* parent_agent, const string& ip, uint16_t port_in, uint16_t port_out, const string& channel_name);
 
             /**
-             * @brief Loops endlessly until agent is shutdown.
+             * \brief Loops endlessly until agent is shutdown.
              * 
              * Call this function in a new thread.
              */
             void Loop();
 
             /**
-             * @brief Shutdown the WebsocketModule.
+             * \brief Shutdown the WebsocketModule.
             */
             void shutdown();
 
             /**
-             * @brief  Set the packetizing function to apply before transmitting.
+             * \brief  Set the packetizing function to apply before transmitting.
              *
              * Options are: Raw, SLIP, ASM, AX25, HDLC
              */
             void set_packetize_function(PacketizeFunction packetize_function_choice);
 
             /**
-             * @brief  Set the unpacketizing function to apply after receiving.
+             * \brief  Set the unpacketizing function to apply after receiving.
              *
              * Options are: Raw, SLIP, ASM, AX25, HDLC
              */
             void set_unpacketize_function(PacketizeFunction unpacketize_function_choice);
 
             /**
-             * @brief Set the AX25 Packetize args if AX25Packetize is selected for the packetizing function.
+             * \brief Set the AX25 Packetize args if AX25Packetize is selected for the packetizing function.
              * 
-             * @param dest_call 
-             * @param sour_call 
-             * @param flagcount 
-             * @param dest_stat 
-             * @param sour_stat 
-             * @param cont 
-             * @param prot 
+             * \param dest_call 
+             * \param sour_call 
+             * \param flagcount 
+             * \param dest_stat 
+             * \param sour_stat 
+             * \param cont 
+             * \param prot 
              */
             void set_AX25_Packetize_args(string dest_call="", string sour_call="", uint8_t flagcount=2, uint8_t dest_stat=0x60, uint8_t sour_stat=0x61, uint8_t cont=0x03, uint8_t prot=0xf0);
 

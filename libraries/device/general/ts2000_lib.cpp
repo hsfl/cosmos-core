@@ -34,7 +34,7 @@
 
 /**
 * Internal descriptor for cssl serial control of Kenwood TS-2000 radio.
-* @brief TS-2000 serial handle
+* \brief TS-2000 serial handle
 */
 static cssl_t *ts2000_serial = NULL;
 
@@ -42,11 +42,11 @@ static ts2000_state ts_state;
 
 /**
 * Connects to a Kenwood TS-2000 radio.
-* @param dev pointer to a character string with the serial port it is
+* \param dev pointer to a character string with the serial port it is
 * connected to.
-* @see cssl_start
-* @see cssl_open
-* @see cssl_setflowcontrol
+* \see cssl_start
+* \see cssl_open
+* \see cssl_setflowcontrol
 */
 int ts2000_connect(char *dev)
 {
@@ -78,9 +78,9 @@ return 0;
 /**
 * Routine to use in blocking mode. Reads the serial port until a 
 * Semi Colon is received, then returns entire buffer.
-* @param buf Pointer to a char buffer
-* @param buflen ::int indicating the maximum size of the buffer
-* @return ::int containing the number of bytes read.
+* \param buf Pointer to a char buffer
+* \param buflen ::int indicating the maximum size of the buffer
+* \return ::int containing the number of bytes read.
 */
 int ts2000_getdata(char *buf, int buflen)
 {
@@ -102,8 +102,8 @@ return (-i);
 
 /**
 * Get radio frequency.
-* @param channel ::int , 0 = VFO A, 1 = VFO B
-* @return ::double containing the frequency of the radio, otherwise -1.
+* \param channel ::int , 0 = VFO A, 1 = VFO B
+* \return ::double containing the frequency of the radio, otherwise -1.
 */
 double ts2000_get_frequency(int channel)
 {
@@ -133,9 +133,9 @@ return (-1.);
 
 /**
 * Set radio frequency.
-* @param channel ::int , 0 = VFO A, 1 = VFO B
-* @param frequency Frequency, in Hertz
-* @return ::double containing the frequency of the radio, otherwise -1.
+* \param channel ::int , 0 = VFO A, 1 = VFO B
+* \param frequency Frequency, in Hertz
+* \return ::double containing the frequency of the radio, otherwise -1.
 */
 double ts2000_set_frequency(int channel, double frequency)
 {

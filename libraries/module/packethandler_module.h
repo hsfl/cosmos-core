@@ -17,23 +17,23 @@ namespace Cosmos
         public:
             PacketHandlerModule();
             /**
-             * @brief Initialize PacketHandlerModule.
+             * \brief Initialize PacketHandlerModule.
              * 
-             * @param parent_agent Pointer to this subagent's parent agent
-             * @param channel_name Name of this subagent's channel
-             * @return 0 on success, negative on error
+             * \param parent_agent Pointer to this subagent's parent agent
+             * \param channel_name Name of this subagent's channel
+             * \return 0 on success, negative on error
              */
             int32_t Init(Agent* parent_agent, const string& channel_name);
 
             /**
-             * @brief Loops endlessly until agent is shutdown.
+             * \brief Loops endlessly until agent is shutdown.
              * 
              * Call this function in a new thread.
              */
             void Loop();
 
             /**
-             * @brief Shutdown the module.
+             * \brief Shutdown the module.
             */
             void shutdown();
 
