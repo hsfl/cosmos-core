@@ -42,6 +42,7 @@
 #endif // UNUSED_VARIABLE_LOCALDEF
 
 #include <iostream>
+#include <mutex>
 
 namespace Cosmos
 {
@@ -60,6 +61,7 @@ struct iersstruc
 static uint16_t tlecount;
 static vector<iersstruc> iers;
 static uint32_t iersbase = 0;
+static std::once_flag iers_load_once_flag;
 
 //! \addtogroup convertlib_functions
 //! @{
@@ -732,6 +734,399 @@ int32_t pos_geod(locstruc &loc)
     // Transform to ITRS
     loc.pos.bearth = irotate(q_change_around_z(-loc.pos.geod.s.lon), irotate(q_change_around_y(DPI2 + loc.pos.geod.s.lat), loc.pos.bearth));
     return 0;
+}
+
+// ============================================================================
+// pos_set_xxx() and att_set_xxx(): canonical entry points for installing a
+// state vector and propagating it to all other frames.
+//
+// DESIGN
+// ------
+// The pass counter inside each frame slot serves two distinct roles:
+//
+//   Type 1 (initiating): a caller writes a new state into loc.pos.<frame>
+//     and then needs every other frame derived from it.  pos_set_xxx()
+//     handles this cleanly.
+//
+//   Type 2 (cycle-breaking): inside the recursive propagation graph inside
+//     convertlib.cpp, frame-to-frame converters copy source.pass into
+//     dest.pass so that the subsequent recursive pos_yyy() call sees
+//     dest.pass == source.pass and fires no further upward comparisons.
+//     These internal calls must never be replaced by pos_set_xxx().
+//
+// ATTITUDE PRESERVATION
+// ---------------------
+// pos_set_xxx() automatically preserves live attitude across the position
+// update, making it safe to call inside an integrator loop without losing
+// the current attitude state.  It works as follows:
+//
+//   1. Saves loc.pos.<frame> by value.
+//   2. Finds the live attitude source frame (the one with the highest
+//      non-zero pass among icrf, geoc, selc, lvlh, topo) and saves it.
+//   3. Calls pos_clear(loc), which zeros all pass fields and clears att.
+//   4. Restores loc.pos.<frame> with pass=1 and calls pos_xxx(loc) to
+//      derive all position frames and populate loc.pos.extra.
+//   5. If a live attitude source was found in step 2, restores its qatt
+//      with pass=1 and calls att_set_xxx(loc) to re-derive all attitude
+//      frames against the freshly computed position.
+//
+// On a cold start (all att passes == 0) step 5 is skipped; attitude
+// remains zeroed and must be initialised explicitly with att_set_xxx().
+//
+// ATTITUDE SOURCE FRAME SELECTION
+// --------------------------------
+// The candidate attitude source frames are checked in priority order and
+// the one with the highest pass is used:
+//   icrf  -- preferred for Earth orbits (ties with selc broken in favour
+//             of icrf, since pos_eci stamps both equally)
+//   selc  -- preferred for lunar orbits
+//   geoc  -- ground-referenced simulations
+//   lvlh  -- formation-flying / relative-motion simulations
+//   topo  -- ground-station / topocentric simulations
+//
+// ATTITUDE-ONLY UPDATES
+// ---------------------
+// att_set_xxx() clears and repropagates attstruc only; position is not
+// touched.  Use it when attitude changes independently of position (e.g.
+// a torque step, or explicit initialisation after a cold start).
+// Prerequisite: loc.pos must already be valid for the same epoch.
+// ============================================================================
+
+//! \internal Find and save the live attitude source frame.
+/*! Checks all five attitude frames for the highest non-zero pass and saves
+    the winner into \a saved_att.
+    \return Kind code: 1=icrf  2=selc  3=geoc  4=lvlh  5=topo  0=none (cold start)
+*/
+static int att_find_source(const attstruc &att, qatt &saved_att)
+{
+    int      best_kind = 0;
+    uint32_t best_pass = 0;
+
+    // icrf checked first so it wins ties with selc (Earth-orbit convention)
+    if (att.icrf.pass > best_pass) { best_pass = att.icrf.pass; best_kind = 1; }
+    if (att.selc.pass > best_pass) { best_pass = att.selc.pass; best_kind = 2; }
+    if (att.geoc.pass > best_pass) { best_pass = att.geoc.pass; best_kind = 3; }
+    if (att.lvlh.pass > best_pass) { best_pass = att.lvlh.pass; best_kind = 4; }
+    if (att.topo.pass > best_pass) { best_pass = att.topo.pass; best_kind = 5; }
+
+    switch (best_kind)
+    {
+    case 1: saved_att = att.icrf; break;
+    case 2: saved_att = att.selc; break;
+    case 3: saved_att = att.geoc; break;
+    case 4: saved_att = att.lvlh; break;
+    case 5: saved_att = att.topo; break;
+    default: break;
+    }
+    return best_kind;
+}
+
+//! \internal Restore a saved attitude and re-propagate all attitude frames.
+/*! Installs \a saved_att into the frame identified by \a att_kind (as
+    returned by att_find_source()), sets pass=1, and calls the matching
+    att_set_xxx() propagator.  loc.pos must already be fully populated.
+    \return 0 on success, negative error code on failure, 0 if nothing to restore.
+*/
+static int32_t att_restore_source(locstruc &loc, int att_kind, const qatt &saved_att)
+{
+    switch (att_kind)
+    {
+    case 1: loc.att.icrf = saved_att; loc.att.icrf.pass = 1; return att_icrf(loc);
+    case 2: loc.att.selc = saved_att; loc.att.selc.pass = 1; return att_selc(loc);
+    case 3: loc.att.geoc = saved_att; loc.att.geoc.pass = 1; return att_geoc(loc);
+    case 4: loc.att.lvlh = saved_att; loc.att.lvlh.pass = 1; return att_lvlh(loc);
+    case 5: loc.att.topo = saved_att; loc.att.topo.pass = 1; return att_topo(loc);
+    default: return 0;  // cold start: nothing to restore
+    }
+}
+
+//! Set Barycentric (ICRF) position and propagate to all other frames.
+/*! Saves loc.pos.icrf and the live attitude source (if any), clears loc,
+    restores position as the sole authoritative frame (pass=1), calls
+    pos_icrf() to derive all position frames, then re-propagates attitude
+    against the new position.  Safe to call inside an integrator loop.
+    \param loc Location structure (input/output).
+    \return 0 on success, negative error code on failure.
+*/
+int32_t pos_set_icrf(locstruc *loc) { return pos_set_icrf(*loc); }
+
+int32_t pos_set_icrf(locstruc &loc)
+{
+    cartpos saved_pos = loc.pos.icrf;
+    qatt    saved_att; int att_kind = att_find_source(loc.att, saved_att);
+    pos_clear(loc);
+    loc.pos.icrf = saved_pos; loc.pos.icrf.pass = 1;
+    int32_t iretn = pos_icrf(loc);
+    if (iretn < 0) { return iretn; }
+    return att_restore_source(loc, att_kind, saved_att);
+}
+
+//! Set Earth Centered Inertial (ECI) position and propagate to all other frames.
+/*! Saves loc.pos.eci and the live attitude source (if any), clears loc,
+    restores position as the sole authoritative frame (pass=1), calls
+    pos_eci() to derive all position frames, then re-propagates attitude
+    against the new position.  Safe to call inside an integrator loop.
+    \param loc Location structure (input/output).
+    \return 0 on success, negative error code on failure.
+*/
+int32_t pos_set_eci(locstruc *loc) { return pos_set_eci(*loc); }
+
+int32_t pos_set_eci(locstruc &loc)
+{
+    cartpos saved_pos = loc.pos.eci;
+    qatt    saved_att; int att_kind = att_find_source(loc.att, saved_att);
+    pos_clear(loc);
+    loc.pos.eci = saved_pos; loc.pos.eci.pass = 1;
+    int32_t iretn = pos_eci(loc);
+    if (iretn < 0) { return iretn; }
+    return att_restore_source(loc, att_kind, saved_att);
+}
+
+//! Set Selene Centered Inertial (SCI) position and propagate to all other frames.
+/*! Saves loc.pos.sci and the live attitude source (if any), clears loc,
+    restores position as the sole authoritative frame (pass=1), calls
+    pos_sci() to derive all position frames, then re-propagates attitude
+    against the new position.  Safe to call inside an integrator loop.
+    \param loc Location structure (input/output).
+    \return 0 on success, negative error code on failure.
+*/
+int32_t pos_set_sci(locstruc *loc) { return pos_set_sci(*loc); }
+
+int32_t pos_set_sci(locstruc &loc)
+{
+    cartpos saved_pos = loc.pos.sci;
+    qatt    saved_att; int att_kind = att_find_source(loc.att, saved_att);
+    pos_clear(loc);
+    loc.pos.sci = saved_pos; loc.pos.sci.pass = 1;
+    int32_t iretn = pos_sci(loc);
+    if (iretn < 0) { return iretn; }
+    return att_restore_source(loc, att_kind, saved_att);
+}
+
+//! Set Geocentric (ECEF/ITRF) position and propagate to all other frames.
+/*! Saves loc.pos.geoc and the live attitude source (if any), clears loc,
+    restores position as the sole authoritative frame (pass=1), calls
+    pos_geoc() to derive all position frames, then re-propagates attitude
+    against the new position.  Safe to call inside an integrator loop.
+    \param loc Location structure (input/output).
+    \return 0 on success, negative error code on failure.
+*/
+int32_t pos_set_geoc(locstruc *loc) { return pos_set_geoc(*loc); }
+
+int32_t pos_set_geoc(locstruc &loc)
+{
+    cartpos saved_pos = loc.pos.geoc;
+    qatt    saved_att; int att_kind = att_find_source(loc.att, saved_att);
+    pos_clear(loc);
+    loc.pos.geoc = saved_pos; loc.pos.geoc.pass = 1;
+    int32_t iretn = pos_geoc(loc);
+    if (iretn < 0) { return iretn; }
+    return att_restore_source(loc, att_kind, saved_att);
+}
+
+//! Set Selenocentric (Moon-fixed) position and propagate to all other frames.
+/*! Saves loc.pos.selc and the live attitude source (if any), clears loc,
+    restores position as the sole authoritative frame (pass=1), calls
+    pos_selc() to derive all position frames, then re-propagates attitude
+    against the new position.  Safe to call inside an integrator loop.
+    \param loc Location structure (input/output).
+    \return 0 on success, negative error code on failure.
+*/
+int32_t pos_set_selc(locstruc *loc) { return pos_set_selc(*loc); }
+
+int32_t pos_set_selc(locstruc &loc)
+{
+    cartpos saved_pos = loc.pos.selc;
+    qatt    saved_att; int att_kind = att_find_source(loc.att, saved_att);
+    pos_clear(loc);
+    loc.pos.selc = saved_pos; loc.pos.selc.pass = 1;
+    int32_t iretn = pos_selc(loc);
+    if (iretn < 0) { return iretn; }
+    return att_restore_source(loc, att_kind, saved_att);
+}
+
+//! Set Selenographic position and propagate to all other frames.
+/*! Saves loc.pos.selg and the live attitude source (if any), clears loc,
+    restores position as the sole authoritative frame (pass=1), calls
+    pos_selg() to derive all position frames, then re-propagates attitude
+    against the new position.  Safe to call inside an integrator loop.
+    \param loc Location structure (input/output).
+    \return 0 on success, negative error code on failure.
+*/
+int32_t pos_set_selg(locstruc *loc) { return pos_set_selg(*loc); }
+
+int32_t pos_set_selg(locstruc &loc)
+{
+    geoidpos saved_pos = loc.pos.selg;
+    qatt     saved_att; int att_kind = att_find_source(loc.att, saved_att);
+    pos_clear(loc);
+    loc.pos.selg = saved_pos; loc.pos.selg.pass = 1;
+    int32_t iretn = pos_selg(loc);
+    if (iretn < 0) { return iretn; }
+    return att_restore_source(loc, att_kind, saved_att);
+}
+
+//! Set Geocentric Spherical (GEOS) position and propagate to all other frames.
+/*! Saves loc.pos.geos and the live attitude source (if any), clears loc,
+    restores position as the sole authoritative frame (pass=1), calls
+    pos_geos() to derive all position frames, then re-propagates attitude
+    against the new position.  Safe to call inside an integrator loop.
+    \param loc Location structure (input/output).
+    \return 0 on success, negative error code on failure.
+*/
+int32_t pos_set_geos(locstruc *loc) { return pos_set_geos(*loc); }
+
+int32_t pos_set_geos(locstruc &loc)
+{
+    spherpos saved_pos = loc.pos.geos;
+    qatt     saved_att; int att_kind = att_find_source(loc.att, saved_att);
+    pos_clear(loc);
+    loc.pos.geos = saved_pos; loc.pos.geos.pass = 1;
+    int32_t iretn = pos_geos(loc);
+    if (iretn < 0) { return iretn; }
+    return att_restore_source(loc, att_kind, saved_att);
+}
+
+//! Set Geodetic (WGS-84) position and propagate to all other frames.
+/*! Saves loc.pos.geod and the live attitude source (if any), clears loc,
+    restores position as the sole authoritative frame (pass=1), calls
+    pos_geod() to derive all position frames, then re-propagates attitude
+    against the new position.  Safe to call inside an integrator loop.
+    \param loc Location structure (input/output).
+    \return 0 on success, negative error code on failure.
+*/
+int32_t pos_set_geod(locstruc *loc) { return pos_set_geod(*loc); }
+
+int32_t pos_set_geod(locstruc &loc)
+{
+    geoidpos saved_pos = loc.pos.geod;
+    qatt     saved_att; int att_kind = att_find_source(loc.att, saved_att);
+    pos_clear(loc);
+    loc.pos.geod = saved_pos; loc.pos.geod.pass = 1;
+    int32_t iretn = pos_geod(loc);
+    if (iretn < 0) { return iretn; }
+    return att_restore_source(loc, att_kind, saved_att);
+}
+
+// ============================================================================
+// att_set_xxx(): install an attitude in one frame and propagate to all others.
+//
+// Prerequisite: loc.pos must already be fully populated for the same epoch
+// by a preceding pos_set_xxx() call.  Every attitude converter reads from
+// loc.pos.extra (rotation matrices) and loc.pos.eci.s/.v (for Coriolis
+// corrections in att_icrf2geoc / att_icrf2selc) and loc.pos.geoc.s /
+// loc.pos.selc.s (in att_planec2lvlh / att_planec2topo).  Calling
+// att_set_xxx() without a valid loc.pos will produce wrong results or
+// CONVERT_ERROR_UTC.
+//
+// att_set_xxx() saves loc.att.<frame>, calls att_clear(loc.att) (attitude
+// only -- position is not touched), restores the saved frame with pass=1,
+// and calls att_xxx(loc) to propagate to every other attitude frame.
+// ============================================================================
+
+//! Set ICRF attitude and propagate to all other attitude frames.
+/*! Prerequisite: loc.pos must be fully populated for the same epoch via
+    pos_set_xxx(). Saves loc.att.icrf, clears attstruc, restores as the sole
+    authoritative attitude frame (pass=1), and calls att_icrf(loc).
+    \param loc Location structure with valid pos (input/output).
+    \return 0 on success, negative error code on failure.
+*/
+int32_t att_set_icrf(locstruc *loc)
+{
+    return att_set_icrf(*loc);
+}
+
+int32_t att_set_icrf(locstruc &loc)
+{
+    qatt saved = loc.att.icrf;
+    att_clear(loc.att);
+    loc.att.icrf = saved;
+    loc.att.icrf.pass = 1;
+    return att_icrf(loc);
+}
+
+//! Set Geocentric (ECEF/ITRF) attitude and propagate to all other attitude frames.
+/*! Prerequisite: loc.pos must be fully populated for the same epoch via
+    pos_set_xxx(). Saves loc.att.geoc, clears attstruc, restores as the sole
+    authoritative attitude frame (pass=1), and calls att_geoc(loc).
+    \param loc Location structure with valid pos (input/output).
+    \return 0 on success, negative error code on failure.
+*/
+int32_t att_set_geoc(locstruc *loc)
+{
+    return att_set_geoc(*loc);
+}
+
+int32_t att_set_geoc(locstruc &loc)
+{
+    qatt saved = loc.att.geoc;
+    att_clear(loc.att);
+    loc.att.geoc = saved;
+    loc.att.geoc.pass = 1;
+    return att_geoc(loc);
+}
+
+//! Set Selenocentric attitude and propagate to all other attitude frames.
+/*! Prerequisite: loc.pos must be fully populated for the same epoch via
+    pos_set_xxx(). Saves loc.att.selc, clears attstruc, restores as the sole
+    authoritative attitude frame (pass=1), and calls att_selc(loc).
+    \param loc Location structure with valid pos (input/output).
+    \return 0 on success, negative error code on failure.
+*/
+int32_t att_set_selc(locstruc *loc)
+{
+    return att_set_selc(*loc);
+}
+
+int32_t att_set_selc(locstruc &loc)
+{
+    qatt saved = loc.att.selc;
+    att_clear(loc.att);
+    loc.att.selc = saved;
+    loc.att.selc.pass = 1;
+    return att_selc(loc);
+}
+
+//! Set Local Vertical Local Horizontal attitude and propagate to all other attitude frames.
+/*! Prerequisite: loc.pos must be fully populated for the same epoch via
+    pos_set_xxx(). Saves loc.att.lvlh, clears attstruc, restores as the sole
+    authoritative attitude frame (pass=1), and calls att_lvlh(loc).
+    \param loc Location structure with valid pos (input/output).
+    \return 0 on success, negative error code on failure.
+*/
+int32_t att_set_lvlh(locstruc *loc)
+{
+    return att_set_lvlh(*loc);
+}
+
+int32_t att_set_lvlh(locstruc &loc)
+{
+    qatt saved = loc.att.lvlh;
+    att_clear(loc.att);
+    loc.att.lvlh = saved;
+    loc.att.lvlh.pass = 1;
+    return att_lvlh(loc);
+}
+
+//! Set Topocentric attitude and propagate to all other attitude frames.
+/*! Prerequisite: loc.pos must be fully populated for the same epoch via
+    pos_set_xxx(). Saves loc.att.topo, clears attstruc, restores as the sole
+    authoritative attitude frame (pass=1), and calls att_topo(loc).
+    \param loc Location structure with valid pos (input/output).
+    \return 0 on success, negative error code on failure.
+*/
+int32_t att_set_topo(locstruc *loc)
+{
+    return att_set_topo(*loc);
+}
+
+int32_t att_set_topo(locstruc &loc)
+{
+    qatt saved = loc.att.topo;
+    att_clear(loc.att);
+    loc.att.topo = saved;
+    loc.att.topo.pass = 1;
+    return att_topo(loc);
 }
 
 //! Convert Barycentric to ECI
@@ -2812,8 +3207,8 @@ int32_t pef2itrs(double utc, rmatrix *rm)
 
 int32_t itrs2pef(double utc, rmatrix *rm)
 {
-    static rmatrix orm;
-    static double outc = 0.;
+    thread_local static rmatrix orm;
+    thread_local static double outc = 0.;
 
     if (utc == outc)
     {
@@ -2838,8 +3233,8 @@ int32_t itrs2pef(double utc, rmatrix *rm)
 */
 int32_t mean2true(double ep0, rmatrix *pm)
 {
-    static rmatrix opm;
-    static double oep0 = 0.;
+    thread_local static rmatrix opm;
+    thread_local static double oep0 = 0.;
 
     if (ep0 == oep0)
     {
@@ -2864,8 +3259,8 @@ int32_t mean2true(double ep0, rmatrix *pm)
 */
 int32_t true2mean(double ep0, rmatrix *pm)
 {
-    static rmatrix opm;
-    static double oep0 = 0.;
+    thread_local static rmatrix opm;
+    thread_local static double oep0 = 0.;
     //	double nuts[4], jt;
     double eps;
     double cdp, sdp, ce, se, cde, sde;
@@ -2917,8 +3312,8 @@ int32_t mean2j2000(double ep0, rmatrix *pm)
 {
     //	double t0, t, tas2r, w, zeta, z, theta;
     //	double ca, sa, cb, sb, cg, sg;
-    static rmatrix opm;
-    static double oep0 = 0.;
+    thread_local static rmatrix opm;
+    thread_local static double oep0 = 0.;
 
     if (ep0 == oep0)
     {
@@ -2977,8 +3372,8 @@ int32_t mean2j2000(double ep0, rmatrix *pm)
 */
 int32_t itrs2gcrf(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm)
 {
-    static rmatrix orm, odrm, oddrm, ornp;
-    static double outc = 0.;
+    thread_local static rmatrix orm, odrm, oddrm, ornp;
+    thread_local static double outc = 0.;
 
     if (utc == outc)
     {
@@ -3014,10 +3409,10 @@ int32_t gcrf2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *
     double ut1;
     rmatrix nrm[3], ndrm, nddrm;
     rmatrix pm, nm, sm, pw;
-    static rmatrix bm = {{1., -0.000273e-8, 9.740996e-8}, {0.000273e-8, 1., 1.324146e-8}, {-9.740996e-8, -1.324146e-8, 1.}};
-    static rmatrix orm, odrm, oddrm, ornp;
-    static double outc = 0.;
-    static double realsec = 0.;
+    thread_local static rmatrix bm = {{1., -0.000273e-8, 9.740996e-8}, {0.000273e-8, 1., 1.324146e-8}, {-9.740996e-8, -1.324146e-8, 1.}};
+    thread_local static rmatrix orm, odrm, oddrm, ornp;
+    thread_local static double outc = 0.;
+    thread_local static double realsec = 0.;
     int i;
 
     if (!isfinite(utc))
@@ -3133,8 +3528,8 @@ int32_t j20002mean(double ep1, rmatrix *pm)
 {
     double t, tas2r, w, zeta, z, theta;
     double ca, sa, cb, sb, cg, sg;
-    static rmatrix opm;
-    static double oep1 = 0.;
+    thread_local static rmatrix opm;
+    thread_local static double oep1 = 0.;
 
     if (ep1 == oep1)
     {
@@ -3176,14 +3571,14 @@ int32_t j20002mean(double ep1, rmatrix *pm)
 int32_t gcrf2j2000(rmatrix *rm)
 {
     // Vallado, Seago, Seidelmann: Implementation Issues Surrounding the New IAU Reference System for Astrodynamics
-    static rmatrix bm = {{0.99999999999999, -0.0000000707827974, 0.0000000805621715}, {0.0000000707827948, 0.9999999999999969, 0.0000000330604145}, {-0.0000000805621738, -0.0000000330604088, 0.9999999999999962}};
+    thread_local static rmatrix bm = {{0.99999999999999, -0.0000000707827974, 0.0000000805621715}, {0.0000000707827948, 0.9999999999999969, 0.0000000330604145}, {-0.0000000805621738, -0.0000000330604088, 0.9999999999999962}};
     *rm = bm;
     return 0;
 }
 
 int32_t j20002gcrf(rmatrix *rm)
 {
-    static rmatrix bm = {{0.99999999999999, -0.0000000707827974, 0.0000000805621715}, {0.0000000707827948, 0.9999999999999969, 0.0000000330604145}, {-0.0000000805621738, -0.0000000330604088, 0.9999999999999962}};
+    thread_local static rmatrix bm = {{0.99999999999999, -0.0000000707827974, 0.0000000805621715}, {0.0000000707827948, 0.9999999999999969, 0.0000000330604145}, {-0.0000000805621738, -0.0000000330604088, 0.9999999999999962}};
     *rm = rm_transpose(bm);
     return 0;
 }
@@ -3504,8 +3899,7 @@ int32_t pos_origin2lvlh(locstruc& loc)
                      //     + A_w_B x (A_w_B x r_P/Q)  = Centripetal acceleration
                      + rv_cross(angular_velocity, w_x_r);
 
-    loc.pos.geoc.pass = std::max(loc.pos.eci.pass, loc.pos.geos.pass) + 1;
-    pos_geoc(loc);
+    pos_set_geoc(loc);
 
     return 0;
 }
@@ -3565,8 +3959,7 @@ int32_t pos_lvlh2origin(locstruc& loc)
         }
     }
 
-    loc.pos.geoc.pass = std::max(loc.pos.eci.pass, loc.pos.geos.pass) + 1;
-    pos_geoc(loc);
+    pos_set_geoc(loc);
 
     return 0;
 }
@@ -3588,8 +3981,8 @@ int32_t pos_lvlh2geoc(locstruc *base, locstruc *geoc)
 
 int32_t pos_lvlh2geoc(locstruc &base, locstruc &geoc)
 {
-    pos_geoc(base);
-    pos_geoc(base);
+    pos_set_geoc(geoc);
+    pos_set_geoc(base);
     cartpos geoc_offset;
     geoc_offset.s = irotate(base.pos.extra.g2l, geoc_offset.s);
     geoc_offset.v = irotate(base.pos.extra.g2l, geoc_offset.v);
@@ -3602,7 +3995,7 @@ int32_t pos_lvlh2geoc(locstruc &base, locstruc &geoc)
     geoc.pos.lvlh.a = rv_zero();
 
     geoc.pos.geoc.pass = std::max(geoc.pos.eci.pass, geoc.pos.geos.pass) + 1;
-    pos_geoc(geoc);
+    pos_set_geoc(geoc);
 
     return 0;
 }
@@ -3624,8 +4017,8 @@ int32_t pos_geoc2lvlh(locstruc *geoc, locstruc *base)
 
 int32_t pos_geoc2lvlh(locstruc &geoc, locstruc &base)
 {
-    pos_geoc(geoc);
-    pos_geoc(base);
+    pos_set_geoc(geoc);
+    pos_set_geoc(base);
     cartpos geoc_offset;
     geoc_offset.s = rv_sub(geoc.pos.geoc.s, base.pos.geoc.s);
     geoc_offset.v = rv_sub(geoc.pos.geoc.v, base.pos.geoc.v);
@@ -4434,9 +4827,9 @@ int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
 {
     //	rmatrix pm = {{{{0.}}}};
     //	static int lsnumber=-99;
-    static double c1 = 0.;
-    static double cosio = 0., x3thm1 = 0., xnodp = 0., aodp = 0., isimp = 0., eta = 0., sinio = 0., x1mth2 = 0., c4 = 0., c5 = 0.;
-    static double xmdot = 0., omgdot = 0., xnodot = 0., omgcof = 0., xmcof = 0., xnodcf = 0., t2cof = 0., xlcof = 0., aycof = 0.;
+    thread_local static double c1 = 0.;
+    thread_local static double cosio = 0., x3thm1 = 0., xnodp = 0., aodp = 0., isimp = 0., eta = 0., sinio = 0., x1mth2 = 0., c4 = 0., c5 = 0.;
+    thread_local static double xmdot = 0., omgdot = 0., xnodot = 0., omgcof = 0., xmcof = 0., xnodcf = 0., t2cof = 0., xlcof = 0., aycof = 0.;
     int i;
     double temp, temp1, temp2, temp3, temp4, temp5, temp6;
     double tempa, tempe, templ;
@@ -4452,10 +4845,10 @@ int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
     double vx, vy, vz, xinck, rdotk, rfdotk, sinuk, cosuk, sinik, cosik, xnodek;
     double xmx, xmy, sinnok, cosnok;
     //	locstruc loc;
-    static double lutc = 0.;
-    static uint16_t lsnumber = 0;
+    thread_local static double lutc = 0.;
+    thread_local static uint16_t lsnumber = 0;
 
-    static double delmo, sinmo, x7thm1, d2, d3, d4, t3cof, t4cof, t5cof, betal;
+    thread_local static double delmo, sinmo, x7thm1, d2, d3, d4, t3cof, t4cof, t5cof, betal;
 
     if (tle.utc != lutc || tle.snumber != lsnumber)
     {
@@ -6019,8 +6412,8 @@ string tle2tlestring(tlestruc reftle)
 */
 rvector utc2nuts(double mjd)
 {
-    static double lmjd = 0.;
-    static uvector lcalc = {{{0., 0., 0.}, 0.}};
+    thread_local static double lmjd = 0.;
+    thread_local static uvector lcalc = {{{0., 0., 0.}, 0.}};
 
     if (mjd != lmjd)
     {
@@ -6042,8 +6435,8 @@ matrix, for the provided UTC date.
 */
 double utc2dpsi(double mjd)
 {
-    static double lmjd = 0.;
-    static double lcalc = 0.;
+    thread_local static double lmjd = 0.;
+    thread_local static double lcalc = 0.;
     rvector nuts;
 
     if (mjd != lmjd)
@@ -6063,8 +6456,8 @@ matrix, for the provided UTC date.
 */
 double utc2depsilon(double mjd)
 {
-    static double lmjd = 0.;
-    static double lcalc = 0.;
+    thread_local static double lmjd = 0.;
+    thread_local static double lcalc = 0.;
     rvector nuts;
 
     if (mjd != lmjd)
@@ -6083,8 +6476,8 @@ double utc2depsilon(double mjd)
 */
 double utc2gast(double mjd)
 {
-    static double lmjd = 0.;
-    static double lgast = 0.;
+    thread_local static double lmjd = 0.;
+    thread_local static double lgast = 0.;
     double omega, F, D;
 
     if (mjd != lmjd)
@@ -6110,8 +6503,8 @@ double utc2gast(double mjd)
 */
 double utc2dut1(double mjd)
 {
-    static double lmjd = 0.;
-    static double lcalc = 0.;
+    thread_local static double lmjd = 0.;
+    thread_local static double lcalc = 0.;
     double frac;
     //	uint32_t mjdi;
     uint32_t iersidx;
@@ -6151,8 +6544,8 @@ double utc2dut1(double mjd)
 */
 double utc2ut1(double mjd)
 {
-    static double lmjd = 0.;
-    static double lut = 0.;
+    thread_local static double lmjd = 0.;
+    thread_local static double lut = 0.;
 
     if (mjd != lmjd)
     {
@@ -6208,8 +6601,8 @@ double tt2utc(double mjd)
 */
 double utc2tt(double mjd)
 {
-    static double lmjd = 0.;
-    static double ltt = 0.;
+    thread_local static double lmjd = 0.;
+    thread_local static double ltt = 0.;
     uint32_t iersidx = 0;
     int32_t iretn = 0;
 
@@ -6252,16 +6645,21 @@ double utc2tt(double mjd)
 */
 int32_t load_iers()
 {
-    FILE *fdes;
-    iersstruc tiers;
-
-    if (iers.size() == 0)
+    // Load the IERS table from disk exactly once, regardless of how many
+    // threads call load_iers() concurrently. std::call_once guarantees the
+    // loader body completes-before any caller (including the calling
+    // thread itself) proceeds past this point, so `iers`/`iersbase` are
+    // fully populated and safe to read by the time we return.
+    std::call_once(iers_load_once_flag, []()
     {
+        FILE *fdes;
+        iersstruc tiers;
+
         string fname;
         int32_t iretn = get_cosmosresources(fname);
         if (iretn < 0)
         {
-            return iretn;
+            return;
         }
         fname += "/general/iers_pm_dut_ls.txt";
         if ((fdes = fopen(fname.c_str(), "r")) != NULL)
@@ -6276,7 +6674,8 @@ int32_t load_iers()
         }
         if (iers.size())
             iersbase = iers[0].mjd;
-    }
+    });
+
     return (iers.size());
 }
 
@@ -6352,8 +6751,8 @@ cvector polar_motion(double mjd)
 */
 double utc2era(double mjd)
 {
-    static double lmjd = 0.;
-    static double ltheta = 0.;
+    thread_local static double lmjd = 0.;
+    thread_local static double ltheta = 0.;
     double ut1;
 
     if (mjd != lmjd)
@@ -6368,11 +6767,11 @@ double utc2era(double mjd)
 
 double utc2gmst2000(double utc)
 {
-    static double lutc = 0.;
-    static double lgmst = 0.;
+    thread_local static double lutc = 0.;
+    thread_local static double lgmst = 0.;
     double tt;
 
-    if (utc > 0.)
+    if (utc == 0.)
     {
         utc = currentmjd();
     }
@@ -6394,8 +6793,8 @@ double utc2gmst2000(double utc)
 */
 double utc2gmst1982(double mjd)
 {
-    static double lmjd = 0.;
-    static double lcalc = 0.;
+    thread_local static double lmjd = 0.;
+    thread_local static double lcalc = 0.;
     double jcen;
 
     if (mjd != lmjd)
@@ -6416,8 +6815,8 @@ double utc2gmst1982(double mjd)
 */
 double utc2jcenut1(double mjd)
 {
-    static double lmjd = 0.;
-    static double lcalc = 0.;
+    thread_local static double lmjd = 0.;
+    thread_local static double lcalc = 0.;
 
     if (mjd != lmjd)
     {
@@ -6433,8 +6832,8 @@ double utc2jcenut1(double mjd)
         */
 double utc2jcentt(double mjd)
 {
-    static double lmjd = 0.;
-    static double lcalc = 0.;
+    thread_local static double lmjd = 0.;
+    thread_local static double lcalc = 0.;
 
     if (mjd != lmjd)
     {
@@ -6461,8 +6860,8 @@ double utc2jcentt(double mjd)
 double utc2epsilon(double mjd)
 {
     // Vallado, et al, AAS-06_134, eq. 17
-    static double lmjd = 0.;
-    static double lcalc = 0.;
+    thread_local static double lmjd = 0.;
+    thread_local static double lcalc = 0.;
     double jcen;
 
     if (mjd != lmjd)
@@ -6482,8 +6881,8 @@ double utc2epsilon(double mjd)
         */
 double utc2L(double mjd)
 {
-    static double lmjd = 0.;
-    static double lcalc = 0.;
+    thread_local static double lmjd = 0.;
+    thread_local static double lcalc = 0.;
     double jcen;
 
     if (mjd != lmjd)
@@ -6503,8 +6902,8 @@ double utc2L(double mjd)
         */
 double utc2Lp(double mjd)
 {
-    static double lmjd = 0.;
-    static double lcalc = 0.;
+    thread_local static double lmjd = 0.;
+    thread_local static double lcalc = 0.;
     double jcen;
 
     if (mjd != lmjd)
@@ -6524,8 +6923,8 @@ double utc2Lp(double mjd)
         */
 double utc2F(double mjd)
 {
-    static double lmjd = 0.;
-    static double lcalc = 0.;
+    thread_local static double lmjd = 0.;
+    thread_local static double lcalc = 0.;
     double jcen;
 
     if (mjd != lmjd)
@@ -6545,8 +6944,8 @@ double utc2F(double mjd)
         */
 double utc2D(double mjd)
 {
-    static double lmjd = 0.;
-    static double lcalc = 0.;
+    thread_local static double lmjd = 0.;
+    thread_local static double lcalc = 0.;
     double jcen;
 
     if (mjd != lmjd)
@@ -6566,8 +6965,8 @@ double utc2D(double mjd)
         */
 double utc2omega(double mjd)
 {
-    static double lmjd = 0.;
-    static double lcalc = 0.;
+    thread_local static double lmjd = 0.;
+    thread_local static double lcalc = 0.;
     double jcen;
 
     if (mjd != lmjd)
@@ -6639,8 +7038,8 @@ double utc2theta(double utc)
         */
 double utc2tdb(double mjd)
 {
-    static double lmjd = 0.;
-    static double ltdb = 0.;
+    thread_local static double lmjd = 0.;
+    thread_local static double ltdb = 0.;
     double tt, g;
 
     if (mjd != lmjd)

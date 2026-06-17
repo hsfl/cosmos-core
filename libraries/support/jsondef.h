@@ -1929,6 +1929,10 @@ class sim_param	{
             //! Condition that caused event, NULL if timed event.
             //	char condition[JSON_MAX_DATA] = "";
             string condition;
+            //! planetary location
+            Convert::geoidpos pos;
+            //! Closest planetary object. Taken from COSMOS_MOON, etc
+            uint16_t closest = 0;
 
             /// Convert class contents to JSON object
             /** Returns a json11 JSON object of the class
@@ -1957,7 +1961,9 @@ class sim_param	{
                     { "az", az},
                     { "handle"  , handle },
                     { "data"	, data },
-                    { "condition" , condition }
+                    { "condition" , condition },
+                    { "pos" , pos },
+                    { "closest" , closest }
                 };
             }
 
@@ -1990,10 +1996,10 @@ class sim_param	{
                     if(!p["el"].is_null()) { el = p["el"].number_value(); }
                     if(!p["az"].is_null()) { az = p["az"].number_value(); }
                     if(!p["handle"].is_null()) { handle.from_json(p["handle"].dump()); }
-                    //			if(!p["data"].is_null()) { strcpy(data, p["data"].string_value().c_str()); }
-                    //			if(!p["condition"].is_null()) { strcpy(condition, p["condition"].string_value().c_str()); }
                     if(!p["data"].is_null()) { data = p["data"].string_value(); }
                     if(!p["condition"].is_null()) { condition = p["condition"].string_value(); }
+                    if(!p["pos"].is_null())   pos.from_json(p["pos"].dump());
+                    if(!p["closest"].is_null()) closest = p["closest"].long_value();
                 } else {
                     cerr<<"ERROR: <"<<error<<">"<<endl;
                 }

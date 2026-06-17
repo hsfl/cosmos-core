@@ -202,6 +202,8 @@ int32_t AttAccel(locstruc *loc, physicsstruc *phys)
     loc->att.lvlh.a = irotate(q_conjugate(loc->att.lvlh.s), ta.to_rv());
     loc->att.geoc.a = irotate(q_conjugate(loc->att.geoc.s), ta.to_rv());
     loc->att.selc.a = irotate(q_conjugate(loc->att.selc.s), ta.to_rv());
+
+    att_set_icrf(loc);
     return 0;
 }
 
@@ -326,12 +328,6 @@ int32_t PosAccel(locstruc* loc, physicsstruc* phys)
     //        loc->pos.eci.a = rv_add(loc->pos.eci.a, da.to_rv());
     //    }
 
-    loc->pos.eci.pass++;
-    iretn = pos_eci(loc);
-    if (iretn < 0)
-    {
-        return iretn;
-    }
     if (std::isnan( loc->pos.eci.a.col[0]))
     {
         loc->pos.eci.a.col[0] = 0.;
@@ -343,6 +339,11 @@ int32_t PosAccel(locstruc* loc, physicsstruc* phys)
     if (std::isnan( loc->pos.eci.a.col[2]))
     {
         loc->pos.eci.a.col[2] = 0.;
+    }
+    iretn = pos_set_eci(loc);
+    if (iretn < 0)
+    {
+        return iretn;
     }
     return 0;
 }
@@ -385,7 +386,7 @@ int32_t LunarPosAccel(locstruc* loc, physicsstruc* phys)
     // Earth position in SCI = sun2earth.s − sun2moon.s (Moon→Earth vector)
     {
         Vector earth_sci = Vector(loc->pos.extra.sun2earth.s)
-                         - Vector(loc->pos.extra.sun2moon.s);
+        - Vector(loc->pos.extra.sun2moon.s);
         // Satellite → Earth in SCI
         ctpos = earth_sci - Vector(loc->pos.sci.s);
         radius = ctpos.norm();
@@ -827,8 +828,7 @@ locstruc shape2eci(double utc, double latitude, double longitude, double altitud
     loc.pos.geoc.v.col[1] = v3.y;
     loc.pos.geoc.s.col[2] = s3.z;
     loc.pos.geoc.v.col[2] = v3.z;
-    loc.pos.geoc.pass++;
-    pos_geoc(loc);
+    pos_set_geoc(loc);
 
     return loc;
 }
@@ -891,8 +891,7 @@ int32_t load_loc(string fname, locstruc& loc)
         loc.pos.eci.v.col[0] = (values["vx"].number_value());
         loc.pos.eci.v.col[1] = (values["vy"].number_value());
         loc.pos.eci.v.col[2] = (values["vz"].number_value());
-        loc.pos.eci.pass++;
-        pos_eci(loc);
+        pos_set_eci(loc);
         return 0;
     }
     if (!jargs["kep"].is_null())
@@ -911,8 +910,7 @@ int32_t load_loc(string fname, locstruc& loc)
         kep.e = values["e"].number_value();
         kep.a = values["a"].number_value();
         kep2eci(kep, loc.pos.eci);
-        loc.pos.eci.pass++;
-        pos_eci(loc);
+        pos_set_eci(loc);
         return 0;
     }
     if (!jargs["tle"].is_null())
@@ -924,8 +922,7 @@ int32_t load_loc(string fname, locstruc& loc)
             return iretn;
         }
         tle2eci(loc.tle.utc, loc.tle, loc.pos.eci);
-        loc.pos.eci.pass++;
-        pos_eci(loc);
+        pos_set_eci(loc);
         return 0;
     }
     return GENERAL_ERROR_ARGS;
@@ -1681,213 +1678,19 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     currentinfo.node.loc.utc = utc;
     tle2eci(currentinfo.node.loc.utc, tle, currentinfo.node.loc.pos.eci);
     currentinfo.node.loc.tle = tle;
-    currentinfo.node.loc.pos.eci.pass++;
-    pos_eci(currentinfo.node.loc);
+    pos_set_eci(currentinfo.node.loc);
     currentinfo.node.loc.att.icrf = icrf;
-    currentinfo.node.loc.att.icrf.pass++;
-    att_icrf(currentinfo.node.loc);
+    att_set_icrf(currentinfo.node.loc);
 
     return Init(name, idt, stype, ptype, atype, ttype, etype);
 
-    // dt = 86400.*((currentinfo.node.loc.utc + (idt / 86400.))-currentinfo.node.loc.utc);
-    // dtj = dt / 86400.;
-
-    // currentinfo.node.name = name;
-    // currentinfo.agent0.name = "sim";
-
-    // uint32_t ctruc_idx = currentinfo.node.phys.strucs.size();
-    // structure = new Structure(&currentinfo.node.phys);
-    // structure->Setup(stype);
-    // this->stype = stype;
-    // for (uint32_t i=ctruc_idx; i<currentinfo.node.phys.strucs.size(); ++i)
-    // {
-    //     if (currentinfo.node.phys.strucs[i].name.find("panel") != string::npos)
-    //     {
-    //         int32_t  pidx = json_addpiece(&currentinfo, i, DeviceType::PVSTRG, i);
-    //         if (pidx < 0)
-    //         {
-    //             return pidx;
-    //         }
-    //         uint16_t cidx = currentinfo.pieces[pidx].cidx;
-    //         json_mapcompentry(cidx, &currentinfo);
-    //         json_togglecompentry(cidx, &currentinfo, true);
-    //         json_mapdeviceentry(currentinfo.device[cidx], &currentinfo);
-    //         json_toggledeviceentry(currentinfo.device[cidx]->didx, DeviceType::PVSTRG, &currentinfo, true);
-    //     }
-    //     else
-    //     {
-    //         json_addpiece(&currentinfo, i, DeviceType::NONE);
-    //     }
-    //     // piecestruc piece;
-    //     // piece.name = currentinfo.node.phys.strucs[i].name;
-    //     // piece.density = currentinfo.node.phys.strucs[i].mass / currentinfo.node.phys.strucs[i].volume;
-    //     // piece.volume = currentinfo.node.phys.strucs[i].volume;
-    //     // piece.mass = currentinfo.node.phys.strucs[i].mass;
-    //     // piece.com = currentinfo.node.phys.strucs[i].com;
-    //     // piece.struc_idx = i;
-    //     // currentinfo.pieces.push_back(piece);
-    //     json_mappieceentry(currentinfo.pieces.size()-1, &currentinfo);
-    //     json_togglepieceentry(currentinfo.pieces.size()-1, &currentinfo, true);
-    // }
-    // currentinfo.piece_cnt = currentinfo.pieces.size();
-
-    // switch (ptype)
-    // {
-    // case Propagator::Type::PositionInertial:
-    //     inposition = new InertialPositionPropagator(&currentinfo, dt);
-    //     dt = inposition->dt;
-    //     dtj = inposition->dtj;
-    //     break;
-    // case Propagator::Type::PositionIterative:
-    //     itposition = new IterativePositionPropagator(&currentinfo, dt);
-    //     dt = itposition->dt;
-    //     dtj = itposition->dtj;
-    //     break;
-    // case Propagator::Type::PositionGaussJackson:
-    //     gjposition = new GaussJacksonPositionPropagator(&currentinfo, dt, 6);
-    //     dt = gjposition->dt;
-    //     dtj = gjposition->dtj;
-    //     gjposition->Init();
-    //     break;
-    // case Propagator::Type::PositionGeo:
-    //     geoposition = new GeoPositionPropagator(&currentinfo, dt);
-    //     dt = geoposition->dt;
-    //     dtj = geoposition->dtj;
-    //     break;
-    // case Propagator::Type::PositionTle:
-    //     tleposition = new TlePositionPropagator(&currentinfo, dt);
-    //     dt = tleposition->dt;
-    //     dtj = tleposition->dtj;
-    //     break;
-    // case Propagator::Type::PositionLvlh:
-    //     lvlhposition = new LvlhPositionPropagator(&currentinfo, dt);
-    //     dt = lvlhposition->dt;
-    //     dtj = lvlhposition->dtj;
-    //     break;
-    // default:
-    //     inposition = new InertialPositionPropagator(&currentinfo, dt);
-    //     dt = inposition->dt;
-    //     dtj = inposition->dtj;
-    //     break;
-    // }
-    // this->ptype = ptype;
-
-    // switch (atype)
-    // {
-    // case Propagator::Type::AttitudeInertial:
-    //     inattitude = new InertialAttitudePropagator(&currentinfo, dt);
-    //     currentinfo.node.loc.att.icrf.pass++;
-    //     att_icrf(currentinfo.node.loc);
-    //     AttAccel(currentinfo.node.loc, currentinfo.node.phys);
-    //     break;
-    // case Propagator::Type::AttitudeIterative:
-    //     itattitude = new IterativeAttitudePropagator(&currentinfo, dt);
-    //     currentinfo.node.loc.att.icrf.pass++;
-    //     att_icrf(currentinfo.node.loc);
-    //     AttAccel(currentinfo.node.loc, currentinfo.node.phys);
-    //     break;
-    // case Propagator::Type::AttitudeLVLH:
-    //     lvattitude = new LvlhAttitudePropagator(&currentinfo, dt);
-    //     currentinfo.node.loc.att.lvlh.s = q_eye();
-    //     currentinfo.node.loc.att.lvlh.v = rv_zero();
-    //     currentinfo.node.loc.att.lvlh.a = rv_zero();
-    //     currentinfo.node.loc.att.lvlh.utc = utc;
-    //     currentinfo.node.loc.att.lvlh.pass++;
-    //     att_lvlh(currentinfo.node.loc);
-    //     break;
-    // case Propagator::Type::AttitudeGeo:
-    //     geoattitude = new GeoAttitudePropagator(&currentinfo, dt);
-    //     currentinfo.node.loc.att.geoc.pass++;
-    //     att_geoc(currentinfo.node.loc);
-    //     break;
-    // case Propagator::Type::AttitudeSolar:
-    //     solarattitude = new SolarAttitudePropagator(&currentinfo, dt);
-    //     currentinfo.node.loc.att.icrf.pass++;
-    //     att_icrf(currentinfo.node.loc);
-    //     AttAccel(currentinfo.node.loc, currentinfo.node.phys);
-    //     break;
-    // case Propagator::Type::AttitudeTarget:
-    // {
-    //     targetattitude = new TargetAttitudePropagator(&currentinfo, dt);
-    //     lvattitude = new LvlhAttitudePropagator(&currentinfo, dt);
-    //     currentinfo.node.loc.att.lvlh.s = q_eye();
-    //     currentinfo.node.loc.att.lvlh.v = rv_zero();
-    //     currentinfo.node.loc.att.lvlh.a = rv_zero();
-    //     currentinfo.node.loc.att.lvlh.utc = utc;
-    //     currentinfo.node.loc.att.lvlh.pass++;
-    //     att_lvlh(currentinfo.node.loc);
-    //     break;
-    // }
-    // case Propagator::Type::AttitudeRequest:
-    // {
-    //     requestattitude = new RequestAttitudePropagator(&currentinfo, dt);
-    //     currentinfo.node.loc.att.icrf = currentinfo.node.loc_req.att.icrf;
-    //     currentinfo.node.loc.att.icrf.pass++;
-    //     att_icrf(currentinfo.node.loc);
-    //     break;
-    // }
-    // default:
-    // {
-    //     inattitude = new InertialAttitudePropagator(&currentinfo, dt);
-    //     currentinfo.node.loc.att.icrf.pass++;
-    //     att_icrf(currentinfo.node.loc);
-    //     AttAccel(currentinfo.node.loc, currentinfo.node.phys);
-    //     break;
-    // }
-    // }
-    // this->atype = atype;
-
-    // switch (ttype)
-    // {
-    // case Propagator::Type::Thermal:
-    //     thermal = new ThermalPropagator(&currentinfo, dt, 300.);
-    //     break;
-    // default:
-    //     thermal = new ThermalPropagator(&currentinfo, dt, 300.);
-    //     break;
-    // }
-    // this->ttype = ttype;
-
-    // switch (etype)
-    // {
-    // case Propagator::Type::Electrical:
-    //     electrical = new ElectricalPropagator(&currentinfo, dt, .5);
-    //     break;
-    // default:
-    //     electrical = new ElectricalPropagator(&currentinfo, dt, .5);
-    //     break;
-    // }
-    // this->etype = etype;
-
-    // if (ptype == Propagator::PositionGeo)
-    // {
-    //     currentinfo.node.loc.pos.geod.pass++;
-    //     pos_geod(currentinfo.node.loc);
-    // }
-    // else
-    // {
-    //     currentinfo.node.loc.pos.eci.pass++;
-    //     pos_eci(currentinfo.node.loc);
-    //     PosAccel(currentinfo.node.loc, currentinfo.node.phys);
-    // }
-
-    // orbitalevent = new OrbitalEventGenerator(&currentinfo, dt);
-    // orbitalevent->Init();
-    // metric = new MetricGenerator(&currentinfo, dt);
-
-    // initialloc = currentinfo.node.loc;
-    // initialphys = currentinfo.node.phys;
-    // currentinfo.node.utc = currentinfo.node.loc.utc;
-    // return 0;
 }
 
 int32_t State::Init(string name, double idt, string stype, Propagator::Type ptype, Propagator::Type atype, Propagator::Type ttype, Propagator::Type etype, cartpos eci, qatt icrf)
 {
     int32_t iretn = 0;
-    pos_clear(currentinfo.node.loc);
     currentinfo.node.loc.pos.eci = eci;
-    currentinfo.node.loc.pos.eci.pass++;
-    iretn = pos_eci(currentinfo.node.loc);
+    iretn = pos_set_eci(currentinfo.node.loc);
     if (iretn < 0)
     {
         return iretn;
@@ -1908,8 +1711,7 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     else
     {
         currentinfo.node.loc.att.icrf = icrf;
-        currentinfo.node.loc.att.icrf.pass++;
-        iretn = att_icrf(currentinfo.node.loc);
+        iretn = att_set_icrf(currentinfo.node.loc);
         if (iretn < 0)
         {
             return iretn;
@@ -1925,8 +1727,7 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     pos_clear(currentinfo.node.loc);
     currentinfo.node.loc.pos.eci = eci;
     currentinfo.node.loc.pos.lvlh = lvlh;
-    currentinfo.node.loc.pos.eci.pass++;
-    iretn = pos_eci(currentinfo.node.loc);
+    iretn = pos_set_eci(currentinfo.node.loc);
     if (iretn < 0)
     {
         return iretn;
@@ -1947,8 +1748,7 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     else
     {
         currentinfo.node.loc.att.icrf = icrf;
-        currentinfo.node.loc.att.icrf.pass++;
-        iretn = att_icrf(currentinfo.node.loc);
+        iretn = att_set_icrf(currentinfo.node.loc);
         if (iretn < 0)
         {
             return iretn;
@@ -2183,15 +1983,14 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     {
         {
             rvector saved_a = currentinfo.node.loc.pos.sci.a;
-            currentinfo.node.loc.pos.eci.pass = 0;
-            pos_sci(currentinfo.node.loc);
+            pos_set_sci(currentinfo.node.loc);
             currentinfo.node.loc.pos.sci.a = saved_a;
         }
         LunarPosAccel(&currentinfo.node.loc, &currentinfo.node.phys);
     }
     else
     {
-        pos_eci(currentinfo.node.loc);
+        // pos_eci(currentinfo.node.loc);
         PosAccel(currentinfo.node.loc, currentinfo.node.phys);
     }
     if (atype == Propagator::AttitudeGeo)
@@ -2200,7 +1999,6 @@ int32_t State::Init(string name, double idt, string stype, Propagator::Type ptyp
     }
     else
     {
-        att_icrf(currentinfo.node.loc);
         AttAccel(currentinfo.node.loc, currentinfo.node.phys);
     }
 
@@ -2269,14 +2067,13 @@ int32_t State::Propagate(double nextutc)
         {
             {
                 rvector saved_a = currentinfo.node.loc.pos.sci.a;
-                currentinfo.node.loc.pos.eci.pass = 0;
-                pos_sci(currentinfo.node.loc);
+                pos_set_sci(currentinfo.node.loc);
                 currentinfo.node.loc.pos.sci.a = saved_a;
             }
         }
         else
         {
-            pos_eci(currentinfo.node.loc);
+            pos_set_eci(currentinfo.node.loc);
         }
         if (atype == Propagator::AttitudeGeo)
         {
@@ -2284,7 +2081,6 @@ int32_t State::Propagate(double nextutc)
         }
         else
         {
-            att_icrf(currentinfo.node.loc);
             AttAccel(currentinfo.node.loc, currentinfo.node.phys);
         }
 
@@ -2392,7 +2188,7 @@ int32_t State::Propagate(locstruc &loc)
     }
     else
     {
-        pos_eci(currentinfo.node.loc);
+        pos_set_eci(currentinfo.node.loc);
     }
     if (atype == Propagator::AttitudeGeo)
     {
@@ -2400,7 +2196,6 @@ int32_t State::Propagate(locstruc &loc)
     }
     else
     {
-        att_icrf(currentinfo.node.loc);
         AttAccel(currentinfo.node.loc, currentinfo.node.phys);
     }
 
@@ -2541,7 +2336,6 @@ int32_t InertialAttitudePropagator::Init()
     ++currentinfo->node.loc.att.lvlh.pass;
     att_lvlh2icrf(currentinfo->node.loc);
     AttAccel(currentinfo->node.loc, currentinfo->node.phys);
-    att_icrf(currentinfo->node.loc);
 
     return  0;
 }
@@ -2564,8 +2358,7 @@ int32_t InertialAttitudePropagator::Propagate(double nextutc)
     currentinfo->node.loc.att.icrf = initialloc.att.icrf;
     currentutc = nextutc;
     currentinfo->node.loc.att.icrf.utc = nextutc;
-    currentinfo->node.loc.att.icrf.pass++;
-    att_icrf(currentinfo->node.loc);
+    att_set_icrf(currentinfo->node.loc);
 
     return 0;
 }
@@ -2594,8 +2387,7 @@ int32_t GeoAttitudePropagator::Propagate(double nextutc)
     currentinfo->node.loc.att.geoc = initialloc.att.geoc;
     currentutc = nextutc;
     currentinfo->node.loc.att.geoc.utc = nextutc;
-    currentinfo->node.loc.att.geoc.pass++;
-    att_geoc(currentinfo->node.loc);
+    att_set_geoc(currentinfo->node.loc);
 
     return 0;
 }
@@ -2648,9 +2440,8 @@ int32_t IterativeAttitudePropagator::Propagate(double nextutc)
         // Calculate new v from da
         currentinfo->node.loc.att.icrf.v = rv_add(currentinfo->node.loc.att.icrf.v, rv_smult(dt, currentinfo->node.loc.att.icrf.a));
         currentinfo->node.loc.att.icrf.utc = currentutc;
-        currentinfo->node.loc.att.icrf.pass++;
+
         AttAccel(currentinfo->node.loc, currentinfo->node.phys);
-        att_icrf(currentinfo->node.loc);
     }
 
     return 0;
@@ -2670,7 +2461,6 @@ int32_t LvlhAttitudePropagator::Init()
     ++currentinfo->node.loc.att.lvlh.pass;
     att_lvlh2icrf(currentinfo->node.loc);
     AttAccel(currentinfo->node.loc, currentinfo->node.phys);
-    att_icrf(currentinfo->node.loc);
 
     return  0;
 }
@@ -2717,9 +2507,7 @@ int32_t SolarAttitudePropagator::Init()
     currentinfo->node.loc.att.icrf.s = drotate_between(-Vector(currentinfo->node.loc.pos.extra.sun2earth.s), optimum).conjugate().to_q();
     currentinfo->node.loc.att.icrf.v = rv_zero();
     currentinfo->node.loc.att.icrf.a = rv_zero();
-    ++currentinfo->node.loc.att.icrf.pass;
     AttAccel(currentinfo->node.loc, currentinfo->node.phys);
-    att_icrf(currentinfo->node.loc);
     initialloc.att = currentinfo->node.loc.att;
 
     return  0;
@@ -2746,9 +2534,7 @@ int32_t SolarAttitudePropagator::Propagate(double nextutc)
     currentinfo->node.loc.att.icrf.s = drotate_between(-Vector(currentinfo->node.loc.pos.extra.sun2earth.s), optimum).conjugate().to_q();
     currentinfo->node.loc.att.icrf.v = rv_zero();
     currentinfo->node.loc.att.icrf.a = rv_zero();
-    ++currentinfo->node.loc.att.icrf.pass;
     AttAccel(currentinfo->node.loc, currentinfo->node.phys);
-    att_icrf(currentinfo->node.loc);
 
     return 0;
 }
@@ -2765,8 +2551,7 @@ int32_t TargetAttitudePropagator::Propagate(double nextutc)
         currentinfo->node.loc_req.att.geoc.s = q_drotate_between_rv(rv_unitz(), rv_sub(currentinfo->node.loc.pos.geoc.s, currentinfo->target[currentinfo->target_idx].loc.pos.geoc.s));
         currentinfo->node.loc_req.att.geoc.v = rv_zero();
         currentinfo->node.loc_req.att.geoc.a = rv_zero();
-        currentinfo->node.loc_req.att.geoc.pass++;
-        att_geoc(currentinfo->node.loc_req);
+        att_set_geoc(currentinfo->node.loc_req);
     }
     else
     {
@@ -2794,8 +2579,6 @@ int32_t RequestAttitudePropagator::Init()
 int32_t RequestAttitudePropagator::Propagate(double nextutc)
 {
     currentinfo->node.loc.att.icrf = currentinfo->node.loc_req.att.icrf;
-    currentinfo->node.loc.att.icrf.pass++;
-    att_icrf(currentinfo->node.loc);
     AttAccel(currentinfo->node.loc, currentinfo->node.phys);
     return 0;
 }
@@ -3246,6 +3029,15 @@ int32_t MetricGenerator::Reset(double nextutc)
     return 0;
 }
 
+/// Returns the geodetic/selenographic position of the node for the closest body.
+Convert::geoidpos OrbitalEventGenerator::currentGeoidPos() const
+{
+    switch (currentinfo->node.loc.pos.extra.closest) {
+        case COSMOS_MOON:  return currentinfo->node.loc.pos.selg;
+        default:           return currentinfo->node.loc.pos.geod;
+    }
+}
+
 int32_t OrbitalEventGenerator::check_all_event(bool force_end)
 {
     int32_t iretn = 0;
@@ -3256,7 +3048,11 @@ int32_t OrbitalEventGenerator::check_all_event(bool force_end)
     {
         iretn += check_lat_event(force_end, i*RADOF(10.));
     }
-    lastlat = currentinfo->node.loc.pos.geod.s.lat;
+    // Update lastlat from the geodetic frame of the closest body
+    switch (currentinfo->node.loc.pos.extra.closest) {
+        case COSMOS_MOON:  lastlat = currentinfo->node.loc.pos.selg.s.lat; break;
+        default:           lastlat = currentinfo->node.loc.pos.geod.s.lat; break;
+    }
     iretn += check_time_event(force_end);
     return iretn;
 }
@@ -3264,11 +3060,17 @@ int32_t OrbitalEventGenerator::check_all_event(bool force_end)
 int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
 {
     int32_t iretn = 0;
-    if (currentinfo->node.loc.pos.geod.s.lat > lastlat)
+    // Select geodetic frame of the closest body
+    double curlat;
+    switch (currentinfo->node.loc.pos.extra.closest) {
+        case COSMOS_MOON:  curlat = currentinfo->node.loc.pos.selg.s.lat; break;
+        default:           curlat = currentinfo->node.loc.pos.geod.s.lat; break;
+    }
+    if (curlat > lastlat)
     {
         lat_direction = 1;
     }
-    else if (currentinfo->node.loc.pos.geod.s.lat < lastlat)
+    else if (curlat < lastlat)
     {
         lat_direction = -1;
     }
@@ -3277,7 +3079,7 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
         lat_direction = 0;
     }
     // Lat ascending
-    if (lat_direction > 0 && lat >= lastlat && lat <= currentinfo->node.loc.pos.geod.s.lat)
+    if (lat_direction > 0 && lat >= lastlat && lat <= curlat)
     {
         // Add lat to event list
         eventstruc cevent;
@@ -3304,11 +3106,12 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
         {
             cevent.flag |= EVENT_FLAG_TARG;
         }
+        cevent.pos = currentGeoidPos();
         currentinfo->event.push_back(cevent);
         ++iretn;
     }
     // Lat descending
-    else if (lat_direction < 0 && lat <= lastlat && lat >= currentinfo->node.loc.pos.geod.s.lat)
+    else if (lat_direction < 0 && lat <= lastlat && lat >= curlat)
     {
         // Add lat to event list
         eventstruc cevent;
@@ -3334,13 +3137,14 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
         {
             cevent.flag |= EVENT_FLAG_TARG;
         }
+        cevent.pos = currentGeoidPos();
         currentinfo->event.push_back(cevent);
         ++iretn;
     }
     // Lat maximum
     if (lat_direction > 0)
     {
-        if (currentinfo->node.loc.pos.geod.s.lat > minlat)
+        if (curlat > minlat)
         {
             // Add lat to event list
             eventstruc cevent;
@@ -3367,19 +3171,20 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
             {
                 cevent.flag |= EVENT_FLAG_TARG;
             }
+            cevent.pos = currentGeoidPos();
             currentinfo->event.push_back(cevent);
             ++iretn;
             minlat = M_PI;
         }
         else
         {
-            maxlat = currentinfo->node.loc.pos.geod.s.lat;
+            maxlat = curlat;
         }
     }
     // Lat minimum
     else if (lat_direction < 0)
     {
-        if (currentinfo->node.loc.pos.geod.s.lat < maxlat)
+        if (curlat < maxlat)
         {
             // Add lat to event list
             eventstruc cevent;
@@ -3406,13 +3211,14 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
             {
                 cevent.flag |= EVENT_FLAG_TARG;
             }
+            cevent.pos = currentGeoidPos();
             currentinfo->event.push_back(cevent);
             ++iretn;
             maxlat = -M_PI;
         }
         else
         {
-            minlat = currentinfo->node.loc.pos.geod.s.lat;
+            minlat = curlat;
         }
     }
     return iretn;
@@ -3447,6 +3253,7 @@ int32_t OrbitalEventGenerator::check_time_event(bool force_end)
         }
         time_start = cevent.utc;
         time_end = time_start + currentinfo->event_tick;
+        cevent.pos = currentGeoidPos();
         currentinfo->event.push_back(cevent);
         return 1;
     }
@@ -3458,7 +3265,24 @@ int32_t OrbitalEventGenerator::check_time_event(bool force_end)
 
 int32_t OrbitalEventGenerator::check_land_event(bool force_end)
 {
-    dem_pixel val = map_dem_pixel(COSMOS_EARTH, currentinfo->node.loc.pos.geod.s.lon, currentinfo->node.loc.pos.geod.s.lat, 1./REARTHM);
+    // Select geodetic frame and DEM body from the closest body
+    double land_lat, land_lon, dem_scale;
+    int dem_body;
+    switch (currentinfo->node.loc.pos.extra.closest) {
+        case COSMOS_MOON:
+            land_lat  = currentinfo->node.loc.pos.selg.s.lat;
+            land_lon  = currentinfo->node.loc.pos.selg.s.lon;
+            dem_body  = COSMOS_MOON;
+            dem_scale = 1./RMOONM;
+            break;
+        default:
+            land_lat  = currentinfo->node.loc.pos.geod.s.lat;
+            land_lon  = currentinfo->node.loc.pos.geod.s.lon;
+            dem_body  = COSMOS_EARTH;
+            dem_scale = 1./REARTHM;
+            break;
+    }
+    dem_pixel val = map_dem_pixel(dem_body, land_lon, land_lat, dem_scale);
     // Land start
     if (land_start == 0. && val.alt > 1.)
     {
@@ -3487,6 +3311,7 @@ int32_t OrbitalEventGenerator::check_land_event(bool force_end)
         {
             cevent.flag |= EVENT_FLAG_TARG;
         }
+        cevent.pos = currentGeoidPos();
         currentinfo->event.push_back(cevent);
         land_start = cevent.utc;
         return 1;
@@ -3519,6 +3344,7 @@ int32_t OrbitalEventGenerator::check_land_event(bool force_end)
         {
             cevent.flag |= EVENT_FLAG_TARG;
         }
+        cevent.pos = currentGeoidPos();
         currentinfo->event.push_back(cevent);
         land_start = 0.;
         return 0;
@@ -3559,6 +3385,7 @@ int32_t OrbitalEventGenerator::check_umbra_event(bool force_end)
         {
             cevent.flag |= EVENT_FLAG_TARG;
         }
+        cevent.pos = currentGeoidPos();
         currentinfo->event.push_back(cevent);
         umbra_start = cevent.utc;
         return 1;
@@ -3591,6 +3418,7 @@ int32_t OrbitalEventGenerator::check_umbra_event(bool force_end)
         {
             cevent.flag |= EVENT_FLAG_TARG;
         }
+        cevent.pos = currentGeoidPos();
         currentinfo->event.push_back(cevent);
         umbra_start = 0.;
         return 0;
@@ -3673,6 +3501,7 @@ int32_t OrbitalEventGenerator::check_gs_event(const targetstruc& gs, bool force_
             {
                 gs_aos_event.flag |= EVENT_FLAG_TARG;
             }
+            gs_aos_event.pos = currentGeoidPos();
             currentinfo->event.push_back(gs_aos_event);
             gsAOS[i].first = gs_aos_event.utc;
         }
@@ -3714,6 +3543,7 @@ int32_t OrbitalEventGenerator::check_gs_event(const targetstruc& gs, bool force_
             {
                 gs_aos_event.flag |= EVENT_FLAG_TARG;
             }
+            gs_aos_event.pos = currentGeoidPos();
             currentinfo->event.push_back(gs_aos_event);
             // Reset this AoS event
             gsAOS[i].first = 0.;
@@ -3759,6 +3589,7 @@ int32_t OrbitalEventGenerator::check_gs_event(const targetstruc& gs, bool force_
         {
             gs_aos_event.flag |= EVENT_FLAG_TARG;
         }
+        gs_aos_event.pos = currentGeoidPos();
         currentinfo->event.push_back(gs_aos_event);
         // Reset this AoS event
         gsAOS[DEGMAX].first = 0.;
@@ -3799,6 +3630,7 @@ int32_t OrbitalEventGenerator::check_target_event(const targetstruc& target, boo
             target_event.az = target_AoS[target.name].azto;
             target_event.el = target_AoS[target.name].elto;
             target_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_EXIT | EVENT_FLAG_COLOR_WHITE;
+            target_event.pos = currentGeoidPos();
             currentinfo->event.push_back(target_event);
             // Reset this AoS event
             target_AoS[target.name].utc = 0.;
@@ -3825,6 +3657,7 @@ int32_t OrbitalEventGenerator::check_target_event(const targetstruc& target, boo
                     target_event.az = target_AoS[target.name].azto;
                     target_event.el = target_AoS[target.name].elto;
                     target_event.flag = EVENT_FLAG_TARG | EVENT_FLAG_COLOR_WHITE;
+                    target_event.pos = currentGeoidPos();
                     currentinfo->event.push_back(target_event);
                     target_AoS[target.name].elto = target.elto;
                     target_AoS[target.name].azto = target.azto;
@@ -3860,6 +3693,7 @@ int32_t OrbitalEventGenerator::check_target_event(const targetstruc& target, boo
         target_event.az = target_AoS[target.name].azto;
         target_event.el = target_AoS[target.name].elto;
         target_event.flag = EVENT_FLAG_PAIR | EVENT_FLAG_TARG | EVENT_FLAG_COLOR_WHITE;
+        target_event.pos = currentGeoidPos();
         currentinfo->event.push_back(target_event);
         target_AoS[target.name].utc = currentutc;
         target_AoS[target.name].elto = target.elto;
@@ -4089,8 +3923,7 @@ int32_t LunarPositionPropagator::Init(){
             loc.pos.sci.v.col[k] = vel[k];
             loc.pos.sci.a.col[k] = 0.;
         }
-        loc.pos.eci.pass = 0;  // force pos_sci to convert sci→eci
-        pos_sci(loc);   // populates all frames from SCI
+        pos_set_sci(loc);   // populates all frames from SCI
         return loc;
     };
 
@@ -4226,8 +4059,7 @@ int32_t LunarPositionPropagator::Propagate(double nextutc)
             step[order2].loc.pos.sci.v = rv_add(step[order2].loc.pos.sci.v, dt * dacc.to_rv());
             {
                 rvector saved_a = step[order2].loc.pos.sci.a;
-                step[order2].loc.pos.eci.pass = 0;
-                pos_sci(step[order2].loc);
+                pos_set_sci(step[order2].loc);
                 step[order2].loc.pos.sci.a = saved_a;  // restore: pos_icrf2sci() clobbers sci.a
             }
             Converge();   // re-seed sum-of-sums after thrust
@@ -4239,12 +4071,9 @@ int32_t LunarPositionPropagator::Propagate(double nextutc)
     currentinfo->node.loc.pos = step[order2].loc.pos;
 
     // Force pos_sci() to convert sci→eci by making eci.pass stale
-    currentinfo->node.loc.pos.eci.pass = 0;
-    {
-        rvector saved_a = currentinfo->node.loc.pos.sci.a;
-        pos_sci(&currentinfo->node.loc);
-        currentinfo->node.loc.pos.sci.a = saved_a;
-    }
+    rvector saved_a = currentinfo->node.loc.pos.sci.a;
+    pos_set_sci(&currentinfo->node.loc);
+    currentinfo->node.loc.pos.sci.a = saved_a;
 
     currentinfo->node.loc.pos.lvlh = tlvlh;
     for (uint16_t i=order; i<=order; --i)
@@ -4372,12 +4201,9 @@ int32_t LunarPositionPropagator::Converge()
 
                 // Convert ECI→SCI directly — pos_eci() cascade can corrupt eci.s
                 step[order2+i*n].loc.pos.sci.pass++;
-                {
-                    rvector saved_a = step[order2+i*n].loc.pos.sci.a;
-                    step[order2+i*n].loc.pos.eci.pass = 0;
-                    pos_sci(step[order2+i*n].loc);
-                    step[order2+i*n].loc.pos.sci.a = saved_a;  // restore: pos_icrf2sci() clobbers sci.a
-                }
+                rvector saved_a = step[order2+i*n].loc.pos.sci.a;
+                pos_set_sci(step[order2+i*n].loc);
+                step[order2+i*n].loc.pos.sci.a = saved_a;  // restore: pos_icrf2sci() clobbers sci.a
                 att_icrf2lvlh(&step[order2+i*n].loc);
                 //		eci2earth(&step[order2+i*n].loc.pos,&step[order2+i*n].att);
 
@@ -4398,12 +4224,9 @@ int32_t LunarPositionPropagator::Converge()
     ++currentinfo->node.loc.pos.sci.pass;
     LunarPosAccel(&currentinfo->node.loc, &currentinfo->node.phys);
     // Convert ECI→SCI directly to avoid pos_eci() cascade corruption
-    {
-        rvector saved_a = currentinfo->node.loc.pos.sci.a;
-    currentinfo->node.loc.pos.eci.pass = 0;
-        pos_sci(&currentinfo->node.loc);
-        currentinfo->node.loc.pos.sci.a = saved_a;  // restore: pos_icrf2sci() clobbers sci.a
-    }
+    rvector saved_a = currentinfo->node.loc.pos.sci.a;
+    pos_set_sci(&currentinfo->node.loc);
+    currentinfo->node.loc.pos.sci.a = saved_a;  // restore: pos_icrf2sci() clobbers sci.a
     return 0;
 }
 
@@ -4441,8 +4264,7 @@ int32_t InertialPositionPropagator::Propagate(double nextutc)
     currentinfo->node.loc.pos.icrf = initialloc.pos.icrf;
     currentutc = nextutc;
     currentinfo->node.loc.pos.icrf.utc = nextutc;
-    currentinfo->node.loc.pos.icrf.pass++;
-    pos_icrf(currentinfo->node.loc);
+    att_set_icrf(currentinfo->node.loc);
     PosAccel(currentinfo->node.loc, currentinfo->node.phys);
 
     return 0;
@@ -4555,34 +4377,12 @@ int32_t IterativePositionPropagator::Propagate(double nextutc)
         currentinfo->node.loc.pos.sci.v += dt * (currentinfo->node.loc.pos.sci.a + (dt / 2.) * currentinfo->node.loc.pos.sci.j);
         currentinfo->node.loc.pos.sci.a += dt * currentinfo->node.loc.pos.sci.j;
 
-        //        rvector ds = rv_smult(.5 * dt * dt, currentinfo->node.loc.pos.eci.a);
-        //        ds = rv_add(ds, rv_smult(dt, currentinfo->node.loc.pos.eci.v));
-        //        currentinfo->node.loc.pos.eci.s = rv_add(currentinfo->node.loc.pos.eci.s, ds);
-        //        currentinfo->node.loc.pos.eci.v = rv_add(currentinfo->node.loc.pos.eci.v, rv_smult(dt, currentinfo->node.loc.pos.eci.a));
-        //        currentinfo->node.loc.pos.sci.utc = currentutc;
-
         // Update acceleration for the new position
         PosAccel(currentinfo->node.loc, currentinfo->node.phys);
-        // Apply external accelerations
-        // currentinfo->node.loc.pos.sci.a = rv_add(currentinfo->node.loc.pos.sci.a, rv_smult(1./currentinfo->node.phys.mass, currentinfo->node.phys.fpush.to_rv()));
-        // Clearing external accelerations TODO: consider if this is desireable
-        // currentinfo->node.phys.fpush.clear();
-        // currentinfo->node.loc.pos.sci.pass++;
-        // pos_eci(currentinfo->node.loc);
     }
 
     return 0;
 }
-
-//int32_t TlePositionPropagator::Init(tlestruc tle)
-//{
-//    tle2eci(currentutc, currentinfo->node.loc.tle, currentinfo->node.loc.pos.eci);
-//    currentinfo->node.loc.pos.sci.pass++;
-//    PosAccel(currentinfo->node.loc, currentinfo->node.phys);
-//    pos_eci(currentinfo->node.loc);
-
-//    return 0;
-//}
 
 int32_t TlePositionPropagator::Init()
 {
@@ -4611,8 +4411,6 @@ int32_t TlePositionPropagator::Propagate(double nextutc)
     {
         currentutc += dtj;
         tle2eci(currentutc, currentinfo->node.loc.tle, currentinfo->node.loc.pos.eci);
-        currentinfo->node.loc.pos.sci.pass++;
-        pos_eci(currentinfo->node.loc);
         PosAccel(currentinfo->node.loc, currentinfo->node.phys);
     }
 
@@ -4773,8 +4571,6 @@ int32_t GaussJacksonPositionPropagator::Init(tlestruc tle)
 
     loc_clear(step[order+1].loc);
     tle2eci(currentinfo->node.loc.utc, tle, currentinfo->node.loc.pos.eci);
-    ++currentinfo->node.loc.pos.eci.pass;
-    pos_eci(currentinfo->node.loc);
     PosAccel(currentinfo->node.loc, currentinfo->node.phys);
     //            AttAccel(currentinfo->node.loc, currentinfo->node.phys);
     step[order2].loc = currentinfo->node.loc;
@@ -4785,8 +4581,7 @@ int32_t GaussJacksonPositionPropagator::Init(tlestruc tle)
         step[i].loc = step[i+1].loc;
         step[i].loc.utc -= dtj;
         tle2eci(step[i].loc.utc, tle, step[i].loc.pos.eci);
-        step[i].loc.pos.eci.pass++;
-        pos_eci(step[i].loc);
+        pos_set_eci(step[i].loc);
 
         step[i].loc.att.lvlh = step[i+1].loc.att.lvlh;
         att_lvlh2icrf(step[i].loc);
@@ -4801,9 +4596,6 @@ int32_t GaussJacksonPositionPropagator::Init(tlestruc tle)
 
         step[i].loc.utc += dtj;
         tle2eci(step[i].loc.utc, tle, step[i].loc.pos.eci);
-        step[i].loc.pos.eci.pass++;
-        pos_eci(step[i].loc);
-
         step[i].loc.att.lvlh = step[i-1].loc.att.lvlh;
         att_lvlh2icrf(step[i].loc);
 
@@ -4840,8 +4632,6 @@ int32_t GaussJacksonPositionPropagator::Init()
     int32_t iretn = 0;
 
     // Make sure ::locstruc is internally self consistent
-    ++currentinfo->node.loc.pos.eci.pass;
-    pos_eci(currentinfo->node.loc);
     // Update accelerations
     PosAccel(currentinfo->node.loc, currentinfo->node.phys);
 
@@ -4883,8 +4673,6 @@ int32_t GaussJacksonPositionPropagator::Init()
         // Calculate new v from da
         step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(-dt,step[i].loc.att.icrf.a));
         step[i].loc.att.icrf.utc = kep.utc;
-        pos_eci(step[i].loc);
-
         PosAccel(step[i].loc, currentinfo->node.phys);
     }
 
@@ -4931,8 +4719,7 @@ int32_t GaussJacksonPositionPropagator::Init(vector<locstruc> locs)
     int32_t iretn = 0;
 
     // Make sure ::locstruc is internally self consistent
-    ++currentinfo->node.loc.pos.eci.pass;
-    pos_eci(currentinfo->node.loc);
+    pos_set_eci(currentinfo->node.loc);
 
     // Zero out original N+1 bin
     loc_clear(step[order+1].loc);
@@ -5059,8 +4846,7 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
         step[order+1].loc.pos.eci.s.col[0] = this->dtsq * (step[order+1].ss.col[0] + step[order+1].sa.col[0]);
         step[order+1].loc.pos.eci.s.col[1] = this->dtsq * (step[order+1].ss.col[1] + step[order+1].sa.col[1]);
         step[order+1].loc.pos.eci.s.col[2] = this->dtsq * (step[order+1].ss.col[2] + step[order+1].sa.col[2]);
-        step[order+1].loc.pos.eci.pass++;
-        pos_eci(step[order+1].loc);
+        pos_set_eci(step[order+1].loc);
 
         // Correct
         // Update inherent accelerations for this location
@@ -5225,9 +5011,7 @@ int32_t GaussJacksonPositionPropagator::Converge()
                 step[order2+i*n].loc.pos.eci.s.col[2] = this->dtsq * (step[order2+i*n].ss.col[2] + step[order2+i*n].sa.col[2]);
 
                 // Perform conversions between different systems
-                step[order2+i*n].loc.pos.eci.pass++;
-                pos_eci(&step[order2+i*n].loc);
-                att_icrf2lvlh(&step[order2+i*n].loc);
+                pos_set_eci(step[order2+i*n].loc);
                 //		eci2earth(&step[order2+i*n].loc.pos,&step[order2+i*n].att);
 
                 // Calculate acceleration at new position
@@ -5247,7 +5031,6 @@ int32_t GaussJacksonPositionPropagator::Converge()
     ++currentinfo->node.loc.pos.eci.pass;
     //    currentinfo->node.phys.fpush = rv_zero();
     PosAccel(currentinfo->node.loc, currentinfo->node.phys);
-    pos_eci(currentinfo->node.loc);
     return 0;
 }
 
@@ -5259,8 +5042,6 @@ int32_t GaussJacksonPositionPropagator::Update()
     quaternion q1;
 
     // Central bin should already be set
-    ++step[order2].loc.pos.eci.pass;
-    pos_eci(step[order2].loc);
     PosAccel(step[order2].loc, currentinfo->node.phys);
     AttAccel(step[order2].loc, currentinfo->node.phys);
 
@@ -5294,8 +5075,6 @@ int32_t GaussJacksonPositionPropagator::Update()
         // Calculate new v from da
         step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(-dt,step[i].loc.att.icrf.a));
         step[i].loc.att.icrf.utc = kep.utc;
-        pos_eci(step[i].loc);
-
         PosAccel(step[i].loc, currentinfo->node.phys);
     }
 
@@ -5326,8 +5105,6 @@ int32_t GaussJacksonPositionPropagator::Update()
         // Calculate new v from da
         step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(dt,step[i].loc.att.icrf.a));
         step[i].loc.att.icrf.utc = kep.utc;
-        pos_eci(step[i].loc);
-
         PosAccel(step[i].loc, currentinfo->node.phys);
     }
     currentutc = step[order2].loc.utc;

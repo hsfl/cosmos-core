@@ -120,6 +120,61 @@ namespace Cosmos {
         //! \param loc Pointer to the location structure whose SELG position is the source (input/output).
         //! \return 0 on success, negative error code on failure.
         int32_t pos_selg(locstruc *loc);
+
+        //! \brief Save loc.pos.icrf, clear loc, restore as sole authoritative frame, propagate all others. Attitude is cleared; call att_set_xxx() afterwards.
+        //! \param loc Location structure (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t pos_set_icrf(locstruc *loc);
+        //! \brief Save loc.pos.eci, clear loc, restore as sole authoritative frame, propagate all others. Attitude is cleared; call att_set_xxx() afterwards.
+        //! \param loc Location structure (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t pos_set_eci(locstruc *loc);
+        //! \brief Save loc.pos.sci, clear loc, restore as sole authoritative frame, propagate all others. Attitude is cleared; call att_set_xxx() afterwards.
+        //! \param loc Location structure (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t pos_set_sci(locstruc *loc);
+        //! \brief Save loc.pos.geoc, clear loc, restore as sole authoritative frame, propagate all others. Attitude is cleared; call att_set_xxx() afterwards.
+        //! \param loc Location structure (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t pos_set_geoc(locstruc *loc);
+        //! \brief Save loc.pos.selc, clear loc, restore as sole authoritative frame, propagate all others. Attitude is cleared; call att_set_xxx() afterwards.
+        //! \param loc Location structure (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t pos_set_selc(locstruc *loc);
+        //! \brief Save loc.pos.selg, clear loc, restore as sole authoritative frame, propagate all others. Attitude is cleared; call att_set_xxx() afterwards.
+        //! \param loc Location structure (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t pos_set_selg(locstruc *loc);
+        //! \brief Save loc.pos.geos, clear loc, restore as sole authoritative frame, propagate all others. Attitude is cleared; call att_set_xxx() afterwards.
+        //! \param loc Location structure (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t pos_set_geos(locstruc *loc);
+        //! \brief Save loc.pos.geod, clear loc, restore as sole authoritative frame, propagate all others. Attitude is cleared; call att_set_xxx() afterwards.
+        //! \param loc Location structure (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t pos_set_geod(locstruc *loc);
+
+        //! \brief Save loc.att.icrf, clear attstruc, restore as sole authoritative attitude frame, propagate all others. Requires loc.pos populated by pos_set_xxx().
+        //! \param loc Location structure with valid pos (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t att_set_icrf(locstruc *loc);
+        //! \brief Save loc.att.geoc, clear attstruc, restore as sole authoritative attitude frame, propagate all others. Requires loc.pos populated by pos_set_xxx().
+        //! \param loc Location structure with valid pos (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t att_set_geoc(locstruc *loc);
+        //! \brief Save loc.att.selc, clear attstruc, restore as sole authoritative attitude frame, propagate all others. Requires loc.pos populated by pos_set_xxx().
+        //! \param loc Location structure with valid pos (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t att_set_selc(locstruc *loc);
+        //! \brief Save loc.att.lvlh, clear attstruc, restore as sole authoritative attitude frame, propagate all others. Requires loc.pos populated by pos_set_xxx().
+        //! \param loc Location structure with valid pos (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t att_set_lvlh(locstruc *loc);
+        //! \brief Save loc.att.topo, clear attstruc, restore as sole authoritative attitude frame, propagate all others. Requires loc.pos populated by pos_set_xxx().
+        //! \param loc Location structure with valid pos (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t att_set_topo(locstruc *loc);
+
         //! \brief Convert position from ICRF (barycentric) to ECI frame within a locstruc.
         //! \param loc Pointer to the location structure whose ICRF slot is the source; ECI slot is updated (input/output).
         //! \return 0 on success, negative error code on failure.
@@ -260,6 +315,61 @@ namespace Cosmos {
         //! \param loc Reference to the location structure whose SELG position is the source (input/output).
         //! \return 0 on success, negative error code on failure.
         int32_t pos_selg(locstruc &loc);
+
+        //! \brief Save loc.pos.icrf, clear loc, restore as sole authoritative frame, propagate all others (reference overload).
+        //! \param loc Location structure (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t pos_set_icrf(locstruc &loc);
+        //! \brief Save loc.pos.eci, clear loc, restore as sole authoritative frame, propagate all others (reference overload).
+        //! \param loc Location structure (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t pos_set_eci(locstruc &loc);
+        //! \brief Save loc.pos.sci, clear loc, restore as sole authoritative frame, propagate all others (reference overload).
+        //! \param loc Location structure (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t pos_set_sci(locstruc &loc);
+        //! \brief Save loc.pos.geoc, clear loc, restore as sole authoritative frame, propagate all others (reference overload).
+        //! \param loc Location structure (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t pos_set_geoc(locstruc &loc);
+        //! \brief Save loc.pos.selc, clear loc, restore as sole authoritative frame, propagate all others (reference overload).
+        //! \param loc Location structure (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t pos_set_selc(locstruc &loc);
+        //! \brief Save loc.pos.selg, clear loc, restore as sole authoritative frame, propagate all others (reference overload).
+        //! \param loc Location structure (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t pos_set_selg(locstruc &loc);
+        //! \brief Save loc.pos.geos, clear loc, restore as sole authoritative frame, propagate all others (reference overload).
+        //! \param loc Location structure (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t pos_set_geos(locstruc &loc);
+        //! \brief Save loc.pos.geod, clear loc, restore as sole authoritative frame, propagate all others (reference overload).
+        //! \param loc Location structure (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t pos_set_geod(locstruc &loc);
+
+        //! \brief Save loc.att.icrf, clear attstruc, restore as sole authoritative attitude frame, propagate all others (reference overload). Requires loc.pos populated by pos_set_xxx().
+        //! \param loc Location structure with valid pos (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t att_set_icrf(locstruc &loc);
+        //! \brief Save loc.att.geoc, clear attstruc, restore as sole authoritative attitude frame, propagate all others (reference overload). Requires loc.pos populated by pos_set_xxx().
+        //! \param loc Location structure with valid pos (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t att_set_geoc(locstruc &loc);
+        //! \brief Save loc.att.selc, clear attstruc, restore as sole authoritative attitude frame, propagate all others (reference overload). Requires loc.pos populated by pos_set_xxx().
+        //! \param loc Location structure with valid pos (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t att_set_selc(locstruc &loc);
+        //! \brief Save loc.att.lvlh, clear attstruc, restore as sole authoritative attitude frame, propagate all others (reference overload). Requires loc.pos populated by pos_set_xxx().
+        //! \param loc Location structure with valid pos (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t att_set_lvlh(locstruc &loc);
+        //! \brief Save loc.att.topo, clear attstruc, restore as sole authoritative attitude frame, propagate all others (reference overload). Requires loc.pos populated by pos_set_xxx().
+        //! \param loc Location structure with valid pos (input/output).
+        //! \return 0 on success, negative error code on failure.
+        int32_t att_set_topo(locstruc &loc);
+
         //! \brief Convert position from ICRF to ECI frame within a locstruc (reference overload).
         //! \param loc Reference to the location structure whose ICRF slot is the source; ECI slot is updated (input/output).
         //! \return 0 on success, negative error code on failure.

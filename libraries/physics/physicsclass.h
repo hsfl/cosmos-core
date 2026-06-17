@@ -566,6 +566,7 @@ namespace Cosmos
             //! Tracks Acquisition of Sight events for each target. Targets track only DEG0
             map<string, targetstruc> target_AoS;
 
+            Convert::geoidpos currentGeoidPos() const;
             int32_t check_all_event(bool force_end);
             int32_t check_lat_event(bool force_end, float lat=0.0);
             //! Checks for Umbra enter/exit event
