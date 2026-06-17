@@ -135,7 +135,16 @@ namespace Cosmos {
 
         int32_t jplpos(long from, long to, double utc, Convert::cartpos &pos)
         {
-            static double pvec[3][6];
+            // NOT static: each call must have its own buffer. A static pvec
+            // is shared across calls, so the JPL_EARTH and JPL_MOON calls
+            // made back-to-back from pos_extra() would contaminate each
+            // other's results -- producing sun2moon==sun2earth, swapped
+            // values, or zero vectors depending on which jpl_pleph() call
+            // failed or returned early (all failure modes we observed).
+            // The three jpl_pleph() calls also each hold the mutex
+            // separately, leaving pvec unprotected between them; a local
+            // buffer eliminates that window entirely.
+            double pvec[3][6];
 
             pos.s = pos.v = pos.a = rv_zero();
 
@@ -145,24 +154,20 @@ namespace Cosmos {
                 return iretn;
             }
 
+            // Hold one lock for all three jpl_pleph calls for this body.
+            // Three separate lock/unlock cycles left jpl_pleph's internal
+            // state unprotected between calls, which (combined with the
+            // formerly-static pvec) caused the Earth/Moon result swap bug.
             eph_mutex.lock();
             iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET - .05/86400., static_cast<int>(to), static_cast<int>(from) ,pvec[0],1);
-            eph_mutex.unlock();
-            if (iretn < 0)
+            if (iretn >= 0)
             {
-                return iretn;
+                iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET, static_cast<int>(to), static_cast<int>(from) ,pvec[1],1);
             }
-
-            eph_mutex.lock();
-            iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET, static_cast<int>(to), static_cast<int>(from) ,pvec[1],1);
-            eph_mutex.unlock();
-            if (iretn < 0)
+            if (iretn >= 0)
             {
-                return iretn;
+                iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET + .05/86400., static_cast<int>(to), static_cast<int>(from) ,pvec[2],1);
             }
-
-            eph_mutex.lock();
-            iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET + .05/86400., static_cast<int>(to), static_cast<int>(from) ,pvec[2],1);
             eph_mutex.unlock();
             if (iretn < 0)
             {

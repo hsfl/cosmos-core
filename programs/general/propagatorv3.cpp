@@ -303,32 +303,31 @@ int main(int argc, char *argv[])
                         output += to_label("\tel", to_floating(event.el, 4));
                         output += to_label("\taz", to_floating(event.az, 4));
                         output += to_label("\tdtime", to_floating(86400.*event.dtime, 1));
-                        output += to_label("\tlon", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.geod.s.lon, 5));
-                        output += to_label("\tlat", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.geod.s.lat, 5));
-                        output += to_label("\talt", to_floating(sim->cnodes[i]->currentinfo.node.loc.pos.geod.s.h, 1));
+                        output += to_label("\tlon", to_floating(event.pos.s.lon, 5));
+                        output += to_label("\tlat", to_floating(event.pos.s.lat, 5));
+                        output += to_label("\talt", to_floating(event.pos.s.h, 1));
                         output += to_label("\tpowerin", to_floating(sim->cnodes[i]->currentinfo.node.phys.powgen, 2));
                         output += to_label("\tland", (event.flag & EVENT_FLAG_LAND) != 0);
                         output += to_label("\tumbra", (event.flag & EVENT_FLAG_UMBRA) != 0);
                         output += to_label("\tgs", (event.flag & EVENT_FLAG_GS) != 0);
                         printf("%s\n", output.c_str());
                     }
-                    // if (jsonevent)
-                    // {
-                    //     json11::Json jobj = json11::Json::object({
-                    //         {"type", "event"},
-                    //         {"node_name", sim->cnodes[i]->currentinfo.node.name},
-                    //         {"utc", event.utc},
-                    //         {"event_utc", event.utc},
-                    //         {"event_name", event.name},
-                    //         {"event_type", static_cast<int>(event.type)},
-                    //         {"event_flag", static_cast<int>(event.flag)},
-                    //         {"event_el", event.el},
-                    //         {"event_az", event.az},
-                    //         {"geodpos", sim->cnodes[i]->currentinfo.node.loc.pos.geod.s}
-                    //     });
-                    //     string output = jobj.dump();
-                    //     printf("%s\n", output.c_str());
-                    // }
+                    if (jsonevent)
+                    {
+                        json11::Json jobj = json11::Json::object({
+                            {"mtype", "event"},
+                            {"node", sim->cnodes[i]->currentinfo.node.name},
+                            {"utc", event.utc},
+                            {"name", event.name},
+                            {"type", static_cast<int>(event.type)},
+                            {"flag", static_cast<int>(event.flag)},
+                            {"el", event.el},
+                            {"az", event.az},
+                            {"pos", event.pos}
+                        });
+                        string output = jobj.dump();
+                        printf("%s\n", output.c_str());
+                    }
                     if (postevent)
                     {
                         json11::Json jobj = json11::Json::object({
@@ -340,7 +339,7 @@ int main(int argc, char *argv[])
                             {"flag", static_cast<int>(event.flag)},
                             {"el", event.el},
                             {"az", event.az},
-                            {"geodpos", sim->cnodes[i]->currentinfo.node.loc.pos.geod.s}
+                            {"pos", event.pos}
                         });
                         string output = jobj.dump();
                         if (postevent)
@@ -424,10 +423,18 @@ int main(int argc, char *argv[])
                        sim->cnodes[i]->currentinfo.node.loc.att.icrf.s.d.x,
                        sim->cnodes[i]->currentinfo.node.loc.att.icrf.s.d.y,
                        sim->cnodes[i]->currentinfo.node.loc.att.icrf.s.d.z);
-                printf("\"ecipos\":{\"x\":%f,\"y\":%f,\"z\":%f},",
-                       sim->cnodes[i]->currentinfo.node.loc.pos.eci.s.col[0],
-                       sim->cnodes[i]->currentinfo.node.loc.pos.eci.s.col[1],
-                       sim->cnodes[i]->currentinfo.node.loc.pos.eci.s.col[2]);
+                {
+                    const cartpos& bodypos = (sim->cnodes[i]->currentinfo.node.loc.pos.extra.closest == COSMOS_MOON)
+                                            ? sim->cnodes[i]->currentinfo.node.loc.pos.sci
+                                            : sim->cnodes[i]->currentinfo.node.loc.pos.eci;
+                    const char* bodykey = (sim->cnodes[i]->currentinfo.node.loc.pos.extra.closest == COSMOS_MOON)
+                                         ? "scipos" : "ecipos";
+                    printf("\"%s\":{\"x\":%f,\"y\":%f,\"z\":%f},",
+                           bodykey,
+                           bodypos.s.col[0],
+                           bodypos.s.col[1],
+                           bodypos.s.col[2]);
+                }
                 printf("\"lvlhatt\":{\"w\":%f,\"x\":%f,\"y\":%f,\"z\":%f},",
                        sim->cnodes[i]->currentinfo.node.loc.att.lvlh.s.w,
                        sim->cnodes[i]->currentinfo.node.loc.att.lvlh.s.d.x,
@@ -452,7 +459,10 @@ int main(int argc, char *argv[])
                     {"pvstrg", sim->cnodes[i]->currentinfo.devspec.pvstrg},
                     {"tsen", sim->cnodes[i]->currentinfo.devspec.tsen},
                     {"closest", static_cast<int>(sim->cnodes[i]->currentinfo.node.loc.pos.extra.closest)},
-                    {"ecipos", sim->cnodes[i]->currentinfo.node.loc.pos.eci},
+                    {(sim->cnodes[i]->currentinfo.node.loc.pos.extra.closest == COSMOS_MOON) ? "scipos" : "ecipos",
+                     (sim->cnodes[i]->currentinfo.node.loc.pos.extra.closest == COSMOS_MOON)
+                         ? sim->cnodes[i]->currentinfo.node.loc.pos.sci
+                         : sim->cnodes[i]->currentinfo.node.loc.pos.eci},
                     {"alphaatt", sim->cnodes[i]->currentinfo.node.loc.att.icrf},
                     {"powerin", sim->cnodes[i]->currentinfo.node.phys.powgen},
                     {"powerout", sim->cnodes[i]->currentinfo.node.phys.powuse},

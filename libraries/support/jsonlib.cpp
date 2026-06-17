@@ -5034,36 +5034,31 @@ Convert::posstruc json_get_posstruc(const jsonentry &entry, cosmosstruc *cinfo)
             value.pos.eci.s = (rvector)(*(rvector *)(dptr));
             value.pos.eci.v = rv_zero();
             value.pos.eci.a = rv_zero();
-            ++value.pos.eci.pass;
-            Convert::pos_eci(&value);
+            Convert::pos_set_eci(value);
         }
             break;
         case JSON_TYPE_CARTPOS:
         {
             value.pos.eci = (Convert::cartpos)(*(Convert::cartpos *)(dptr));
-            ++value.pos.eci.pass;
-            Convert::pos_eci(&value);
+            Convert::pos_set_eci(value);
         }
             break;
         case JSON_TYPE_POS_GEOC:
         {
             value.pos.geoc = (Convert::cartpos)(*(Convert::cartpos *)(dptr));
-            ++value.pos.geoc.pass;
-            Convert::pos_geoc(&value);
+            Convert::pos_set_geoc(value);
         }
             break;
         case JSON_TYPE_POS_GEOD:
         {
             value.pos.geod = (Convert::geoidpos)(*(Convert::geoidpos *)(dptr));
-            ++value.pos.geod.pass;
-            Convert::pos_geod(&value);
+            Convert::pos_set_geod(value);
         }
             break;
         case JSON_TYPE_POS_SELC:
         {
             value.pos.selc = (Convert::cartpos)(*(Convert::cartpos *)(dptr));
-            ++value.pos.selc.pass;
-            Convert::pos_selc(&value);
+            Convert::pos_set_selc(value);
         }
             break;
         case JSON_TYPE_POS_LVLH:
@@ -5074,29 +5069,25 @@ Convert::posstruc json_get_posstruc(const jsonentry &entry, cosmosstruc *cinfo)
         case JSON_TYPE_POS_SELG:
         {
             value.pos.selg = (Convert::geoidpos)(*(Convert::geoidpos *)(dptr));
-            ++value.pos.selg.pass;
-            Convert::pos_selg(&value);
+            Convert::pos_set_selg(value);
         }
             break;
         case JSON_TYPE_POS_ECI:
         {
             value.pos.eci = (Convert::cartpos)(*(Convert::cartpos *)(dptr));
-            ++value.pos.eci.pass;
-            Convert::pos_eci(&value);
+            Convert::pos_set_eci(value);
         }
             break;
         case JSON_TYPE_POS_SCI:
         {
             value.pos.sci = (Convert::cartpos)(*(Convert::cartpos *)(dptr));
-            ++value.pos.sci.pass;
-            Convert::pos_sci(&value);
+            Convert::pos_set_sci(value);
         }
             break;
         case JSON_TYPE_POS_ICRF:
         {
             value.pos.icrf = (Convert::cartpos)(*(Convert::cartpos *)(dptr));
-            ++value.pos.icrf.pass;
-            Convert::pos_icrf(&value);
+            Convert::pos_set_icrf(value);
         }
             break;
         }
@@ -6704,14 +6695,13 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return iretn;
-        gp->pass++;
         switch (type)
         {
         case JSON_TYPE_POS_SELG:
-            Convert::pos_selg(&cinfo->node.loc);
+            Convert::pos_set_selg(cinfo->node.loc);
             break;
         case JSON_TYPE_POS_GEOD:
-            Convert::pos_geod(&cinfo->node.loc);
+            Convert::pos_set_geod(cinfo->node.loc);
             break;
         }
         break;
@@ -6876,25 +6866,24 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return iretn;
-        rp->pass++;
         switch (type)
         {
         case JSON_TYPE_POS_SELC:
-            Convert::pos_selc(&cinfo->node.loc);
+            Convert::pos_set_selc(cinfo->node.loc);
             break;
         case JSON_TYPE_POS_LVLH:
             break;
         case JSON_TYPE_POS_GEOC:
-            Convert::pos_geoc(&cinfo->node.loc);
+            Convert::pos_set_geoc(cinfo->node.loc);
             break;
         case JSON_TYPE_POS_ECI:
-            Convert::pos_eci(&cinfo->node.loc);
+            Convert::pos_set_eci(cinfo->node.loc);
             break;
         case JSON_TYPE_POS_SCI:
-            Convert::pos_sci(&cinfo->node.loc);
+            Convert::pos_set_sci(cinfo->node.loc);
             break;
         case JSON_TYPE_POS_ICRF:
-            Convert::pos_icrf(&cinfo->node.loc);
+            Convert::pos_set_icrf(cinfo->node.loc);
             break;
         }
         break;
@@ -6965,23 +6954,22 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return iretn;
-        qa->pass++;
         switch (type)
         {
         case JSON_TYPE_QATT_GEOC:
-            att_geoc(&cinfo->node.loc);
+            att_set_geoc(&cinfo->node.loc);
             break;
         case JSON_TYPE_QATT_ICRF:
-            Convert::att_icrf(&cinfo->node.loc);
+            Convert::att_set_icrf(cinfo->node.loc);
             break;
         case JSON_TYPE_QATT_LVLH:
-            Convert::att_lvlh(&cinfo->node.loc);
+            Convert::att_set_lvlh(cinfo->node.loc);
             break;
         case JSON_TYPE_QATT_SELC:
-            att_selc(&cinfo->node.loc);
+            Convert::att_set_selc(cinfo->node.loc);
             break;
         case JSON_TYPE_QATT_TOPO:
-            att_topo(&cinfo->node.loc);
+            Convert::att_set_topo(cinfo->node.loc);
             break;
         }
         break;
@@ -8459,24 +8447,21 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
     {
         Convert::jplpos(JPL_EARTH, JPL_SUN, Convert::utc2tt(mjd), &cinfo->node.loc.pos.eci);
         cinfo->node.loc.pos.eci.utc = mjd;
-        cinfo->node.loc.pos.eci.pass++;
-        Convert::pos_eci(&cinfo->node.loc);
+        Convert::pos_set_eci(cinfo->node.loc);
     }
 
     if (cinfo->node.type == NODE_TYPE_MOON)
     {
         Convert::jplpos(JPL_EARTH, JPL_MOON, Convert::utc2tt(mjd), &cinfo->node.loc.pos.eci);
         cinfo->node.loc.pos.eci.utc = mjd;
-        cinfo->node.loc.pos.eci.pass++;
-        Convert::pos_eci(&cinfo->node.loc);
+        Convert::pos_set_eci(cinfo->node.loc);
     }
 
     if (cinfo->node.type == NODE_TYPE_MARS)
     {
         Convert::jplpos(JPL_EARTH, JPL_MARS, Convert::utc2tt(mjd), &cinfo->node.loc.pos.eci);
         cinfo->node.loc.pos.eci.utc = mjd;
-        cinfo->node.loc.pos.eci.pass++;
-        Convert::pos_eci(&cinfo->node.loc);
+        Convert::pos_set_eci(cinfo->node.loc);
     }
 
     if (dump_flag && !nodepath.empty()) { json_dump_node(cinfo); }
@@ -8765,24 +8750,21 @@ int32_t json_clone_node(cosmosstruc *source, cosmosstruc *destination)
     {
         Convert::jplpos(JPL_EARTH, JPL_SUN, Convert::utc2tt(mjd), &destination->node.loc.pos.eci);
         destination->node.loc.pos.eci.utc = mjd;
-        destination->node.loc.pos.eci.pass++;
-        Convert::pos_eci(&destination->node.loc);
+        Convert::pos_set_eci(destination->node.loc);
     }
 
     if (destination->node.type == NODE_TYPE_MOON)
     {
         Convert::jplpos(JPL_EARTH, JPL_MOON, Convert::utc2tt(mjd), &destination->node.loc.pos.eci);
         destination->node.loc.pos.eci.utc = mjd;
-        destination->node.loc.pos.eci.pass++;
-        Convert::pos_eci(&destination->node.loc);
+        Convert::pos_set_eci(destination->node.loc);
     }
 
     if (destination->node.type == NODE_TYPE_MARS)
     {
         Convert::jplpos(JPL_EARTH, JPL_MARS, Convert::utc2tt(mjd), &destination->node.loc.pos.eci);
         destination->node.loc.pos.eci.utc = mjd;
-        destination->node.loc.pos.eci.pass++;
-        Convert::pos_eci(&destination->node.loc);
+        Convert::pos_set_eci(destination->node.loc);
     }
 
     return 0;
@@ -14121,8 +14103,7 @@ int32_t update_target(Convert::locstruc source, targetstruc &target)
             if (source.pos.geod.s.lat >= target.loc.pos.geod.s.lat + target.size.lat / 2.)
             {
                 targetloc.pos.geod.s.lat = target.loc.pos.geod.s.lat + target.size.lat / 2.;
-                targetloc.pos.geod.pass++;
-                Convert::pos_geod(targetloc);
+                Convert::pos_set_geod(targetloc);
                 if (source.pos.geod.v.lat < 0)
                 {
                     target.min = 1.;
@@ -14137,8 +14118,7 @@ int32_t update_target(Convert::locstruc source, targetstruc &target)
             else if (source.pos.geod.s.lat <= target.loc.pos.geod.s.lat - target.size.lat / 2)
             {
                 targetloc.pos.geod.s.lat = target.loc.pos.geod.s.lat - target.size.lat / 2.;
-                targetloc.pos.geod.pass++;
-                Convert::pos_geod(targetloc);
+                Convert::pos_set_geod(targetloc);
                 if (source.pos.geod.v.lat > 0)
                 {
                     target.min = 1.;
@@ -14156,8 +14136,7 @@ int32_t update_target(Convert::locstruc source, targetstruc &target)
                 {
                     target.utc = targetloc.utc;
                 }
-                targetloc.pos.geod.pass++;
-                Convert::pos_geod(targetloc);
+                Convert::pos_set_geod(targetloc);
                 target.min = 2.;
             }
         }

@@ -2909,6 +2909,8 @@ namespace Cosmos
                 add_name(basename+".handle.index", &event[i].handle.index, "uint16_t");
                 add_name(basename+".data", &event[i].data, "string");
                 add_name(basename+".condition", &event[i].condition, "string");
+                add_name(basename+".pos", &event[i].pos, "geoidpos");
+                add_name(basename+".closest", &event[i].closest, "uint16_t");
             }
 
 

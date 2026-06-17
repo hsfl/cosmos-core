@@ -1556,6 +1556,8 @@ for (il=0; il<5; il++)
             loc.att.lvlh.a = irotate(q_conjugate(loc.att.lvlh.s), ta.to_rv());
             loc.att.geoc.a = irotate(q_conjugate(loc.att.geoc.s), ta.to_rv());
             loc.att.selc.a = irotate(q_conjugate(loc.att.selc.s), ta.to_rv());
+
+            att_set_icrf(loc);
         }
 
         //! Position acceleration
@@ -1572,6 +1574,7 @@ for (il=0; il<5; il++)
             rvector ctpos, da, tda;
             Convert::cartpos bodypos;
 
+            Convert::pos_extra(loc.pos.eci.utc, loc);
             radius = length_rv(loc.pos.eci.s);
 
             loc.pos.eci.a = rv_zero();
@@ -1664,8 +1667,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             }
             lutc = loc.pos.eci.utc;
             lacc = loc.pos.eci.a;
-            loc.pos.eci.pass++;
-            iretn = Convert::pos_eci(&loc);
+            iretn = Convert::pos_set_eci(loc);
             if (iretn < 0)
             {
                 return iretn;
@@ -1743,8 +1745,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             Convert::pos_clear(loc);
 
             lines2eci(utc,cinfo->tle,loc.pos.eci);
-            loc.pos.eci.pass++;
-            Convert::pos_eci(&loc);
+            Convert::pos_set_eci(loc);
 
             // Initial attitude
             cinfo->node.phys.ftorque = rv_zero();
@@ -1754,7 +1755,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             //	loc.att.icrf.utc = loc.utc;
             //	loc.att.icrf.s = q_eye();
             //	loc.att.icrf.v = loc.att.icrf.a = rv_zero();
-            //	Convert::att_icrf(&loc);
+            //	Convert::att_set_icrf(loc);
             //	break;
             case 1:
                 loc.att.lvlh.utc = loc.utc;
@@ -1802,8 +1803,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                 sloc[i] = sloc[i-1];
                 sloc[i].utc -= dt / 86400.;
                 lines2eci(sloc[i].utc,cinfo->tle,sloc[i].pos.eci);
-                sloc[i].pos.eci.pass++;
-                Convert::pos_eci(&sloc[i]);
+                Convert::pos_set_eci(sloc[i]);
 
                 sloc[i].att.lvlh = sloc[i-1].att.lvlh;
                 Convert::att_lvlh2icrf(&sloc[i]);
@@ -1836,8 +1836,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
 
             loc.pos.eci = ipos;
             loc.utc = loc.att.icrf.utc = utc;
-            loc.pos.eci.pass++;
-            Convert::pos_eci(&loc);
+            Convert::pos_set_eci(loc);
             Convert::eci2kep(loc.pos.eci,kep);
 
             // Initial attitude
@@ -1848,7 +1847,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             //	loc.att.icrf.utc = loc.utc;
             //	loc.att.icrf.s = q_eye();
             //	loc.att.icrf.v = loc.att.icrf.a = rv_zero();
-            //	Convert::att_icrf(&loc);
+            //	Convert::att_set_icrf(loc);
             //	break;
             case 1:
                 loc.att.lvlh.utc = loc.utc;
@@ -1901,8 +1900,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                     kep.ea -= dea;
                 } while (++count < 100 && fabs(dea) > .000001);
                 kep2eci(kep,sloc[i].pos.eci);
-                sloc[i].pos.eci.pass++;
-                Convert::pos_eci(&sloc[i]);
+                Convert::pos_set_eci(sloc[i]);
 
                 sloc[i].att.lvlh = sloc[i-1].att.lvlh;
                 Convert::att_lvlh2icrf(&sloc[i]);
@@ -1950,8 +1948,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                 sloc[0].pos.geod.v.lon = -sloc[0].pos.geod.v.lon;
             }
             sloc[0].pos.geod.v.lon -= DPI / 43200.;
-            sloc[0].pos.geod.pass++;
-            Convert::pos_geod(&sloc[0]);
+            Convert::pos_set_geod(sloc[0]);
 
             // Initial attitude
             cinfo->node.phys.ftorque = rv_zero();
@@ -2103,8 +2100,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                 lnewp.pos.eci.v.col[0] += cinfo->node.phys.dt * (55.*sloc[0].pos.eci.a.col[0] - 59.*sloc[1].pos.eci.a.col[0] + 37.*sloc[2].pos.eci.a.col[0] - 9.*sloc[3].pos.eci.a.col[0]) / 24.;
                 lnewp.pos.eci.v.col[1] += cinfo->node.phys.dt * (55.*sloc[0].pos.eci.a.col[1] - 59.*sloc[1].pos.eci.a.col[1] + 37.*sloc[2].pos.eci.a.col[1] - 9.*sloc[3].pos.eci.a.col[1]) / 24.;
                 lnewp.pos.eci.v.col[2] += cinfo->node.phys.dt * (55.*sloc[0].pos.eci.a.col[2] - 59.*sloc[1].pos.eci.a.col[2] + 37.*sloc[2].pos.eci.a.col[2] - 9.*sloc[3].pos.eci.a.col[2]) / 24.;
-                lnewp.pos.eci.pass++;
-                Convert::pos_eci(&lnewp);
+                Convert::pos_set_eci(lnewp);
                 pos_accel(cinfo->node.phys, lnewp);
 
                 lnew.utc = lnew.att.icrf.utc = lutc;
@@ -2114,8 +2110,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                 lnew.pos.eci.v.col[0] += cinfo->node.phys.dt * (9.*lnewp.pos.eci.a.col[0] + 19.*sloc[0].pos.eci.a.col[0] - 5.*sloc[1].pos.eci.a.col[0] + sloc[2].pos.eci.a.col[0]) / 24.;
                 lnew.pos.eci.v.col[1] += cinfo->node.phys.dt * (9.*lnewp.pos.eci.a.col[1] + 19.*sloc[0].pos.eci.a.col[1] - 5.*sloc[1].pos.eci.a.col[1] + sloc[2].pos.eci.a.col[1]) / 24.;
                 lnew.pos.eci.v.col[2] += cinfo->node.phys.dt * (9.*lnewp.pos.eci.a.col[2] + 19.*sloc[0].pos.eci.a.col[2] - 5.*sloc[1].pos.eci.a.col[2] + sloc[2].pos.eci.a.col[2]) / 24.;
-                lnew.pos.eci.pass++;
-                Convert::pos_eci(&lnew);
+                Convert::pos_set_eci(lnew);
                 pos_accel(cinfo->node.phys, lnew);
 
 
@@ -2392,8 +2387,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             utc -= (order/2.)*dt/86400.;
             Convert::pos_clear(loc);
             lines2eci(utc,cinfo->tle,loc.pos.eci);
-            loc.pos.eci.pass++;
-            Convert::pos_eci(&loc);
+            Convert::pos_set_eci(loc);
 
             // Initial attitude
             cinfo->node.phys.ftorque = rv_zero();
@@ -2403,7 +2397,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                 //	loc.att.icrf.utc = loc.utc;
                 //	loc.att.icrf.s = q_eye();
                 loc.att.icrf.a = rv_zero();
-                //	Convert::att_icrf(&loc);
+                //	Convert::att_set_icrf(loc);
                 //	break;
             case 1:
                 loc.att.lvlh.utc = loc.utc;
@@ -2448,8 +2442,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                 gjh.step[i].sloc = gjh.step[i+1].sloc;
                 gjh.step[i].sloc.utc -= dt / 86400.;
                 lines2eci(gjh.step[i].sloc.utc,cinfo->tle,gjh.step[i].sloc.pos.eci);
-                gjh.step[i].sloc.pos.eci.pass++;
-                Convert::pos_eci(&gjh.step[i].sloc);
+                Convert::pos_set_eci(gjh.step[i].sloc);
 
                 gjh.step[i].sloc.att.lvlh = gjh.step[i+1].sloc.att.lvlh;
                 Convert::att_lvlh2icrf(&gjh.step[i].sloc);
@@ -2465,8 +2458,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                 gjh.step[i].sloc = gjh.step[i-1].sloc;
                 gjh.step[i].sloc.utc += dt / 86400.;
                 lines2eci(gjh.step[i].sloc.utc,cinfo->tle,gjh.step[i].sloc.pos.eci);
-                gjh.step[i].sloc.pos.eci.pass++;
-                Convert::pos_eci(&gjh.step[i].sloc);
+                Convert::pos_set_eci(gjh.step[i].sloc);
 
                 gjh.step[i].sloc.att.lvlh = gjh.step[i-1].sloc.att.lvlh;
                 Convert::att_lvlh2icrf(&gjh.step[i].sloc);
@@ -2515,9 +2507,8 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             gjh.step[gjh.order+1].sloc = loc;
             ipos.pass = iatt.pass = 0;
             loc.pos.eci = ipos;
-            loc.pos.eci.pass++;
             loc.utc = loc.pos.eci.utc= utc;
-            Convert::pos_eci(&loc);
+            Convert::pos_set_eci(loc);
 
             // Initial attitude
             switch (physics.mode)
@@ -2525,16 +2516,14 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             case 0:
                 // Pure propagation
                 loc.att.icrf = iatt;
-                loc.att.icrf.pass++;
-                Convert::att_icrf(&loc);
+                Convert::att_set_icrf(loc);
                 break;
             case 1:
                 // Force LVLH
                 loc.att.lvlh.utc = loc.utc;
                 loc.att.lvlh.s = q_eye();
                 loc.att.lvlh.v = rv_zero();
-                loc.att.lvlh.pass++;
-                Convert::att_lvlh(&loc);
+                Convert::att_set_lvlh(&loc);
                 break;
             case 2:
                 // Force 90 degrees off LVLH
@@ -2585,7 +2574,6 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                     kep.ea -= dea;
                 } while (++count < 100 && fabs(dea) > .000001);
                 kep2eci(kep,gjh.step[i].sloc.pos.eci);
-                gjh.step[i].sloc.pos.eci.pass++;
 
                 q1 = q_axis2quaternion_rv(rv_smult(-dt,gjh.step[i].sloc.att.icrf.v));
                 gjh.step[i].sloc.att.icrf.s = q_fmult(q1,gjh.step[i].sloc.att.icrf.s);
@@ -2594,7 +2582,6 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                 gjh.step[i].sloc.att.icrf.v = rv_add(gjh.step[i].sloc.att.icrf.v,rv_smult(-dt,gjh.step[i].sloc.att.icrf.a));
                 //		gjh.step[i].sloc.att.icrf.utc -= dt/86400.;
                 //		Convert::att_icrf2lvlh(&gjh.step[i].sloc);
-                Convert::pos_eci(&gjh.step[i].sloc);
 
                 pos_accel(physics, gjh.step[i].sloc);
                 // Initialize hardware
@@ -2617,7 +2604,6 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                     kep.ea -= dea;
                 } while (++count < 100 && fabs(dea) > .000001);
                 kep2eci(kep,gjh.step[i].sloc.pos.eci);
-                gjh.step[i].sloc.pos.eci.pass++;
 
                 q1 = q_axis2quaternion_rv(rv_smult(dt,gjh.step[i].sloc.att.icrf.v));
                 gjh.step[i].sloc.att.icrf.s = q_fmult(q1,gjh.step[i].sloc.att.icrf.s);
@@ -2626,7 +2612,6 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                 gjh.step[i].sloc.att.icrf.v = rv_add(gjh.step[i].sloc.att.icrf.v,rv_smult(dt,gjh.step[i].sloc.att.icrf.a));
                 //		gjh.step[i].sloc.att.icrf.utc += dt/86400.;
                 //		Convert::att_icrf2lvlh(&gjh.step[i].sloc);
-                Convert::pos_eci(&gjh.step[i].sloc);
 
                 pos_accel(physics, gjh.step[i].sloc);
                 // Initialize hardware
@@ -2651,8 +2636,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             gjh.step[gjh.order+1].sloc = loc;
             stk2eci(utc,stk,loc.pos.eci);
             loc.att.icrf.utc = utc;
-            loc.pos.eci.pass++;
-            Convert::pos_eci(&loc);
+            Convert::pos_set_eci(loc);
 
             // Initial attitude
             physics.ftorque = rv_zero();
@@ -2662,7 +2646,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             //	loc.att.icrf.utc = loc.utc;
             //	loc.att.icrf.s = q_eye();
             //	loc.att.icrf.v = loc.att.icrf.a = rv_zero();
-            //	Convert::att_icrf(&loc);
+            //	Convert::att_set_icrf(loc);
             //	break;
             case 1:
                 loc.att.lvlh.utc = loc.utc;
@@ -2707,8 +2691,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                 gjh.step[i].sloc.utc -= dt / 86400.;
                 gjh.step[i].sloc.att.icrf.utc = gjh.step[i].sloc.utc;
                 stk2eci(gjh.step[i].sloc.utc,stk,gjh.step[i].sloc.pos.eci);
-                gjh.step[i].sloc.pos.eci.pass++;
-                Convert::pos_eci(&gjh.step[i].sloc);
+                Convert::pos_set_eci(gjh.step[i].sloc);
 
                 gjh.step[i].sloc.att.lvlh = gjh.step[i+1].sloc.att.lvlh;
                 Convert::att_lvlh2icrf(&gjh.step[i].sloc);
@@ -2723,8 +2706,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                 gjh.step[i].sloc = gjh.step[i-1].sloc;
                 gjh.step[i].sloc.utc += dt / 86400.;
                 stk2eci(gjh.step[i].sloc.utc,stk,gjh.step[i].sloc.pos.eci);
-                gjh.step[i].sloc.pos.eci.pass++;
-                Convert::pos_eci(&gjh.step[i].sloc);
+                Convert::pos_set_eci(gjh.step[i].sloc);
 
                 gjh.step[i].sloc.att.lvlh = gjh.step[i-1].sloc.att.lvlh;
                 gjh.step[i].sloc.att.lvlh.utc = gjh.step[i].sloc.utc;
@@ -2767,8 +2749,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             kep.ap = 0.;
             kep.raan = lon;
             kep2eci(kep, iloc.pos.geoc);
-            ++iloc.pos.geoc.pass;
-            Convert::pos_geoc(&iloc);
+            Convert::pos_set_geoc(iloc);
 
             iloc.att.lvlh.s = q_eye();
             iloc.att.lvlh.v = rv_zero();
@@ -2800,62 +2781,6 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
 //            uint32_t i;
             quaternion q1;
 
-//            // dt is modified during setup
-//            gauss_jackson_setup(gjh, order, utc, dt);
-//            physics.dt = dt;
-//            physics.dtj = physics.dt/86400.;
-//            physics.mode = mode;
-
-//            Convert::pos_clear(loc);
-//            gjh.step[gjh.order+1].sloc = loc;
-//            ipos.pass = iatt.pass = 0;
-//            loc.pos.eci = ipos;
-//            loc.pos.eci.pass++;
-//            loc.utc = loc.pos.eci.utc= utc;
-//            Convert::pos_eci(&loc);
-
-//            // Initial attitude
-//            switch (physics.mode)
-//            {
-//            case 0:
-//                // Pure propagation
-//                loc.att.icrf = iatt;
-//                loc.att.icrf.pass++;
-//                Convert::att_icrf(&loc);
-//                break;
-//            case 1:
-//                // Force LVLH
-//                loc.att.lvlh.utc = loc.utc;
-//                loc.att.lvlh.s = q_eye();
-//                loc.att.lvlh.v = rv_zero();
-//                loc.att.lvlh.pass++;
-//                Convert::att_lvlh(&loc);
-//                break;
-//            case 2:
-//                // Force 90 degrees off LVLH
-//                loc.att.lvlh.utc = loc.utc;
-//                loc.att.lvlh.s = q_change_around_y(-DPI2);
-//                loc.att.lvlh.v = rv_zero();
-//                Convert::pos_eci2geoc(&loc);
-//                Convert::att_lvlh2icrf(&loc);
-//                break;
-//            case 3:
-//            case 4:
-//            case 5:
-//            case 6:
-//            case 7:
-//            case 8:
-//            case 9:
-//            case 10:
-//            case 11:
-//            case 12:
-//                //		loc.att.icrf.s = q_drotate_between_rv(cinfo->pieces[physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
-//                loc.att.icrf.v = rv_zero();
-//                Convert::pos_eci2geoc(&loc);
-//                Convert::att_icrf2lvlh(&loc);
-//                break;
-//            }
-
             pos_accel(physics, loc);
             att_accel(physics, loc);
 
@@ -2877,14 +2802,12 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                     kep.ea -= dea;
                 } while (++count < 100 && fabs(dea) > .000001);
                 Convert::kep2eci(kep, gjh.step[i].sloc.pos.eci);
-                gjh.step[i].sloc.pos.eci.pass++;
 
                 q1 = q_axis2quaternion_rv(rv_smult(-physics.dt,gjh.step[i].sloc.att.icrf.v));
                 gjh.step[i].sloc.att.icrf.s = q_fmult(q1,gjh.step[i].sloc.att.icrf.s);
                 normalize_q(&gjh.step[i].sloc.att.icrf.s);
                 // Calculate new v from da
                 gjh.step[i].sloc.att.icrf.v = rv_add(gjh.step[i].sloc.att.icrf.v,rv_smult(-physics.dt,gjh.step[i].sloc.att.icrf.a));
-                Convert::pos_eci(&gjh.step[i].sloc);
 
                 pos_accel(physics, gjh.step[i].sloc);
                 att_accel(physics, gjh.step[i].sloc);
@@ -2976,8 +2899,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                         gjh.step[gjh.order2+i*n].sloc.pos.eci.s.col[2] = gjh.dtsq * (gjh.step[gjh.order2+i*n].ss.col[2] + gjh.step[gjh.order2+i*n].sa.col[2]);
 
                         // Perform conversions between different systems
-                        gjh.step[gjh.order2+i*n].sloc.pos.eci.pass++;
-                        Convert::pos_eci(&gjh.step[gjh.order2+i*n].sloc);
+                        Convert::pos_set_eci(gjh.step[gjh.order2+i*n].sloc);
                         Convert::att_icrf2lvlh(&gjh.step[gjh.order2+i*n].sloc);
                         //		eci2earth(&gjh.step[gjh.order2+i*n].sloc.pos,&gjh.step[gjh.order2+i*n].sloc.att);
 
@@ -3091,8 +3013,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                 gjh.step[gjh.order+1].sloc.pos.eci.s.col[0] = gjh.dtsq * (gjh.step[gjh.order+1].ss.col[0] + gjh.step[gjh.order+1].sa.col[0]);
                 gjh.step[gjh.order+1].sloc.pos.eci.s.col[1] = gjh.dtsq * (gjh.step[gjh.order+1].ss.col[1] + gjh.step[gjh.order+1].sa.col[1]);
                 gjh.step[gjh.order+1].sloc.pos.eci.s.col[2] = gjh.dtsq * (gjh.step[gjh.order+1].ss.col[2] + gjh.step[gjh.order+1].sa.col[2]);
-                gjh.step[gjh.order+1].sloc.pos.eci.pass++;
-                Convert::pos_eci(&gjh.step[gjh.order+1].sloc);
+                Convert::pos_set_eci(gjh.step[gjh.order+1].sloc);
 
                 // Calculate att.s(order/2+1) + hardware
                 gjh.step[gjh.order+1].sloc.att.icrf = gjh.step[gjh.order].sloc.att.icrf;
@@ -3138,8 +3059,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
                         // Calculate new v from da
                         gjh.step[gjh.order+1].sloc.att.icrf.v = rv_add(gjh.step[gjh.order+1].sloc.att.icrf.v,rv_smult(dtuse,gjh.step[gjh.order+1].sloc.att.icrf.a));
                         gjh.step[gjh.order+1].sloc.utc += (dtuse)/86400.;
-                        ++gjh.step[gjh.order+1].sloc.att.icrf.pass;
-                        Convert::att_icrf(&gjh.step[gjh.order+1].sloc);
+                        Convert::att_set_icrf(gjh.step[gjh.order+1].sloc);
                     }
                     dtuse = dtsave;
                     break;
@@ -3327,8 +3247,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
             }
 
             orbitfile = ofile;
-            cinfo->node.loc.pos.eci.pass++;
-            Convert::pos_eci(&cinfo->node.loc);
+            Convert::pos_set_eci(cinfo->node.loc);
 
             // Initial attitude
             cinfo->node.phys.ftorque = rv_zero();
@@ -3444,8 +3363,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
 
             cinfo->node.loc.utc = utc;
             cinfo->node.loc.pos.eci = pos;
-            cinfo->node.loc.pos.eci.pass++;
-            Convert::pos_eci(&cinfo->node.loc);
+            Convert::pos_set_eci(cinfo->node.loc);
             if (cinfo->node.phys.mode == PHYSICS_MODE_SURFACE)
             {
                 switch (cinfo->node.loc.pos.extra.closest)

@@ -317,15 +317,13 @@ int32_t Simulator::AddTarget(string name, double lat, double lon, double alt, NO
 int32_t Simulator::AddTarget(string name, double lat, double lon, double area, double alt, NODE_TYPE type)
 {
     locstruc loc;
-    loc.pos.geod.pass = 1;
     loc.pos.geod.utc = currentutc;
     loc.pos.geod.s.lat = lat;
     loc.pos.geod.s.lon = lon;
     loc.pos.geod.s.h = alt;
     loc.pos.geod.v = gv_zero();
     loc.pos.geod.a = gv_zero();
-    loc.pos.geod.pass++;
-    pos_geod(loc);
+    pos_set_geod(loc);
     return AddTarget(name, loc, type, area);
 }
 
@@ -341,15 +339,13 @@ int32_t Simulator::AddTarget(string name, double lat, double lon, double area, d
 int32_t Simulator::AddTarget(string name, double ullat, double ullon, double lrlat, double lrlon, double alt, NODE_TYPE type)
 {
     locstruc loc;
-    loc.pos.geod.pass = 1;
     loc.pos.geod.utc = currentutc;
     loc.pos.geod.s.lat = (ullat + lrlat) / 2.;
     loc.pos.geod.s.lon = (ullon + lrlon) / 2.;
     loc.pos.geod.s.h = alt;
     loc.pos.geod.v = gv_zero();
     loc.pos.geod.a = gv_zero();
-    loc.pos.geod.pass++;
-    pos_geod(loc);
+    pos_set_geod(loc);
     double area = (ullat-lrlat) * (cos(lrlon) * lrlon - cos(ullon) * ullon) * REARTHM * REARTHM;
     return AddTarget(name, loc, type, area);
 }
@@ -498,7 +494,6 @@ int32_t Simulator::ParseOrbitString(string args)
         initialloc.pos.eci.a.col[0] = (values["ax"].number_value());
         initialloc.pos.eci.a.col[1] = (values["ay"].number_value());
         initialloc.pos.eci.a.col[2] = (values["az"].number_value());
-        initialloc.pos.eci.pass++;
         initialutc = initialloc.pos.eci.utc;
         currentutc = initialutc;
         offsetutc = initialutc - currentmjd();
@@ -539,7 +534,6 @@ int32_t Simulator::ParseOrbitString(string args)
         kep.e = values["e"].number_value();
         kep.a = values["a"].number_value();
         kep2eci(kep, initialloc.pos.eci);
-        initialloc.pos.eci.pass++;
     }
     if (!jargs["tle"].is_null())
     {
@@ -562,7 +556,6 @@ int32_t Simulator::ParseOrbitString(string args)
         }
         initialloc.tle = lines[0];
         tle2eci(initialutc, initialloc.tle, initialloc.pos.eci);
-        initialloc.pos.eci.pass++;
     }
     if (!jargs["sso"].is_null())
     {
@@ -628,7 +621,6 @@ int32_t Simulator::ParseOrbitString(string args)
         initialloc.pos.eci.a.col[0] = 0.;
         initialloc.pos.eci.a.col[1] = 0.;
         initialloc.pos.eci.a.col[2] = 0.;
-        initialloc.pos.eci.pass++;
 
         // --- store SSO precession rate for use in Propagate() ---
         // dΩ/dt = SSO_SUN_RATE (rad/s); convert to rad/step in Propagate().
@@ -802,7 +794,6 @@ int32_t Simulator::ParseOrbitString(string args)
         initialloc.pos.eci.a.col[0] = 0.;
         initialloc.pos.eci.a.col[1] = 0.;
         initialloc.pos.eci.a.col[2] = 0.;
-        initialloc.pos.eci.pass++;
 
         // --- store FLO parameters for use in Propagate() ---
         flo_enabled        = true;
@@ -812,7 +803,7 @@ int32_t Simulator::ParseOrbitString(string args)
         // PositionLunar is used instead of the default Earth-centred propagator.
         flo_ptype = Propagator::Type::PositionLunar;
     }
-    pos_eci(initialloc);
+    pos_set_eci(initialloc);
     if (initialloc.tle.utc == 0.)
     {
         eci2tle2(initialloc.pos.eci, initialloc.tle);
@@ -1001,8 +992,7 @@ int32_t Simulator::ParseSatString(string args)
         satloc.pos.eci.a.col[0] = (values["ax"].number_value());
         satloc.pos.eci.a.col[1] = (values["ay"].number_value());
         satloc.pos.eci.a.col[2] = (values["az"].number_value());
-        satloc.pos.eci.pass++;
-        pos_eci(satloc);
+        pos_set_eci(satloc);
     }
     if (!cnodes.size())
     {
@@ -1419,8 +1409,7 @@ int32_t Simulator::NudgeNode(string nodename, cartpos pos, qatt att)
             (*node)->currentinfo.node.loc.pos.eci.v += pos.v;
             (*node)->currentinfo.node.loc.pos.eci.a += pos.a;
             (*node)->currentinfo.node.loc.pos.eci.j += pos.j;
-            (*node)->currentinfo.node.loc.pos.eci.pass++;
-            pos_eci((*node)->currentinfo.node.loc);
+            pos_set_eci((*node)->currentinfo.node.loc);
             (*node)->currentinfo.node.phys.fpush = rv_zero();
             break;
         case Propagator::Type::PositionInertial:
@@ -1428,7 +1417,6 @@ int32_t Simulator::NudgeNode(string nodename, cartpos pos, qatt att)
             (*node)->currentinfo.node.loc.pos.icrf.v += pos.v;
             (*node)->currentinfo.node.loc.pos.icrf.a += pos.a;
             (*node)->currentinfo.node.loc.pos.icrf.j += pos.j;
-            (*node)->currentinfo.node.loc.pos.icrf.pass++;
             pos_icrf((*node)->currentinfo.node.loc);
             (*node)->currentinfo.node.phys.fpush = rv_zero();
             break;
@@ -1474,8 +1462,7 @@ int32_t Simulator::NudgeNode(string nodename, cartpos pos, qatt att)
             (*node)->currentinfo.node.loc.pos.geod.a.lon += pos.a.col[0];
             (*node)->currentinfo.node.loc.pos.geod.a.lat += pos.a.col[1];
             (*node)->currentinfo.node.loc.pos.geod.a.h += pos.a.col[2];
-            (*node)->currentinfo.node.loc.pos.geod.pass++;
-            pos_geod((*node)->currentinfo.node.loc);
+            pos_set_geod((*node)->currentinfo.node.loc);
             (*node)->currentinfo.node.phys.fpush = rv_zero();
             break;
         case Propagator::Type::PositionTle:
@@ -1484,8 +1471,7 @@ int32_t Simulator::NudgeNode(string nodename, cartpos pos, qatt att)
             (*node)->currentinfo.node.loc.pos.eci.v += pos.v;
             (*node)->currentinfo.node.loc.pos.eci.a += pos.a;
             (*node)->currentinfo.node.loc.pos.eci.j += pos.j;
-            (*node)->currentinfo.node.loc.pos.eci.pass++;
-            pos_eci((*node)->currentinfo.node.loc);
+            pos_set_eci((*node)->currentinfo.node.loc);
             eci2tle2((*node)->currentinfo.node.loc.pos.eci, (*node)->currentinfo.node.loc.tle);
             (*node)->currentinfo.node.phys.fpush = rv_zero();
             break;
@@ -1626,14 +1612,12 @@ int32_t Simulator::AddNode(string nodename, string stype, Propagator::Type ptype
         loc.pos.geod.v = gv_zero();
         loc.pos.geod.a = gv_zero();
         loc.pos.geod.utc = utc;
-        loc.pos.geod.pass++;
-        Convert::pos_geod(loc);
+        Convert::pos_set_geod(loc);
         loc.att.geoc.s = q_eye();
         loc.att.geoc.v = rv_zero();
         loc.att.geoc.a = rv_zero();
         loc.att.geoc.utc = utc;
-        loc.att.geoc.pass++;
-        Convert::att_geoc(loc);
+        Convert::att_set_geoc(loc);
     }
     else
     {
@@ -1642,8 +1626,7 @@ int32_t Simulator::AddNode(string nodename, string stype, Propagator::Type ptype
         loc.att.lvlh.v = rv_zero();
         loc.att.lvlh.a = rv_zero();
         loc.att.lvlh.utc = utc;
-        loc.att.lvlh.pass++;
-        Convert::att_lvlh(loc);
+        Convert::att_set_lvlh(loc);
     }
     error = (*it)->Init(nodename, dt, stype, ptype, atype, ttype, etype, loc.pos.eci, loc.att.icrf);
     if (error < 0)
@@ -1733,7 +1716,7 @@ int32_t Simulator::Propagate(double nextutc)
             x = eci.a.col[0];  y = eci.a.col[1];
             eci.a.col[0] = c*x - s*y;
             eci.a.col[1] = s*x + c*y;
-            ++eci.pass;
+            pos_set_eci(state->currentinfo.node.loc);
         }
     }
 
@@ -1820,7 +1803,7 @@ int32_t Simulator::Target(map<uint32_t, vector<pointing_info> > &pschedule)
                 cnodes[j]->currentinfo.target_idx = pschedule.begin()->second[j].target_idx;
                 cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule.begin()->second[j].pointing;
                 cnodes[j]->currentinfo.node.loc.att.lvlh.pass = std::max(cnodes[j]->currentinfo.node.loc.att.icrf.pass, cnodes[j]->currentinfo.node.loc.att.geoc.pass) + 1;
-                att_lvlh(cnodes[j]->currentinfo.node.loc);
+                att_set_lvlh(cnodes[j]->currentinfo.node.loc);
             }
         }
         else if (currentutc > pschedule.rbegin()->second[0].pointing.utc)
@@ -1830,7 +1813,7 @@ int32_t Simulator::Target(map<uint32_t, vector<pointing_info> > &pschedule)
                 cnodes[j]->currentinfo.target_idx = pschedule.rbegin()->second[j].target_idx;
                 cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule.rbegin()->second[j].pointing;
                 cnodes[j]->currentinfo.node.loc.att.lvlh.pass = std::max(cnodes[j]->currentinfo.node.loc.att.icrf.pass, cnodes[j]->currentinfo.node.loc.att.geoc.pass) + 1;
-                att_lvlh(cnodes[j]->currentinfo.node.loc);
+                att_set_lvlh(cnodes[j]->currentinfo.node.loc);
             }
         }
         else
@@ -1840,7 +1823,7 @@ int32_t Simulator::Target(map<uint32_t, vector<pointing_info> > &pschedule)
                 cnodes[j]->currentinfo.target_idx = pschedule[decisec(currentutc)][j].target_idx;
                 cnodes[j]->currentinfo.node.loc.att.lvlh = pschedule[decisec(currentutc)][j].pointing;
                 cnodes[j]->currentinfo.node.loc.att.lvlh.pass = std::max(cnodes[j]->currentinfo.node.loc.att.icrf.pass, cnodes[j]->currentinfo.node.loc.att.geoc.pass) + 1;
-                att_lvlh(cnodes[j]->currentinfo.node.loc);
+                att_set_lvlh(cnodes[j]->currentinfo.node.loc);
             }
         }
         return pschedule.size();
@@ -1853,8 +1836,7 @@ int32_t Simulator::Target(map<uint32_t, vector<pointing_info> > &pschedule)
             cnodes[j]->currentinfo.node.loc.att.lvlh.v = rv_zero();
             cnodes[j]->currentinfo.node.loc.att.lvlh.a = rv_zero();
             cnodes[j]->currentinfo.node.loc.att.lvlh.utc = currentutc;
-            cnodes[j]->currentinfo.node.loc.att.lvlh.pass++;
-            att_lvlh(cnodes[j]->currentinfo.node.loc);
+            att_set_lvlh(cnodes[j]->currentinfo.node.loc);
         }
         return 0;
     }
@@ -1995,8 +1977,7 @@ int32_t Simulator::Target(vector<vector<cosmosstruc> > &results)
                 results[tstep][i].node.loc.att.geoc.s = q_drotate_between_rv(rv_unitz(), rv_sub(results[tstep][i].node.loc.pos.geoc.s, results[tstep][i].target[results[tstep][i].target_idx].loc.pos.geoc.s));
                 results[tstep][i].node.loc.att.geoc.v = rv_zero();
                 results[tstep][i].node.loc.att.geoc.a = rv_zero();
-                results[tstep][i].node.loc.att.geoc.pass++;
-                att_geoc(results[tstep][i].node.loc);
+                att_set_geoc(results[tstep][i].node.loc);
             }
             else
             {
@@ -2004,8 +1985,7 @@ int32_t Simulator::Target(vector<vector<cosmosstruc> > &results)
                 results[tstep][i].node.loc.att.lvlh.v = rv_zero();
                 results[tstep][i].node.loc.att.lvlh.a = rv_zero();
                 results[tstep][i].node.loc.att.lvlh.utc = currentutc;
-                results[tstep][i].node.loc.att.lvlh.pass++;
-                att_lvlh(results[tstep][i].node.loc);
+                att_set_lvlh(results[tstep][i].node.loc);
             }
         }
     }
@@ -2080,8 +2060,7 @@ int32_t Simulator::Formation(string type, double spacing)
             cnodes[i]->currentinfo.node.loc_req.pos.lvlh.s.col[1] = -spacing * i;
             ric2lvlh(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc_req.pos.lvlh, cnodes[i]->currentinfo.node.loc_req.pos.lvlh);
             pos_origin2lvlh(cnodes[i]->currentinfo.node.loc_req);
-            cnodes[i]->currentinfo.node.loc_req.pos.geoc.pass++;
-            pos_geoc(cnodes[i]->currentinfo.node.loc_req);
+            pos_set_geoc(cnodes[i]->currentinfo.node.loc_req);
         }
         return 1;
     }
@@ -2110,8 +2089,7 @@ int32_t Simulator::Formation(string type, double spacing)
             }
             ric2lvlh(length_rv(cnodes[i]->currentinfo.node.loc.pos.geoc.s), cnodes[i]->currentinfo.node.loc_req.pos.lvlh, cnodes[i]->currentinfo.node.loc_req.pos.lvlh);
             pos_origin2lvlh(cnodes[i]->currentinfo.node.loc_req);
-            cnodes[i]->currentinfo.node.loc_req.pos.geoc.pass++;
-            pos_geoc(cnodes[i]->currentinfo.node.loc_req);
+            pos_set_geoc(cnodes[i]->currentinfo.node.loc_req);
         }
         return 2;
     }
@@ -2134,8 +2112,7 @@ int32_t Simulator::Formation(string type, double spacing)
             }
             ric2lvlh(length_rv(cnodes[i]->currentinfo.node.loc_req.pos.geoc.s), cnodes[i]->currentinfo.node.loc_req.pos.lvlh, cnodes[i]->currentinfo.node.loc_req.pos.lvlh);
             pos_origin2lvlh(cnodes[i]->currentinfo.node.loc_req);
-            cnodes[i]->currentinfo.node.loc_req.pos.geoc.pass++;
-            pos_geoc(cnodes[i]->currentinfo.node.loc_req);
+            pos_set_geoc(cnodes[i]->currentinfo.node.loc_req);
         }
         return 3;
     }
