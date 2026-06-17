@@ -33,8 +33,8 @@
 
 #include "support/cosmos-errclass.h"
 #include "support/timelib.h"
-#include "support/stringlib.h"
-#include "support/datalib.h"
+// #include "support/stringlib.h"
+// #include "support/datalib.h"
 #include <stdarg.h>
 
 namespace Cosmos {

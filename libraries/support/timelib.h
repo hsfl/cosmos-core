@@ -200,6 +200,8 @@ namespace Cosmos {
         double centisec2mjd(uint32_t centi);
         uint32_t decisec(double mjd=0.);
         double decisec2mjd(uint32_t deci);
+        string to_datename(double mjd);
+        string to_iso8601(double mjd);
 
     }
 }

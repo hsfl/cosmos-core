@@ -32,8 +32,8 @@
 */
 
 #include "support/timelib.h"
-#include "support/datalib.h"
-#include "support/ephemlib.h"
+// #include "support/datalib.h"
+// #include "support/ephemlib.h"
 #include "support/stringlib.h"
 #include "math/mathlib.h"
 
@@ -1263,5 +1263,24 @@ namespace Cosmos {
         {
             return deci / 864000.+ newdecade();
         }
+
+        string to_iso8601(double value)
+        {
+            return mjd2iso8601(value);
+        }
+
+        string to_datename(double mjd)
+        {
+            calstruc cal = mjd2cal(mjd);
+            string output = to_unsigned(cal.year, 4);
+            output += to_unsigned(cal.month, 2, true);
+            output += to_unsigned(cal.dom, 2, true);
+            output += "_" + to_unsigned(cal.hour, 2, true);
+            output += to_unsigned(cal.minute, 2, true);
+            output += to_unsigned(cal.second, 2, true);
+            return output;
+        }
+
+
     }
 }

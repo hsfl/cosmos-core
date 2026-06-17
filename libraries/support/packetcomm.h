@@ -4,7 +4,7 @@
 #include "support/configCosmosKernel.h"
 #include "math/crclib.h"
 #include "support/sliplib.h"
-#include "support/ax25class.h"
+// #include "support/ax25class.h"
 #include "support/timelib.h"
 
 namespace Cosmos {
