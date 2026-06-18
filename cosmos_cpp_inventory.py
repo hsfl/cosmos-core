@@ -37,8 +37,8 @@ WARN_FILL = PatternFill("solid", fgColor="FFE699")   # amber – open issue
 
 # Kernel layers K0–K5: light → dark green
 KERNEL_COLORS = {
-    "K0": "F0F7EE", "K1": "D6EAD0", "K2": "BBE0B0",
-    "K3": "9DD490", "K4": "7EC873", "K5": "5CB85C",
+    "K0": "F0F7EE", "K1": "D6EAD0", "K1": "BBE0B0",
+    "K2": "9DD490", "K3": "7EC873", "K4": "5CB85C",
 }
 # Support layers S0–S4: light → dark orange
 SUPPORT_COLORS = {
@@ -55,7 +55,7 @@ def layer_fill(layer_str):
 
 # ─── Library data ─────────────────────────────────────────────────────────────
 # (filename_no_ext, rel_dir, group, sub_group, layer, kernel_support, key_deps, flag)
-# layer:          "K0"–"K5" (kernel) | "S0"–"S4" (support)
+# layer:          "K0"–"K4" (kernel) | "S0"–"S4" (support)
 # kernel_support: "kernel" | "support"
 # flag:           "open" (known issue still open) | ""
 LIBRARIES = [
@@ -79,55 +79,55 @@ LIBRARIES = [
     ("sliplib",          "libraries/support","support","network",  "K0","kernel","—",""),
 
     # ── SUPPORT  K1 – core utilities ─────────────────────────────────────────
-    ("elapsedtime",      "libraries/support","support","time",     "K1","kernel","timelib.h (currentmjd, secondsleep)",""),
-    ("stringlib",        "libraries/support","support","utilities","K1","kernel","mathlib.h",""),
-    ("timelib",          "libraries/support","support","time",     "K1","kernel","timeutils.h, stringlib.h, mathlib.h (⚠ possibly unused)",""),
-    ("timeutils",        "libraries/support","support","time",     "K1","kernel","—",""),
+    ("elapsedtime",      "libraries/support","support","time",     "K0","kernel","timelib.h (currentmjd, secondsleep)",""),
+    ("stringlib",        "libraries/support","support","utilities","K0","kernel","mathlib.h, jsonobject.h",""),
+    ("timelib",          "libraries/support","support","time",     "K0","kernel","timeutils.h, stringlib.h, mathlib.h (⚠ possibly unused)",""),
+    ("timeutils",        "libraries/support","support","time",     "K0","kernel","—",""),
 
     # ── SUPPORT  K2 – data I/O ───────────────────────────────────────────────
-    ("ax25class",        "libraries/support","support","network",  "K2","kernel","configCosmosKernel.h",""),
-    ("check",            "libraries/support","support","utilities","K2","kernel","timelib.h",""),
-    ("datalib",          "libraries/support","support","data",     "K2","kernel","jsondef.h, stringlib.h, timelib.h",""),
-    ("logger",           "libraries/support","support","utilities","K2","kernel","data_base_path (output only)",""),
-    ("socketlib",        "libraries/support","support","network",  "K2","kernel","elapsedtime.h, timelib.h, bytelib.h",""),
+    ("ax25class",        "libraries/support","support","network",  "K1","kernel","configCosmosKernel.h",""),
+    ("check",            "libraries/support","support","utilities","K1","kernel","timelib.h",""),
+    ("datalib",          "libraries/support","support","data",     "K1","kernel","jsondef.h, stringlib.h, timelib.h",""),
+    ("logger",           "libraries/support","support","utilities","K1","kernel","data_base_path (output only)",""),
+    ("socketlib",        "libraries/support","support","network",  "K1","kernel","elapsedtime.h, timelib.h, bytelib.h",""),
 
     # ── SUPPORT  K3 – JSON / namespace ───────────────────────────────────────
-    ("jsondef",          "libraries/support","support","json",     "K3","kernel","cosmos-errno.h",""),
-    ("objlib",           "libraries/support","support","data",     "K3","kernel","datalib.h",""),
-    ("constants",        "libraries/physics", "physics","—",       "K3","kernel","—",""),
+    ("jsondef",          "libraries/support","support","json",     "K2","kernel","cosmos-errno.h",""),
+    ("objlib",           "libraries/support","support","data",     "K2","kernel","datalib.h",""),
+    ("constants",        "libraries/physics", "physics","—",       "K2","kernel","—",""),
 
     # ── SUPPORT  K4 – domain / orbit foundations ─────────────────────────────
-    ("channellib",       "libraries/support","support","network",  "K4","kernel","timelib.h",""),
-    ("transferclass",    "libraries/support","support","network",  "K4","kernel","data_base_path (output only)",""),
-    ("transferlib",      "libraries/support","support","network",  "K4","kernel","bytelib.h",""),
+    ("channellib",       "libraries/support","support","network",  "K3","kernel","timelib.h",""),
+    ("transferclass",    "libraries/support","support","network",  "K3","kernel","data_base_path (output only)",""),
+    ("transferlib",      "libraries/support","support","network",  "K3","kernel","bytelib.h",""),
 
     # ── SUPPORT  K5 – messaging & devices ────────────────────────────────────
-    ("packetcomm",       "libraries/support","support","messaging","K5","kernel","ax25class.h, crclib.h, sliplib.h, timelib.h",""),
-    ("FileSender",       "libraries/support/filesenderimpl","support","messaging","K5","kernel","transferclass.h",""),
-    ("UdpSender",        "libraries/support/filesenderimpl","support","messaging","K5","kernel","socketlib.h, transferclass.h",""),
-    ("task",             "libraries/agent",  "agent","utilities",  "K5","kernel","datalib.h, timelib.h",""),
-    ("arduino_lib",      "libraries/device/arduino",  "device","arduino",    "K5","kernel","configCosmos.h, timelib.h",""),
-    ("spp",              "libraries/device/ccsds",    "device","ccsds",      "K5","kernel","—",""),
-    ("devicecpu",        "libraries/device/cpu",      "device","cpu",        "K5","kernel","—",""),
-    ("devicedisk",       "libraries/device/disk",     "device","disk",       "K5","kernel","—",""),
-    ("bbFctns",          "libraries/device/general",  "device","beaglebone", "K5","kernel","cssl_lib.h",""),
-    ("cssl_lib",         "libraries/device/general",  "device","serial",     "K5","kernel","configCosmos.h",""),
-    ("gige_lib",         "libraries/device/general",  "device","camera",     "K5","kernel","mathlib.h, timelib.h",""),
-    ("gs232b_lib",       "libraries/device/general",  "device","antenna",    "K5","kernel","configCosmos.h",""),
-    ("ic9100_lib",       "libraries/device/general",  "device","radio",      "K5","kernel","jsondef.h",""),
-    ("kisslib",          "libraries/device/general",  "device","TNC",        "K5","kernel","configCosmos.h",""),
-    ("kisstnc_lib",      "libraries/device/general",  "device","TNC",        "K5","kernel","—",""),
-    ("kpc9612p_lib",     "libraries/device/general",  "device","TNC",        "K5","kernel","timelib.h",""),
-    ("mixwtnc_lib",      "libraries/device/general",  "device","TNC",        "K5","kernel","—",""),
-    ("pic_lib",          "libraries/device/general",  "device","PIC MCU",    "K5","kernel","crclib.h",""),
-    ("prkx2su_class",    "libraries/device/general",  "device","antenna",    "K5","kernel","—",""),
-    ("prkx2su_lib",      "libraries/device/general",  "device","antenna",    "K5","kernel","configCosmos.h",""),
-    ("ts2000_lib",       "libraries/device/general",  "device","radio",      "K5","kernel","configCosmos.h",""),
-    ("unixgpio",         "libraries/device/general",  "device","GPIO",       "K5","kernel","datalib.h",""),
-    ("usrp_lib",         "libraries/device/general",  "device","SDR",        "K5","kernel","jsondef.h",""),
-    ("i2c",              "libraries/device/i2c",      "device","I2C",        "K5","kernel","—",""),
-    ("netradio",         "libraries/device/netradio", "device","radio",      "K5","kernel","timelib.h",""),
-    ("serialclass",      "libraries/device/serial",   "device","serial",     "K5","kernel","configCosmos.h",""),
+    ("packetcomm",       "libraries/support","support","messaging","K4","kernel","ax25class.h, crclib.h, sliplib.h, timelib.h",""),
+    ("FileSender",       "libraries/support/filesenderimpl","support","messaging","K4","kernel","transferclass.h",""),
+    ("UdpSender",        "libraries/support/filesenderimpl","support","messaging","K4","kernel","socketlib.h, transferclass.h",""),
+    ("task",             "libraries/agent",  "agent","utilities",  "K4","kernel","datalib.h, timelib.h",""),
+    ("arduino_lib",      "libraries/device/arduino",  "device","arduino",    "K4","kernel","configCosmos.h, timelib.h",""),
+    ("spp",              "libraries/device/ccsds",    "device","ccsds",      "K4","kernel","—",""),
+    ("devicecpu",        "libraries/device/cpu",      "device","cpu",        "K4","kernel","—",""),
+    ("devicedisk",       "libraries/device/disk",     "device","disk",       "K4","kernel","—",""),
+    ("bbFctns",          "libraries/device/general",  "device","beaglebone", "K4","kernel","cssl_lib.h",""),
+    ("cssl_lib",         "libraries/device/general",  "device","serial",     "K4","kernel","configCosmos.h",""),
+    ("gige_lib",         "libraries/device/general",  "device","camera",     "K4","kernel","mathlib.h, timelib.h",""),
+    ("gs232b_lib",       "libraries/device/general",  "device","antenna",    "K4","kernel","configCosmos.h",""),
+    ("ic9100_lib",       "libraries/device/general",  "device","radio",      "K4","kernel","jsondef.h",""),
+    ("kisslib",          "libraries/device/general",  "device","TNC",        "K4","kernel","configCosmos.h",""),
+    ("kisstnc_lib",      "libraries/device/general",  "device","TNC",        "K4","kernel","—",""),
+    ("kpc9612p_lib",     "libraries/device/general",  "device","TNC",        "K4","kernel","timelib.h",""),
+    ("mixwtnc_lib",      "libraries/device/general",  "device","TNC",        "K4","kernel","—",""),
+    ("pic_lib",          "libraries/device/general",  "device","PIC MCU",    "K4","kernel","crclib.h",""),
+    ("prkx2su_class",    "libraries/device/general",  "device","antenna",    "K4","kernel","—",""),
+    ("prkx2su_lib",      "libraries/device/general",  "device","antenna",    "K4","kernel","configCosmos.h",""),
+    ("ts2000_lib",       "libraries/device/general",  "device","radio",      "K4","kernel","configCosmos.h",""),
+    ("unixgpio",         "libraries/device/general",  "device","GPIO",       "K4","kernel","datalib.h",""),
+    ("usrp_lib",         "libraries/device/general",  "device","SDR",        "K4","kernel","jsondef.h",""),
+    ("i2c",              "libraries/device/i2c",      "device","I2C",        "K4","kernel","—",""),
+    ("netradio",         "libraries/device/netradio", "device","radio",      "K4","kernel","timelib.h",""),
+    ("serialclass",      "libraries/device/serial",   "device","serial",     "K4","kernel","configCosmos.h",""),
 
     # ── PHYSICS / SUPPORT  S0 – high-level foundations ───────────────────────
     ("convertlib",       "libraries/support","support","coordinate","S0","support","ephemlib.h, geomag.h → get_cosmosresources()",""),

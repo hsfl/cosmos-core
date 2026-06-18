@@ -38,7 +38,7 @@ Support Layer 0 │ HIGH-LEVEL      convertlib  jsonlib  physicslib
                 │                 jpleph  nrlmsise-00  nrlmsise-00_data
                 │                 enumlib
  ═══════════════╪═══════════════ KERNEL / SUPPORT BOUNDARY ════════════════
-Kernel Layer 5  │ MESSAGING       packetcomm  FileSender  UdpSender  task
+Kernel Layer 4  │ MESSAGING       packetcomm  FileSender  UdpSender  task
                 │ DEVICES         arduino_lib  spp  devicecpu  devicedisk
                 │                 bbFctns  cssl_lib  gige_lib  gs232b_lib
                 │                 ic9100_lib  kisslib  kisstnc_lib
@@ -46,59 +46,58 @@ Kernel Layer 5  │ MESSAGING       packetcomm  FileSender  UdpSender  task
                 │                 prkx2su_class  prkx2su_lib  ts2000_lib
                 │                 unixgpio  usrp_lib  i2c  netradio  serialclass
 ────────────────┤
-Kernel Layer 4  │ DOMAIN/ORBIT    channellib  transferclass  transferlib
-                │ FOUNDATIONS     envi  estimation_lib
+Kernel Layer 3  │ DOMAIN/ORBIT    channellib  transferclass  transferlib
+                │ FOUNDATIONS     envi (→ S0)
 ────────────────┤
-Kernel Layer 3  │ JSON/NAMESPACE  jsondef  objlib  physics/constants
+Kernel Layer 2  │ JSON/NAMESPACE  jsondef  objlib  physics/constants
 ────────────────┤
-Kernel Layer 2  │ DATA I/O        datalib  socketlib  logger  check  ax25class
-────────────────┤
-Kernel Layer 1  │ CORE UTILITIES  elapsedtime  timelib  stringlib  timeutils
+Kernel Layer 1  │ DATA I/O        datalib  socketlib  logger  check  ax25class
 ────────────────┤
 Kernel Layer 0  │ PRIMITIVES      math/* (bytelib crclib mathlib matrix
-                │                         vector lsfit rotation bindings)
+                │                         vector rotation bindings)
                 │                 configCosmos  configCosmosKernel
                 │                 cosmos-errno  cosmos-errclass
-                │                 sliplib  print_utils
+                │                 sliplib  print_utils  stringlib
+                │                 elapsedtime  timelib  timeutils
                 │                 json11  jsonclass  jsonobject  jsonvalue
                                                         ● KERNEL
 ```
 
 ### Notes on classifications
 
-- **timelib** moved to K1: after cleanup, its only COSMOS deps are
-  `configCosmos.h` (K0), `timeutils.h` (K1), and `stringlib.h` (K1 impl only).
-- **elapsedtime** at K1: `elapsedtime.cpp` depends on `timelib.h` for
-  `currentmjd()` — a clean same-layer dependency.
+- **stringlib**, **timeutils**, **timelib**, **elapsedtime** all at K0:
+  after include cleanup their only COSMOS dep is `configCosmos.h` (K0)
+  and each other (all K0). No K1+ deps anywhere in the chain.
 - **timed_countdown** moved from `timelib` to `elapsedtime` (it uses
-  `ElapsedTime`); breaks the former circular `.cpp` dependency.
+  `ElapsedTime`); broke the former circular `.cpp` dependency.
 - **beacon**, **packethandler**, **command_queue**, **event**, **scheduler**
   reclassified as support S3 — all include `agentclass.h` or `jsonlib.h`.
 - **ephemlib**, **geomag**, **demlib**, **jpleph**, **nrlmsise-00/data**,
   **convertlib** — disk-dependent or physics-simulation-only → support S0.
+- **envi** → support S0 (reads/writes image files from disk).
+- **estimation_lib** removed (empty).
 
 ---
 
 ### Kernel libraries (complete list)
 
 **K0 — Primitives:**
-math/\* (bytelib, crclib, mathlib, matrix, vector, lsfit, rotation, bindings),
+math/\* (bytelib, crclib, mathlib, matrix, vector, rotation, bindings),
 configCosmos, configCosmosKernel, cosmos-errno, cosmos-errclass,
-sliplib, print_utils, json11, jsonclass, jsonobject, jsonvalue
+sliplib, print_utils, stringlib,
+elapsedtime, timelib, timeutils,
+json11, jsonclass, jsonobject, jsonvalue
 
-**K1 — Core utilities:**
-elapsedtime, timelib, stringlib, timeutils
-
-**K2 — Data I/O:**
+**K1 — Data I/O:**
 datalib, socketlib, logger, check, ax25class
 
-**K3 — JSON / namespace:**
+**K2 — JSON / namespace:**
 jsondef, objlib, physics/constants
 
-**K4 — Domain / orbit foundations:**
-channellib, transferclass, transferlib, envi, estimation_lib
+**K3 — Domain / orbit foundations:**
+channellib, transferclass, transferlib
 
-**K5 — Messaging & devices:**
+**K4 — Messaging & devices:**
 packetcomm, FileSender, UdpSender, task,
 arduino\_lib, spp, devicecpu, devicedisk, bbFctns, cssl\_lib, gige\_lib,
 gs232b\_lib, ic9100\_lib, kisslib, kisstnc\_lib, kpc9612p\_lib, mixwtnc\_lib,
@@ -110,7 +109,7 @@ i2c, netradio, serialclass
 ### Support libraries (complete list)
 
 **S0 — High-level foundations:**
-convertlib, jsonlib, physicslib,
+convertlib, jsonlib, physicslib, envi,
 ephemlib, geomag, demlib, jpleph, nrlmsise-00, nrlmsise-00\_data, enumlib
 
 **S1 — Physics simulation:**
@@ -131,33 +130,20 @@ file\_module, node\_propagator\_module, packethandler\_module, websocket\_module
 
 ### Tangle A — `timelib` ↔ `elapsedtime` ✅ RESOLVED
 
-**Root cause:** `elapsedtime.cpp` called `currentmjd()` from `timelib.h`;
-`timelib.cpp` used `ElapsedTime` in `timed_countdown()`.
-
-**Resolution:**
-- `timed_countdown` moved from `timelib` to `elapsedtime` (it uses
-  `ElapsedTime` — belongs there). Declaration moved to `elapsedtime.h`.
-- `timelib.cpp` no longer includes `elapsedtime.h`.
-- `elapsedtime.cpp` includes `timelib.h` — clean one-way dependency.
-- `timelib` promoted to K1: only COSMOS deps are K0/K1.
-- `timebase.h` (intermediate shim) was considered but not needed.
-
----
+`timed_countdown` moved from `timelib` to `elapsedtime`. `timelib.cpp` no
+longer includes `elapsedtime.h`. `elapsedtime.cpp` includes `timelib.h` —
+clean one-way dep. All three (`timelib`, `elapsedtime`, `timeutils`) now K0.
 
 ### Tangle B — `convertlib` ↔ `physicsclass` ✅ RESOLVED
 
-Dead `#include "physics/physicsclass.h"` in `convertlib.cpp` removed (no
-`Physics::` types were actually referenced). Dependency is now one-way:
-physicsclass → convertlib. `convertlib` reclassified as support S0.
-
----
+Dead `#include "physics/physicsclass.h"` in `convertlib.cpp` removed.
+Dependency is now one-way: physicsclass → convertlib.
+`convertlib` reclassified as support S0.
 
 ### Tangle C — `jsonlib` → device libraries ✅ RESOLVED
 
-`DeviceCpu`/`DeviceDisk` OS-query classes were used only for hostname lookup
-in three functions; replaced with POSIX `gethostname()`. Dead `json_create_cpu`
-(no callers) removed. Stale `#include "support/ephemlib.h"` in `timelib.cpp`
-also removed.
+`DeviceCpu`/`DeviceDisk` used only for hostname lookup; replaced with POSIX
+`gethostname()`. Dead `json_create_cpu` (no callers) removed.
 
 ---
 
@@ -168,24 +154,22 @@ also removed.
 | 1 | Move `convert_test_gui/` out of `libraries/` to `programs/tests/` | Trivial |
 | 2 | Move enums from `enumlib`→`convertlib` dep into `jsondef.h` | Small |
 | 3 | Rename/relocate `module/` to `agent/modules/` | Trivial |
+| 4 | Investigate possibly-unused: `cosmos-errclass`→`timelib.h`, `timelib`→`mathlib.h`, `event.h`→`jsonlib.h` | Small |
 
 ---
 
 ## 5. Dependency Matrix
 
-All previously flagged violations are resolved.
-
 ```
-         K0  K1  K2  K3  K4  K5  S0  S1  S2  S3  S4
+         K0  K1  K2  K3  K4  S0  S1  S2  S3  S4
 K0        —
 K1        ✓   —
 K2        ✓   ✓   —
 K3        ✓   ✓   ✓   —
 K4        ✓   ✓   ✓   ✓   —
-K5        ✓   ✓   ✓   ✓   ✓   —
-S0        ✓   ✓   ✓   ✓   ✓   —   —
-S1        ✓   ✓   ✓   ✓   ✓   —   ✓   —
-S2        ✓   ✓   ✓   ✓   ✓   —   ✓   ✓   —
-S3        ✓   ✓   ✓   ✓   ✓   —   ✓   ✓   ✓   —
-S4        ✓   ✓   ✓   ✓   ✓   —   ✓   ✓   ✓   ✓   —
+S0        ✓   ✓   ✓   ✓   —   —
+S1        ✓   ✓   ✓   ✓   —   ✓   —
+S2        ✓   ✓   ✓   ✓   —   ✓   ✓   —
+S3        ✓   ✓   ✓   ✓   —   ✓   ✓   ✓   —
+S4        ✓   ✓   ✓   ✓   —   ✓   ✓   ✓   ✓   —
 ```
