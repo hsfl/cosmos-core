@@ -47,7 +47,7 @@
 
 #include "support/configCosmos.h"
 #include "device/general/cssl_lib.h"
-#include "support/jsonlib.h"
+//#include "support/jsonlib.h"
 
 //! \ingroup pic
 //! \ingroup devices

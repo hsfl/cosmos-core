@@ -31,6 +31,8 @@
         \brief COSMOS Logging support library source file
 */
 
+#include "support/stringlib.h"
+#include "support/datalib.h"
 #include "support/logger.h"
 
 namespace Cosmos {

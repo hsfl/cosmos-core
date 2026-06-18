@@ -47,7 +47,7 @@
 #include <errno.h>
 
 #include "device/general/cssl_lib.h"
-#include "support/cosmos-errno.h"
+//#include "support/cosmos-errno.h"
 
 #define MIXWTNC_MTU 254
 #define MIXWTNC_PAYLOAD_SIZE MIXWTNC_MTU

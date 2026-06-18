@@ -32,8 +32,8 @@
 */
 
 #include "support/stringlib.h"
-// #include "math/mathlib.h"
-// #include "support/timelib.h"
+#include "math/mathlib.h"
+#include "support/jsonobject.h"
 
 //! \addtogroup stringlib_functions
 //! @{

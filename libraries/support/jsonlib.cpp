@@ -35,12 +35,12 @@
 #include "support/jsonlib.h"
 #include "support/convertlib.h"
 #include "support/timelib.h"
-#include "support/ephemlib.h"
+//#include "support/ephemlib.h"
+#include "support/configCosmos.h"
 #include "support/jsonclass.h"
-#include "device/cpu/devicecpu.h"
-#include "device/disk/devicedisk.h"
 
 #include <sys/stat.h>
+#include <unistd.h>
 #include <iostream>
 #include <limits>
 #include <fstream>
@@ -570,8 +570,9 @@ int32_t json_create_node(cosmosstruc *cinfo, string &node_name, uint16_t node_ty
 {
     if (node_name.empty())
     {
-        DeviceCpu deviceCpu;
-        node_name = deviceCpu.getHostName();
+        char hostname[HOST_NAME_MAX + 1];
+        gethostname(hostname, sizeof(hostname));
+        node_name = hostname;
     }
 
     if (!get_nodedir(node_name, true).empty())
@@ -590,77 +591,6 @@ int32_t json_create_node(cosmosstruc *cinfo, string &node_name, uint16_t node_ty
     }
 }
 
-int32_t json_create_cpu(string &node_name)
-{
-    cosmosstruc *cinfo = nullptr;
-    DeviceCpu deviceCpu;
-    int32_t iretn = 0;
-
-    if (node_name.empty())
-    {
-        node_name = deviceCpu.getHostName();
-    }
-
-    if (get_nodedir(node_name).empty())
-    {
-        if (get_nodedir(node_name, true).empty())
-        {
-            return 1;
-        }
-
-        cinfo = json_init();
-        //        strncpy(cinfo->node.name, node_name.c_str(), COSMOS_MAX_NAME);
-        cinfo->node.name = node_name;
-        iretn = json_createpiece(cinfo, node_name + "_cpu", DeviceType::CPU);
-        if (iretn >= 0)
-        {
-            uint16_t cpu_cidx = cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-            uint16_t cpu_didx = cinfo->device[cpu_cidx]->didx;
-            cinfo->devspec.cpu[cpu_didx].load = static_cast <float>(deviceCpu.getLoad());
-            cinfo->devspec.cpu[cpu_didx].gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/1073741824.);
-            cinfo->devspec.cpu[cpu_didx].maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/1073741824.);
-            cinfo->devspec.cpu[cpu_didx].maxload = deviceCpu.getCpuCount();
-        }
-
-        DeviceDisk deviceDisk;
-        vector <DeviceDisk::info> dinfo = deviceDisk.getInfo();
-        for (uint16_t i=0; i<dinfo.size(); ++i)
-        {
-            string name = "disk_" + to_unsigned(i, 2, true);
-            iretn = json_createpiece(cinfo, name, DeviceType::DISK);
-            if (iretn < 0)
-            {
-                continue;
-            }
-            uint16_t cidx = cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-            uint16_t didx = cinfo->device[cidx]->didx;
-            if (dinfo[i].mount.size() > COSMOS_MAX_NAME)
-            {
-                dinfo[i].mount.resize(COSMOS_MAX_NAME);
-            }
-            cinfo->devspec.disk[didx].path = dinfo[i].mount;
-        }
-        json_addpiece(cinfo, "main_drive", DeviceType::DISK);
-        json_mappieceentry(cinfo->pieces.size()-1, cinfo);
-        json_togglepieceentry(cinfo->pieces.size()-1, cinfo, true);
-
-        cinfo->device_cnt = cinfo->piece_cnt;
-        cinfo->device.resize(cinfo->device_cnt);
-        cinfo->devspec.cpu_cnt = 1;
-        cinfo->devspec.disk_cnt = 1;
-        cinfo->port_cnt = 1;
-        cinfo->port.resize(cinfo->port_cnt);
-
-        //        int32_t iretn = json_dump_node(cinfo);
-        json_destroy(cinfo);
-        //        return iretn;
-        return 0;
-    }
-    else
-    {
-        return 0;
-    }
-}
 
 int32_t json_create_mcc(string &node_name)
 {
@@ -668,8 +598,9 @@ int32_t json_create_mcc(string &node_name)
 
     if (node_name.empty())
     {
-        DeviceCpu deviceCpu;
-        node_name = deviceCpu.getHostName();
+        char hostname[HOST_NAME_MAX + 1];
+        gethostname(hostname, sizeof(hostname));
+        node_name = hostname;
     }
 
     if (get_nodedir(node_name).empty())
@@ -8483,8 +8414,9 @@ int32_t json_setup_node(string &node, cosmosstruc *cinfo)
 
     if (node.empty())
     {
-        DeviceCpu deviceCpu;
-        node = deviceCpu.getHostName();
+        char hostname[HOST_NAME_MAX + 1];
+        gethostname(hostname, sizeof(hostname));
+        node = hostname;
         if (node.empty()) { return JSON_ERROR_NAME_LENGTH; }
     }
 

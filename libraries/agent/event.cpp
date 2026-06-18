@@ -32,6 +32,8 @@
 */
 
 #include "agent/event.h"
+#include "support/jsonobject.h"
+#include "support/timelib.h"
 
 namespace Cosmos {
 
