@@ -18,7 +18,8 @@ add_library(CosmosPrint STATIC print_utils.cpp print_utils.h)
 install(TARGETS CosmosPrint DESTINATION lib)
 target_link_libraries(CosmosPrint CosmosSupport ${COSMOS_LIBS})
 
-add_library(CosmosString STATIC stringlib.cpp stringlib.h jsonobject.cpp jsonobject.h jsonvalue.cpp jsonvalue.h)
+# json11.cpp lives here at K0 so CosmosConvert can link it without a cycle
+add_library(CosmosString STATIC stringlib.cpp stringlib.h json11.cpp json11.hpp jsonobject.cpp jsonobject.h jsonvalue.cpp jsonvalue.h)
 install(TARGETS CosmosString DESTINATION lib)
 target_link_libraries(CosmosString CosmosMath CosmosSupport ${COSMOS_LIBS})
 
@@ -39,7 +40,7 @@ target_link_libraries(CosmosData CosmosTime CosmosString localzlib CosmosSupport
 # logger.h includes socketlib.h, elapsedtime.h, timelib.h
 add_library(CosmosLog STATIC check.h check.cpp logger.h logger.cpp)
 install(TARGETS CosmosLog DESTINATION lib)
-target_link_libraries(CosmosLog CosmosNetwork CosmosData CosmosTime CosmosString CosmosSupport ${COSMOS_LIBS})
+target_link_libraries(CosmosLog CosmosNetwork CosmosData CosmosTime CosmosString CosmosJson CosmosSupport ${COSMOS_LIBS})
 
 add_library(CosmosNetwork STATIC socketlib.cpp socketlib.h)
 install(TARGETS CosmosNetwork DESTINATION lib)
@@ -73,10 +74,10 @@ add_subdirectory(filesenderimpl)
 # ── S0 ────────────────────────────────────────────────────────────────────────
 add_library(CosmosConvert STATIC convertlib.cpp convertlib.h convertdef.h demlib.cpp demlib.h jpleph.cpp jpleph.h geomag.cpp geomag.h ephemlib.cpp ephemlib.h)
 install(TARGETS CosmosConvert DESTINATION lib)
-target_link_libraries(CosmosConvert CosmosData CosmosTime CosmosMath CosmosSupport ${COSMOS_LIBS})
+target_link_libraries(CosmosConvert CosmosData CosmosTime CosmosString CosmosMath CosmosSupport ${COSMOS_LIBS})
 
 # jsondef is K2 but bundled here with jsonlib (S0) for now
-add_library(CosmosNamespace STATIC json11.cpp jsonlib.cpp json11.hpp jsonlib.h jsondef.h jsondef.cpp)
+add_library(CosmosNamespace STATIC jsonlib.cpp jsonlib.h jsondef.h jsondef.cpp)
 install(TARGETS CosmosNamespace DESTINATION lib)
 target_link_libraries(CosmosNamespace CosmosConvert CosmosCad CosmosJson CosmosString CosmosMath CosmosSupport ${COSMOS_LIBS})
 
