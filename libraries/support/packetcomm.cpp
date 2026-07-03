@@ -1,6 +1,7 @@
 #include "packetcomm.h"
 #include "math/constants.h"
 #include "math/bytelib.h"
+#include "support/ax25class.h"
 
 namespace Cosmos {
     namespace Support {
