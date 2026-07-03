@@ -47,7 +47,7 @@
 #include <errno.h>
 
 #include "device/general/cssl_lib.h"
-#include "support/cosmos-errno.h"
+//#include "support/cosmos-errno.h"
 
 #define KISSTNC_MTU 254
 #define KISSTNC_PAYLOAD_SIZE KISSTNC_MTU

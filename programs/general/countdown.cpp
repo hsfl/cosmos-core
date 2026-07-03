@@ -1,5 +1,6 @@
 #include "support/cosmos-errno.h"
 #include "support/timelib.h"
+#include "support/elapsedtime.h"
 
 int main(int argc, char* argv[])
 {

@@ -52,8 +52,7 @@
 #define _TIMELIB_H 1
 
 #include "support/configCosmos.h"
-#include "support/elapsedtime.h"
-#include "math/mathlib.h"
+//#include "math/mathlib.h"
 
 #ifdef COSMOS_WIN_BUILD_MSVC
 #include "support/timeutils.h"
@@ -190,7 +189,6 @@ namespace Cosmos {
         double  ranrm(double angle);
         int16_t isleap(int32_t year);
         string  seconds2DDHHMMSS(double elapsed_seconds);
-        int32_t timed_countdown(int32_t seconds, int32_t step=10., string message="");
         double set_local_clock(double utc_to, float limit=0.);
         int32_t microsleep(uint64_t usec);
         int32_t secondsleep(double seconds);

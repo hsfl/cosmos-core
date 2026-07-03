@@ -104,10 +104,10 @@
 //! quaternion, and then use an equation that expects Scalar Last.
 
 #include "support/configCosmos.h"
-#include "support/cosmos-errno.h"
+//#include "support/cosmos-errno.h"
 
 // include all math modules
-#include "constants.h"
+//#include "constants.h"
 #include "vector.h"
 #include "matrix.h"
 #include "rotation.h"

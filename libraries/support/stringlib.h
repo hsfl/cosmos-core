@@ -39,7 +39,7 @@
 #define _STRINGLIB_H 1
 
 #include "support/configCosmos.h"
-#include "support/jsonobject.h"
+//#include "support/jsonobject.h"
 
 #include <errno.h>
 #include <string>

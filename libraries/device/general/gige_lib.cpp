@@ -34,6 +34,7 @@
 #include "device/general/gige_lib.h"
 #include "support/timelib.h"
 #include "math/mathlib.h"
+#include "support/elapsedtime.h"
 #include <cstring>
 
 #ifdef COSMOS_WIN_OS

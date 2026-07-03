@@ -6,7 +6,7 @@
 
 #include <mutex>
 #include <thread>
-#include "support/cosmos-errno.h"
+//#include "support/cosmos-errno.h"
 #include "support/packetcomm.h"
 #include "support/socketlib.h"
 

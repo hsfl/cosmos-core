@@ -31,8 +31,8 @@
 #define AX25LIB
 
 #include "support/configCosmosKernel.h"
-#include "support/cosmos-errno.h"
-#include "math/bytelib.h"
+//#include "support/cosmos-errno.h"
+//#include "math/bytelib.h"
 #include "math/crclib.h"
 
 #include <cstring>

@@ -5,6 +5,7 @@
 #include "support/configCosmos.h"
 #include "support/datalib.h"
 #include "support/packetcomm.h"
+#include "support/elapsedtime.h"
 
 #define PROGRESS_QUEUE_SIZE 256
 

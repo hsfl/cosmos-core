@@ -3,6 +3,7 @@
 
 #include "support/beacon.h"
 #include "gtest/gtest.h"
+#include "agent/agentclass.h"
 
 namespace Cosmos {
 namespace Test {

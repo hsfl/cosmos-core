@@ -41,7 +41,7 @@
 
 #include "support/configCosmosKernel.h"
 
-#include "support/cosmos-errno.h"
+//#include "support/cosmos-errno.h"
 #include <cstring>
 
 //! \ingroup sliplib

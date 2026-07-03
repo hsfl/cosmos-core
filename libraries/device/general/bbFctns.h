@@ -33,7 +33,7 @@
 #ifndef DEVICEFCTNS_H
 #define DEVICEFCTNS_H
 
-#include "device/general/cssl_lib.h"
+//#include "device/general/cssl_lib.h"
 
 void FindBbPort(int *BbPortNum);
 bool OpenBb(cssl_t **SerialBb, int BbPortNum);

@@ -43,7 +43,7 @@
 #include "support/configCosmos.h"
 
 #include "math/mathlib.h"
-#include "support/cosmos-errno.h"
+//#include "support/cosmos-errno.h"
 #include "device/serial/serialclass.h"
 
 #include <stdio.h>
