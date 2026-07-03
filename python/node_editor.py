@@ -1291,7 +1291,7 @@ def main():
     print(f"Open            : http://localhost:{PORT}/")
     print(f"Press Ctrl+C to stop.")
 
-    server = HTTPServer(("127.0.0.1", PORT), Handler)
+    server = HTTPServer(("0.0.0.0", PORT), Handler)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
