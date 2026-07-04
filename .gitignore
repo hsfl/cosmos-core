@@ -74,3 +74,4 @@ CMakeLists\.txt\.user\.ece56c6\.4\.8-pre1
 octave-workspace
 
 *.Identifier
+build-*
