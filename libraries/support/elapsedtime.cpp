@@ -312,3 +312,25 @@ double ElapsedTime::getElapsedTime(double startMjd, double endMjd)
 void ElapsedTime::reset(){
     start();
 }
+
+int32_t timed_countdown(int32_t seconds, int32_t step, string message)
+{
+    ElapsedTime et;
+    ElapsedTime set;
+
+    if (message.length())
+    {
+        printf("%s - ", message.c_str());
+        fflush(stdout);
+    }
+
+    while (et.split() < seconds)
+    {
+        int32_t nextstep = static_cast <int32_t>((seconds - et.split()) / step);
+        secondsleep((seconds - et.split()) - nextstep * step);
+        printf("...%d", nextstep * step);
+        fflush(stdout);
+    }
+    printf("\n");
+    return 0;
+}

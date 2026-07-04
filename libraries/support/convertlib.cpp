@@ -34,7 +34,6 @@
 #include "support/convertlib.h"
 #include "support/jsondef.h"
 #include "support/stringlib.h"
-#include "physics/physicsclass.h"
 
 // Used to mark unused variables as known
 #ifndef UNUSED_VARIABLE_LOCALDEF

@@ -1,5 +1,6 @@
 #include "task.h"
 #include "support/stringlib.h"
+#include "support/elapsedtime.h"
 
 namespace Cosmos {
     namespace Support {

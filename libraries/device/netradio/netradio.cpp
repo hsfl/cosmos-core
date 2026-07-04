@@ -1,5 +1,6 @@
 #include "netradio.h"
 #include "support/timelib.h"
+#include "support/elapsedtime.h"
 
 namespace Cosmos {
     namespace Devices {

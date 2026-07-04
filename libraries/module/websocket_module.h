@@ -5,7 +5,7 @@
 
 #include "support/configCosmos.h"
 #include "agent/agentclass.h"
-#include "support/packetcomm.h"
+//#include "support/packetcomm.h"
 #include "support/socketlib.h"
 
 namespace Cosmos

@@ -32,7 +32,7 @@
 
 // COSMOS libs
 #include "support/configCosmos.h"
-#include "support/cosmos-errno.h"
+//#include "support/cosmos-errno.h"
 #include "thirdparty/zlib/zlib.h"
 //#include "support/jsondef.h"
 

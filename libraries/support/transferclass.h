@@ -35,8 +35,8 @@
 #include "support/configCosmos.h"
 #include "support/datalib.h"
 #include "support/packetcomm.h"
-#include "support/stringlib.h"
-#include "support/timelib.h"
+//#include "support/stringlib.h"
+//#include "support/timelib.h"
 #include "support/transferlib.h"
 
 // This class handles the file transfer protocol

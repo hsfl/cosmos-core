@@ -42,7 +42,7 @@
 
 #include "support/configCosmos.h"
 #include "support/jsonlib.h"
-#include "support/jsonobject.h"
+//#include "support/jsonobject.h"
 #include "support/timelib.h"
 
 #define MAXCOMMANDWORD 20

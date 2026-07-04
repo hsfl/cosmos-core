@@ -32,6 +32,7 @@
 */
 
 #include "support/sliplib.h"
+#include "support/cosmos-errno.h"
 #include <stdio.h>
 
 //! \addtogroup sliplib_functions

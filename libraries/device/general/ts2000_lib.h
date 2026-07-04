@@ -45,9 +45,9 @@
 #include <stdio.h>
 #include <errno.h>
 
-#include "math/mathlib.h"
+//#include "math/mathlib.h"
 #include "device/general/cssl_lib.h"
-#include "support/cosmos-errno.h"
+//#include "support/cosmos-errno.h"
 
 #define TS2000_ID 1
 #define TS2000_BAUD 9600

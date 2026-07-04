@@ -47,7 +47,7 @@
 #include <errno.h>
 
 #include "device/general/cssl_lib.h"
-#include "support/cosmos-errno.h"
+//#include "support/cosmos-errno.h"
 
 #define KPC9612P_MTU 254
 #define KPC9612P_PAYLOAD_SIZE KPC9612P_MTU
