@@ -784,16 +784,33 @@ int32_t Simulator::ParseOrbitString(string args)
         double Qzx = sw*sI;
         double Qzy = cw*sI;
 
-        initialloc.pos.eci.utc      = initialutc;
-        initialloc.pos.eci.s.col[0] = Qxx*rx_pf + Qxy*ry_pf;
-        initialloc.pos.eci.s.col[1] = Qyx*rx_pf + Qyy*ry_pf;
-        initialloc.pos.eci.s.col[2] = Qzx*rx_pf + Qzy*ry_pf;
-        initialloc.pos.eci.v.col[0] = Qxx*vx_pf + Qxy*vy_pf;
-        initialloc.pos.eci.v.col[1] = Qyx*vx_pf + Qyy*vy_pf;
-        initialloc.pos.eci.v.col[2] = Qzx*vx_pf + Qzy*vy_pf;
-        initialloc.pos.eci.a.col[0] = 0.;
-        initialloc.pos.eci.a.col[1] = 0.;
-        initialloc.pos.eci.a.col[2] = 0.;
+        // The Q rotation produced a vector in SELENOGRAPHIC axes (since
+        // incl/raan/aop are measured relative to Moon's equator/pole).
+        // Init() will copy pos.eci → pos.sci and call pos_sci(), so
+        // pos.eci must hold the selenocentric vector in J2000-ALIGNED
+        // (SCI) axes -- not selenographic body-fixed axes.
+        // Apply s2j (selenographic → SCI) at initialutc to get there.
+        pos_extra(initialutc, initialloc);   // populate s2j
+
+        rvector selc_s, selc_v;
+        selc_s.col[0] = Qxx*rx_pf + Qxy*ry_pf;
+        selc_s.col[1] = Qyx*rx_pf + Qyy*ry_pf;
+        selc_s.col[2] = Qzx*rx_pf + Qzy*ry_pf;
+        selc_v.col[0] = Qxx*vx_pf + Qxy*vy_pf;
+        selc_v.col[1] = Qyx*vx_pf + Qyy*vy_pf;
+        selc_v.col[2] = Qzx*vx_pf + Qzy*vy_pf;
+
+        initialloc.pos.eci.s   = rv_mmult(initialloc.pos.extra.s2j, selc_s);
+        initialloc.pos.eci.v   = rv_mmult(initialloc.pos.extra.s2j, selc_v);
+        initialloc.pos.eci.a   = rv_zero();
+        initialloc.pos.eci.utc = initialutc;
+
+        std::fprintf(stderr, "[flo selg->sci] |eci.s|=%.1f km  "
+                     "eci.s=(%.1f,%.1f,%.1f)  eci.v=(%.3f,%.3f,%.3f)\n",
+                     length_rv(initialloc.pos.eci.s)/1000.,
+                     initialloc.pos.eci.s.col[0], initialloc.pos.eci.s.col[1], initialloc.pos.eci.s.col[2],
+                     initialloc.pos.eci.v.col[0], initialloc.pos.eci.v.col[1], initialloc.pos.eci.v.col[2]);
+        std::fflush(stderr);
 
         // --- store FLO parameters for use in Propagate() ---
         flo_enabled        = true;
