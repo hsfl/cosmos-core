@@ -8478,37 +8478,46 @@ int32_t json_setup_realm(string &realm, cosmosstruc *cinfo)
             targ.type = data["type"].number_value();
         }
 
-        // Extract GEOD
-        targ.loc.pos.geod.s.lat = 0.0;
-        if (!data["latitude"].is_null())
-        {
-            targ.loc.pos.geod.s.lat = RADOF(data["latitude"].number_value());
+        // Determine coordinate frame and body from JSON structure.
+        // "selg":{"s":{"lat":..,"lon":..,"h":..}} → Moon surface target (selenographic)
+        // "geod":{"s":{"lat":..,"lon":..,"h":..}} → Earth surface target (geodetic)
+        // Flat "latitude"/"longitude"/"altitude" keys → Earth (backward compat)
+        // Angles in degrees; altitude/h in metres.
+        targ.loc.pos.geod.s = {0., 0., 0.};
+        targ.loc.pos.selg.s = {0., 0., 0.};
+
+        if (!data["selg"].is_null() && !data["selg"]["s"].is_null()) {
+            targ.loc.pos.selg.s.lat = RADOF(data["selg"]["s"]["lat"].number_value());
+            targ.loc.pos.selg.s.lon = RADOF(data["selg"]["s"]["lon"].number_value());
+            targ.loc.pos.selg.s.h   = data["selg"]["s"]["h"].number_value();
+            targ.loc.pos.extra.closest = COSMOS_MOON;
+        } else if (!data["geod"].is_null() && !data["geod"]["s"].is_null()) {
+            targ.loc.pos.geod.s.lat = RADOF(data["geod"]["s"]["lat"].number_value());
+            targ.loc.pos.geod.s.lon = RADOF(data["geod"]["s"]["lon"].number_value());
+            targ.loc.pos.geod.s.h   = data["geod"]["s"]["h"].number_value();
+            targ.loc.pos.extra.closest = COSMOS_EARTH;
+        } else {
+            // Legacy flat keys — Earth target
+            if (!data["latitude"].is_null())
+                targ.loc.pos.geod.s.lat = RADOF(data["latitude"].number_value());
+            if (!data["longitude"].is_null())
+                targ.loc.pos.geod.s.lon = RADOF(data["longitude"].number_value());
+            if (!data["altitude"].is_null())
+                targ.loc.pos.geod.s.h = data["altitude"].number_value();
+            targ.loc.pos.extra.closest = COSMOS_EARTH;
         }
 
-        targ.loc.pos.geod.s.lon = 0.0;
-        if (!data["longitude"].is_null())
-        {
-            targ.loc.pos.geod.s.lon = RADOF(data["longitude"].number_value());
-        }
-
-        targ.loc.pos.geod.s.h = 0.;
-        if (!data["altitude"].is_null())
-        {
-            targ.loc.pos.geod.s.h = data["altitude"].number_value();
-        }
-
+        double bodyRadius = (targ.loc.pos.extra.closest == COSMOS_MOON) ? RMOONM : REARTHM;
         targ.area = 1.;
-        if (!data["area"].is_null())
-        {
+        if (!data["area"].is_null()) {
             targ.area = data["area"].number_value();
-            targ.size = gvector(sqrt(targ.area/M_PI), sqrt(targ.area/M_PI), 0.);
+            double r = sqrt(targ.area / M_PI);
+            targ.size = gvector(r / bodyRadius, r / bodyRadius, 0.);
         }
-
-        if (!data["radius"].is_null())
-        {
-            targ.area = data["radius"].number_value();
-            targ.size = gvector(targ.area/REARTHM, targ.area/REARTHM, 0.);
-            targ.area *= M_PI * targ.area;
+        if (!data["radius"].is_null()) {
+            double r = data["radius"].number_value();
+            targ.size = gvector(r / bodyRadius, r / bodyRadius, 0.);
+            targ.area = M_PI * r * r;
         }
 
         cinfo->target.push_back(targ);
@@ -14023,9 +14032,24 @@ int32_t update_target(Convert::locstruc source, targetstruc &target)
     rvector topo, dv, ds;
     Convert::locstruc targetloc;
 
-    target.loc.pos.geod.utc = source.pos.geod.utc;
-    target.loc.pos.geod.pass++;
-    Convert::loc_update(target.loc);
+    // Route each target through the correct coordinate chain based on its body
+    // (set at load time by json_setup_realm; re-confirmed each tick by pos_eci).
+    bool isMoon = (target.loc.pos.extra.closest == COSMOS_MOON);
+
+    // Stamp all frame UTCs from the satellite's master time before propagating.
+    Convert::pos_set_utc(target.loc, source.utc);
+
+    if (isMoon) {
+        // selg.s holds the canonical selenographic position (set at load; preserved by
+        // pos_set_selg's save/restore).  Propagate selg→selc→sci→eci.
+        Convert::pos_set_selg(target.loc);
+        // pos_set_selg calls pos_clear internally; if propagation fails at startup
+        // (source.utc still 0), pos_eci never ran to restore closest — re-pin it.
+        if (target.loc.pos.extra.closest == 0) target.loc.pos.extra.closest = COSMOS_MOON;
+    } else {
+        target.loc.pos.geod.pass++;
+        Convert::loc_update(target.loc);
+    }
     targetloc = target.loc;
     if (target.size.lat)
     {
@@ -14084,30 +14108,69 @@ int32_t update_target(Convert::locstruc source, targetstruc &target)
         target.utc = targetloc.utc;
     }
 
-    // Calculate bearing and distance
-    double dx = cos(targetloc.pos.geod.s.lat) * sin(targetloc.pos.geod.s.lon - source.pos.geod.s.lon);
-    double dy = cos(source.pos.geod.s.lat) * sin(targetloc.pos.geod.s.lat) - sin(source.pos.geod.s.lat) * cos(targetloc.pos.geod.s.lat) * cos(targetloc.pos.geod.s.lon - source.pos.geod.s.lon);
-    target.bearing = atan2(dy, dx);
-    target.distance = sep_rv(source.pos.geoc.s, targetloc.pos.geoc.s);
+    if (isMoon) {
+        // Bearing and distance in selenographic frame.
+        double dx = cos(targetloc.pos.selg.s.lat) * sin(targetloc.pos.selg.s.lon - source.pos.selg.s.lon);
+        double dy = cos(source.pos.selg.s.lat) * sin(targetloc.pos.selg.s.lat)
+                  - sin(source.pos.selg.s.lat) * cos(targetloc.pos.selg.s.lat)
+                  * cos(targetloc.pos.selg.s.lon - source.pos.selg.s.lon);
+        target.bearing  = atan2(dy, dx);
+        target.distance = sep_rv(source.pos.selc.s, targetloc.pos.selc.s);
 
-    Convert::geoc2topo(targetloc.pos.geod.s, source.pos.geoc.s,topo);
-    Convert::topo2azel(topo, target.azto, target.elto);
-    if (target.elto <= 0.)
-    {
-        target.maxelto = target.elto;
-    }
-    else if (target.elto > target.maxelto)
-    {
-        target.maxelto = target.elto;
-    }
+        // Az/el using Moon-centric (SELC) coordinates.
+        // Moon is spherical (no oblateness), so topo transform simplifies to:
+        //   ENU rotation at observer's selg position, selc offset to observer.
+        auto selg2topo_moon = [](gvector sg, rvector targetSelc, rvector &topo_out) {
+            double clat = cos(sg.lat), slat = sin(sg.lat);
+            double clon = cos(sg.lon), slon = sin(sg.lon);
+            rmatrix g2t;
+            g2t.row[0].col[0] = -slon;       g2t.row[0].col[1] =  clon;       g2t.row[0].col[2] = 0.;
+            g2t.row[1].col[0] = -slat * clon; g2t.row[1].col[1] = -slat * slon; g2t.row[1].col[2] = clat;
+            g2t.row[2].col[0] =  clat * clon; g2t.row[2].col[1] =  clat * slon; g2t.row[2].col[2] = slat;
+            rvector src_selc;
+            src_selc.col[0] = (RMOONM + sg.h) * clat * clon;
+            src_selc.col[1] = (RMOONM + sg.h) * clat * slon;
+            src_selc.col[2] = (RMOONM + sg.h) * slat;
+            topo_out = rv_mmult(g2t, rv_sub(targetSelc, src_selc));
+        };
 
-    Convert::geoc2topo(source.pos.geod.s, targetloc.pos.geoc.s, topo);
-    Convert::topo2azel(topo, target.azfrom, target.elfrom);
-    // Calculate direct vector from source to target
-    ds = rv_sub(targetloc.pos.geoc.s, source.pos.geoc.s);
-    target.range = length_rv(ds);
-    // Calculate velocity of target WRT source
-    dv = rv_sub(targetloc.pos.geoc.v, source.pos.geoc.v);
+        // azto/elto: satellite as seen from target (ground looking up)
+        selg2topo_moon(targetloc.pos.selg.s, source.pos.selc.s, topo);
+        Convert::topo2azel(topo, target.azto, target.elto);
+        if (target.elto <= 0.) target.maxelto = target.elto;
+        else if (target.elto > target.maxelto) target.maxelto = target.elto;
+
+        // azfrom/elfrom: target as seen from satellite (satellite looking down)
+        selg2topo_moon(source.pos.selg.s, targetloc.pos.selc.s, topo);
+        Convert::topo2azel(topo, target.azfrom, target.elfrom);
+
+        ds = rv_sub(targetloc.pos.selc.s, source.pos.selc.s);
+        target.range = length_rv(ds);
+        dv = rv_sub(targetloc.pos.selc.v, source.pos.selc.v);
+    } else {
+        // Calculate bearing and distance
+        double dx = cos(targetloc.pos.geod.s.lat) * sin(targetloc.pos.geod.s.lon - source.pos.geod.s.lon);
+        double dy = cos(source.pos.geod.s.lat) * sin(targetloc.pos.geod.s.lat) - sin(source.pos.geod.s.lat) * cos(targetloc.pos.geod.s.lat) * cos(targetloc.pos.geod.s.lon - source.pos.geod.s.lon);
+        target.bearing = atan2(dy, dx);
+        target.distance = sep_rv(source.pos.geoc.s, targetloc.pos.geoc.s);
+
+        Convert::geoc2topo(targetloc.pos.geod.s, source.pos.geoc.s,topo);
+        Convert::topo2azel(topo, target.azto, target.elto);
+        if (target.elto <= 0.)
+        {
+            target.maxelto = target.elto;
+        }
+        else if (target.elto > target.maxelto)
+        {
+            target.maxelto = target.elto;
+        }
+
+        Convert::geoc2topo(source.pos.geod.s, targetloc.pos.geoc.s, topo);
+        Convert::topo2azel(topo, target.azfrom, target.elfrom);
+        ds = rv_sub(targetloc.pos.geoc.s, source.pos.geoc.s);
+        target.range = length_rv(ds);
+        dv = rv_sub(targetloc.pos.geoc.v, source.pos.geoc.v);
+    }
     // Closing speed is length of ds in 1 second minus length of ds now.
     target.close = length_rv(rv_sub(ds,dv)) - length_rv(ds);
     target.utc = targetloc.utc;

@@ -715,9 +715,9 @@ int32_t Simulator::ParseOrbitString(string args)
                   : values["a"].number_value();
             e_f = have_ecc ? values["e"].number_value() : 0.;
             flo_alt_m = a - FLO_RM;
-            std::fprintf(stderr, "[flo] Mode B: a=%.1f m  e=%.5f  i=%.2f°  "
-                         "raan=%.2f°  aop=%.2f°  ta=%.2f°\n",
-                         a, e_f, DEGOF(incl), DEGOF(raan), DEGOF(aop), DEGOF(ta));
+//            std::fprintf(stderr, "[flo] Mode B: a=%.1f m  e=%.5f  i=%.2f°  "
+//                         "raan=%.2f°  aop=%.2f°  ta=%.2f°\n",
+//                         a, e_f, DEGOF(incl), DEGOF(raan), DEGOF(aop), DEGOF(ta));
         }
         else if (!values["alt"].is_null() && have_ecc)
         {
@@ -725,9 +725,9 @@ int32_t Simulator::ParseOrbitString(string args)
             flo_alt_m = values["alt"].number_value();
             a         = FLO_RM + flo_alt_m;
             e_f       = values["e"].number_value();
-            std::fprintf(stderr, "[flo] Mode B (alt+e): alt=%.0f m  a=%.1f m  "
-                         "e=%.5f  i=%.2f°  raan=%.2f°  aop=%.2f°  ta=%.2f°\n",
-                         flo_alt_m, a, e_f, DEGOF(incl), DEGOF(raan), DEGOF(aop), DEGOF(ta));
+//            std::fprintf(stderr, "[flo] Mode B (alt+e): alt=%.0f m  a=%.1f m  "
+//                         "e=%.5f  i=%.2f°  raan=%.2f°  aop=%.2f°  ta=%.2f°\n",
+//                         flo_alt_m, a, e_f, DEGOF(incl), DEGOF(raan), DEGOF(aop), DEGOF(ta));
         }
         else
         {
@@ -735,9 +735,9 @@ int32_t Simulator::ParseOrbitString(string args)
             flo_alt_m = values["alt"].number_value();
             a         = FLO_RM + flo_alt_m;
             e_f       = flo_frozen_eccentricity(flo_alt_m, incl);
-            std::fprintf(stderr, "[flo] Mode A: alt=%.0f m  a=%.1f m  "
-                         "e_frozen=%.5f  i=%.2f°\n",
-                         flo_alt_m, a, e_f, DEGOF(incl));
+//            std::fprintf(stderr, "[flo] Mode A: alt=%.0f m  a=%.1f m  "
+//                         "e_frozen=%.5f  i=%.2f°\n",
+//                         flo_alt_m, a, e_f, DEGOF(incl));
         }
 
         // ── Convert Keplerian elements to ECI Cartesian ──────────────────────
@@ -805,12 +805,12 @@ int32_t Simulator::ParseOrbitString(string args)
         initialloc.pos.eci.a   = rv_zero();
         initialloc.pos.eci.utc = initialutc;
 
-        std::fprintf(stderr, "[flo selg->sci] |eci.s|=%.1f km  "
-                     "eci.s=(%.1f,%.1f,%.1f)  eci.v=(%.3f,%.3f,%.3f)\n",
-                     length_rv(initialloc.pos.eci.s)/1000.,
-                     initialloc.pos.eci.s.col[0], initialloc.pos.eci.s.col[1], initialloc.pos.eci.s.col[2],
-                     initialloc.pos.eci.v.col[0], initialloc.pos.eci.v.col[1], initialloc.pos.eci.v.col[2]);
-        std::fflush(stderr);
+//        std::fprintf(stderr, "[flo selg->sci] |eci.s|=%.1f km  "
+//                     "eci.s=(%.1f,%.1f,%.1f)  eci.v=(%.3f,%.3f,%.3f)\n",
+//                     length_rv(initialloc.pos.eci.s)/1000.,
+//                     initialloc.pos.eci.s.col[0], initialloc.pos.eci.s.col[1], initialloc.pos.eci.s.col[2],
+//                     initialloc.pos.eci.v.col[0], initialloc.pos.eci.v.col[1], initialloc.pos.eci.v.col[2]);
+//        std::fflush(stderr);
 
         // --- store FLO parameters for use in Propagate() ---
         flo_enabled        = true;

@@ -2021,6 +2021,13 @@ int32_t State::Propagate(double nextutc)
         nextutc = currentinfo.node.utc + dtj;
     }
 
+    // Clear events once per Propagate call, not once per orbitalevent sub-step.
+    // Previously event.clear() lived inside OrbitalEventGenerator::Propagate which
+    // is called on every outer-loop iteration — events from the first call (which
+    // runs all steps) were cleared by the second call (which runs 0 steps), leaving
+    // the archive with only the events from the last (empty) call.
+    currentinfo.event.clear();
+
     while ((nextutc - currentinfo.node.utc) > dtj / 2.)
     {
         PhysCalc(&currentinfo.node.loc, &currentinfo.node.phys);
@@ -2879,6 +2886,46 @@ int32_t ElectricalPropagator::Propagate(double nextutc)
     return 0;
 }
 
+/// True if a sphere of the given radius, centered at the origin of the
+/// current frame, casts a shadow over point `p` (also in that frame) along
+/// the given body-to-Sun direction (unit vector). This is a simple
+/// cylindrical shadow model -- it ignores the Sun's finite angular size, so
+/// it does not distinguish umbra from penumbra (see EVENT_TYPE_PENUMBRA for
+/// a placeholder should that distinction become necessary later).
+static bool in_cylindrical_shadow(Vector p, Vector body2sun_unit, double body_radius)
+{
+    double along = p.dot(body2sun_unit);
+    if (along >= 0.)
+    {
+        // p is on the sunlit side of the body center
+        return false;
+    }
+    Vector perp = p - along * body2sun_unit;
+    return perp.norm() < body_radius;
+}
+
+/// True if a sphere of the given radius, centered at the origin of the
+/// current frame, blocks line of sight between points `from` and `to` (both
+/// in that frame) -- i.e. the sphere intersects the segment between them.
+static bool sphere_blocks_segment(Vector from, Vector to, double blocker_radius)
+{
+    Vector d = to - from;
+    double dd = d.dot(d);
+    if (dd <= 0.)
+    {
+        return false;
+    }
+    double t = -from.dot(d) / dd;
+    if (t <= 0. || t >= 1.)
+    {
+        // Closest approach of the blocker to the line is outside the
+        // from->to segment, so it isn't actually between the two points.
+        return false;
+    }
+    Vector closest = from + t * d;
+    return closest.norm() < blocker_radius;
+}
+
 int32_t OrbitalEventGenerator::Init()
 {
     currentutc = currentinfo->node.loc.utc;
@@ -2886,6 +2933,8 @@ int32_t OrbitalEventGenerator::Init()
     currentinfo->event_tick = (time_start + currentinfo->event_tick) - time_start;
     time_end = time_start + currentinfo->event_tick;
     umbra_start = 0.;
+    earth_start = 0.;
+    moon_start = 0.;
     land_start = 0.;
     gs_AoS.clear();
     return 0;
@@ -2897,6 +2946,8 @@ int32_t OrbitalEventGenerator::Reset()
     time_start = currentinfo->node.loc.utc;
     time_end = time_start + currentinfo->event_tick;
     umbra_start = 0.;
+    earth_start = 0.;
+    moon_start = 0.;
     land_start = 0.;
     gs_AoS.clear();
     return 0;
@@ -2904,7 +2955,6 @@ int32_t OrbitalEventGenerator::Reset()
 
 int32_t OrbitalEventGenerator::Propagate(double nextutc)
 {
-    currentinfo->event.clear();
     if (nextutc == 0.)
     {
         nextutc = currentutc + dtj;
@@ -3042,6 +3092,8 @@ int32_t OrbitalEventGenerator::check_all_event(bool force_end)
 {
     int32_t iretn = 0;
     iretn += check_umbra_event(force_end);
+    iretn += check_earth_event(force_end);
+    iretn += check_moon_event(force_end);
     iretn += check_target_events(force_end);
     iretn += check_land_event(force_end);
     for (int16_t i=-8; i<9; ++i)
@@ -3106,6 +3158,14 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
         {
             cevent.flag |= EVENT_FLAG_TARG;
         }
+        if (in_earth)
+        {
+            cevent.flag |= EVENT_FLAG_EARTH;
+        }
+        if (in_moon)
+        {
+            cevent.flag |= EVENT_FLAG_MOON;
+        }
         cevent.pos = currentGeoidPos();
         currentinfo->event.push_back(cevent);
         ++iretn;
@@ -3136,6 +3196,14 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
         if (in_targ)
         {
             cevent.flag |= EVENT_FLAG_TARG;
+        }
+        if (in_earth)
+        {
+            cevent.flag |= EVENT_FLAG_EARTH;
+        }
+        if (in_moon)
+        {
+            cevent.flag |= EVENT_FLAG_MOON;
         }
         cevent.pos = currentGeoidPos();
         currentinfo->event.push_back(cevent);
@@ -3170,6 +3238,14 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
             if (in_targ)
             {
                 cevent.flag |= EVENT_FLAG_TARG;
+            }
+            if (in_earth)
+            {
+                cevent.flag |= EVENT_FLAG_EARTH;
+            }
+            if (in_moon)
+            {
+                cevent.flag |= EVENT_FLAG_MOON;
             }
             cevent.pos = currentGeoidPos();
             currentinfo->event.push_back(cevent);
@@ -3211,6 +3287,14 @@ int32_t OrbitalEventGenerator::check_lat_event(bool force_end, float lat)
             {
                 cevent.flag |= EVENT_FLAG_TARG;
             }
+            if (in_earth)
+            {
+                cevent.flag |= EVENT_FLAG_EARTH;
+            }
+            if (in_moon)
+            {
+                cevent.flag |= EVENT_FLAG_MOON;
+            }
             cevent.pos = currentGeoidPos();
             currentinfo->event.push_back(cevent);
             ++iretn;
@@ -3250,6 +3334,14 @@ int32_t OrbitalEventGenerator::check_time_event(bool force_end)
         if (in_targ)
         {
             cevent.flag |= EVENT_FLAG_TARG;
+        }
+        if (in_earth)
+        {
+            cevent.flag |= EVENT_FLAG_EARTH;
+        }
+        if (in_moon)
+        {
+            cevent.flag |= EVENT_FLAG_MOON;
         }
         time_start = cevent.utc;
         time_end = time_start + currentinfo->event_tick;
@@ -3311,6 +3403,14 @@ int32_t OrbitalEventGenerator::check_land_event(bool force_end)
         {
             cevent.flag |= EVENT_FLAG_TARG;
         }
+        if (in_earth)
+        {
+            cevent.flag |= EVENT_FLAG_EARTH;
+        }
+        if (in_moon)
+        {
+            cevent.flag |= EVENT_FLAG_MOON;
+        }
         cevent.pos = currentGeoidPos();
         currentinfo->event.push_back(cevent);
         land_start = cevent.utc;
@@ -3344,6 +3444,14 @@ int32_t OrbitalEventGenerator::check_land_event(bool force_end)
         {
             cevent.flag |= EVENT_FLAG_TARG;
         }
+        if (in_earth)
+        {
+            cevent.flag |= EVENT_FLAG_EARTH;
+        }
+        if (in_moon)
+        {
+            cevent.flag |= EVENT_FLAG_MOON;
+        }
         cevent.pos = currentGeoidPos();
         currentinfo->event.push_back(cevent);
         land_start = 0.;
@@ -3357,8 +3465,32 @@ int32_t OrbitalEventGenerator::check_land_event(bool force_end)
 
 int32_t OrbitalEventGenerator::check_umbra_event(bool force_end)
 {
+    // Determine shadow state against whichever body the node is currently
+    // closest to (Earth or Moon), using a simple cylindrical shadow model
+    // (ignores the Sun's finite angular size, so umbra and penumbra are not
+    // distinguished -- see EVENT_TYPE_PENUMBRA for that).
+    bool shadowed;
+    switch (currentinfo->node.loc.pos.extra.closest) {
+        case COSMOS_MOON:
+        {
+            Vector sc_sci(currentinfo->node.loc.pos.sci.s);
+            // Moon->Sun direction: Sun position in SCI is -sun2moon.s
+            Vector moon2sun_unit = (-1. * Vector(currentinfo->node.loc.pos.extra.sun2moon.s)).normalize();
+            shadowed = in_cylindrical_shadow(sc_sci, moon2sun_unit, RMOONM);
+            break;
+        }
+        default:
+        {
+            Vector sc_eci(currentinfo->node.loc.pos.eci.s);
+            // Earth->Sun direction: Sun position in ECI is -sun2earth.s
+            Vector earth2sun_unit = (-1. * Vector(currentinfo->node.loc.pos.extra.sun2earth.s)).normalize();
+            shadowed = in_cylindrical_shadow(sc_eci, earth2sun_unit, REARTHM);
+            break;
+        }
+    }
+
     // Umbra start
-    if (umbra_start == 0. && !currentinfo->node.loc.pos.sunradiance)
+    if (umbra_start == 0. && shadowed)
     {
         in_umbra = true;
         // Add umbra to event list
@@ -3385,13 +3517,21 @@ int32_t OrbitalEventGenerator::check_umbra_event(bool force_end)
         {
             cevent.flag |= EVENT_FLAG_TARG;
         }
+        if (in_earth)
+        {
+            cevent.flag |= EVENT_FLAG_EARTH;
+        }
+        if (in_moon)
+        {
+            cevent.flag |= EVENT_FLAG_MOON;
+        }
         cevent.pos = currentGeoidPos();
         currentinfo->event.push_back(cevent);
         umbra_start = cevent.utc;
         return 1;
     }
     // Umbra end
-    else if (umbra_start != 0. && (currentinfo->node.loc.pos.sunradiance || force_end))
+    else if (umbra_start != 0. && (!shadowed || force_end))
     {
         in_umbra = false;
         // Add umbra to event list
@@ -3418,9 +3558,222 @@ int32_t OrbitalEventGenerator::check_umbra_event(bool force_end)
         {
             cevent.flag |= EVENT_FLAG_TARG;
         }
+        if (in_earth)
+        {
+            cevent.flag |= EVENT_FLAG_EARTH;
+        }
+        if (in_moon)
+        {
+            cevent.flag |= EVENT_FLAG_MOON;
+        }
         cevent.pos = currentGeoidPos();
         currentinfo->event.push_back(cevent);
         umbra_start = 0.;
+        return 0;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+int32_t OrbitalEventGenerator::check_earth_event(bool force_end)
+{
+    // Only meaningful when the node is orbiting/near Earth. Elsewhere, treat
+    // as unblocked so any already-active EARTHIN/EARTHOUT pair still closes
+    // out cleanly via the normal end-condition below.
+    bool blocked = false;
+    if (currentinfo->node.loc.pos.extra.closest != COSMOS_MOON)
+    {
+        // Earth blocking line of sight to the Moon, evaluated in the ECI
+        // (Earth-centered) frame where Earth sits at the origin.
+        Vector sc_eci(currentinfo->node.loc.pos.eci.s);
+        Vector moon_eci = Vector(currentinfo->node.loc.pos.extra.sun2moon.s)
+                         - Vector(currentinfo->node.loc.pos.extra.sun2earth.s);
+        blocked = sphere_blocks_segment(sc_eci, moon_eci, REARTHM);
+    }
+
+    // Earth-blocks-Moon start
+    if (earth_start == 0. && blocked)
+    {
+        in_earth = true;
+        eventstruc cevent;
+        cevent.name = "EARTHIN";
+        cevent.type = EVENT_TYPE_EARTH;
+        cevent.utc = currentutc;
+        cevent.utcexec = cevent.utc;
+        cevent.dtime = 0.;
+        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_COLOR_GRAY | EVENT_FLAG_EARTH;
+        if (in_land)
+        {
+            cevent.flag |= EVENT_FLAG_LAND;
+        }
+        if (in_umbra)
+        {
+            cevent.flag |= EVENT_FLAG_UMBRA;
+        }
+        if (in_gs)
+        {
+            cevent.flag |= EVENT_FLAG_GS;
+        }
+        if (in_targ)
+        {
+            cevent.flag |= EVENT_FLAG_TARG;
+        }
+        if (in_earth)
+        {
+            cevent.flag |= EVENT_FLAG_EARTH;
+        }
+        if (in_moon)
+        {
+            cevent.flag |= EVENT_FLAG_MOON;
+        }
+        cevent.pos = currentGeoidPos();
+        currentinfo->event.push_back(cevent);
+        earth_start = cevent.utc;
+        return 1;
+    }
+    // Earth-blocks-Moon end
+    else if (earth_start != 0. && (!blocked || force_end))
+    {
+        in_earth = false;
+        eventstruc cevent;
+        cevent.name = "EARTHOUT";
+        cevent.type = EVENT_TYPE_EARTH;
+        cevent.utc = currentutc;
+        cevent.utcexec = cevent.utc;
+        cevent.dtime = cevent.utc - earth_start;
+        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_COLOR_GRAY | EVENT_FLAG_EXIT;
+        if (in_land)
+        {
+            cevent.flag |= EVENT_FLAG_LAND;
+        }
+        if (in_umbra)
+        {
+            cevent.flag |= EVENT_FLAG_UMBRA;
+        }
+        if (in_gs)
+        {
+            cevent.flag |= EVENT_FLAG_GS;
+        }
+        if (in_targ)
+        {
+            cevent.flag |= EVENT_FLAG_TARG;
+        }
+        if (in_earth)
+        {
+            cevent.flag |= EVENT_FLAG_EARTH;
+        }
+        if (in_moon)
+        {
+            cevent.flag |= EVENT_FLAG_MOON;
+        }
+        cevent.pos = currentGeoidPos();
+        currentinfo->event.push_back(cevent);
+        earth_start = 0.;
+        return 0;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+int32_t OrbitalEventGenerator::check_moon_event(bool force_end)
+{
+    // Only meaningful when the node is orbiting/near the Moon. Elsewhere,
+    // treat as unblocked so any already-active MOONIN/MOONOUT pair still
+    // closes out cleanly via the normal end-condition below.
+    bool blocked = false;
+    if (currentinfo->node.loc.pos.extra.closest == COSMOS_MOON)
+    {
+        // Moon blocking line of sight to the Earth, evaluated in the SCI
+        // (selenocentric) frame where the Moon sits at the origin. Useful for
+        // determining Earth groundstation visibility while in lunar orbit.
+        Vector sc_sci(currentinfo->node.loc.pos.sci.s);
+        Vector earth_sci = Vector(currentinfo->node.loc.pos.extra.sun2earth.s)
+                          - Vector(currentinfo->node.loc.pos.extra.sun2moon.s);
+        blocked = sphere_blocks_segment(sc_sci, earth_sci, RMOONM);
+    }
+
+    // Moon-blocks-Earth start
+    if (moon_start == 0. && blocked)
+    {
+        in_moon = true;
+        eventstruc cevent;
+        cevent.name = "MOONIN";
+        cevent.type = EVENT_TYPE_MOON;
+        cevent.utc = currentutc;
+        cevent.utcexec = cevent.utc;
+        cevent.dtime = 0.;
+        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_COLOR_GRAY | EVENT_FLAG_MOON;
+        if (in_land)
+        {
+            cevent.flag |= EVENT_FLAG_LAND;
+        }
+        if (in_umbra)
+        {
+            cevent.flag |= EVENT_FLAG_UMBRA;
+        }
+        if (in_gs)
+        {
+            cevent.flag |= EVENT_FLAG_GS;
+        }
+        if (in_targ)
+        {
+            cevent.flag |= EVENT_FLAG_TARG;
+        }
+        if (in_earth)
+        {
+            cevent.flag |= EVENT_FLAG_EARTH;
+        }
+        if (in_moon)
+        {
+            cevent.flag |= EVENT_FLAG_MOON;
+        }
+        cevent.pos = currentGeoidPos();
+        currentinfo->event.push_back(cevent);
+        moon_start = cevent.utc;
+        return 1;
+    }
+    // Moon-blocks-Earth end
+    else if (moon_start != 0. && (!blocked || force_end))
+    {
+        in_moon = false;
+        eventstruc cevent;
+        cevent.name = "MOONOUT";
+        cevent.type = EVENT_TYPE_MOON;
+        cevent.utc = currentutc;
+        cevent.utcexec = cevent.utc;
+        cevent.dtime = cevent.utc - moon_start;
+        cevent.flag = (2 * EVENT_SCALE_PRIORITY) | EVENT_FLAG_PAIR | EVENT_FLAG_COLOR_GRAY | EVENT_FLAG_EXIT;
+        if (in_land)
+        {
+            cevent.flag |= EVENT_FLAG_LAND;
+        }
+        if (in_umbra)
+        {
+            cevent.flag |= EVENT_FLAG_UMBRA;
+        }
+        if (in_gs)
+        {
+            cevent.flag |= EVENT_FLAG_GS;
+        }
+        if (in_targ)
+        {
+            cevent.flag |= EVENT_FLAG_TARG;
+        }
+        if (in_earth)
+        {
+            cevent.flag |= EVENT_FLAG_EARTH;
+        }
+        if (in_moon)
+        {
+            cevent.flag |= EVENT_FLAG_MOON;
+        }
+        cevent.pos = currentGeoidPos();
+        currentinfo->event.push_back(cevent);
+        moon_start = 0.;
         return 0;
     }
     else
@@ -3452,6 +3805,28 @@ int32_t OrbitalEventGenerator::check_gs_event(const targetstruc& gs, bool force_
     // Find target sight acquisition/loss
     // Groundstation is in line-of-sight if elto (elevation from target to sat) is positive
     //    double elto_deg = DEGOF(gs.elto);
+
+    // If the spacecraft and the groundstation are near/on different bodies,
+    // the near body can itself occult the line of sight, independent of the
+    // local horizon elevation. E.g. orbiting the Moon with an Earth
+    // groundstation: the Moon (in_moon) can block it even if elto is
+    // otherwise positive. Same body (the common case) needs no extra gating
+    // -- the local horizon elevation already covers it.
+    bool occulted = false;
+    if (currentinfo->node.loc.pos.extra.closest == COSMOS_MOON &&
+        gs.loc.pos.extra.closest != COSMOS_MOON)
+    {
+        occulted = in_moon;
+    }
+    else if (currentinfo->node.loc.pos.extra.closest != COSMOS_MOON &&
+             gs.loc.pos.extra.closest == COSMOS_MOON)
+    {
+        occulted = in_earth;
+    }
+    // Effective elevation used for all AoS/LoS/max threshold checks below.
+    // Real (unmodified) gs.elto/azto are still used for reported event data.
+    float vis_elto = occulted ? -1.F : gs.elto;
+
     if (gs_AoS.find(gs.name) == gs_AoS.end())
     {
         gs_AoS[gs.name] = {std::make_pair(0.,0.f),std::make_pair(0.,0.f),std::make_pair(0.,0.f),std::make_pair(0.,0.f)};
@@ -3463,9 +3838,9 @@ int32_t OrbitalEventGenerator::check_gs_event(const targetstruc& gs, bool force_
         // gsAOS[i].first is the mjd timestamp of when the event began
         // gsAOS[i].second is the max elevation for this AoS event
 
-        gsAOS[i].second = std::max(gsAOS[i].second, gs.elto);
+        gsAOS[i].second = std::max(gsAOS[i].second, vis_elto);
         // AoS
-        if (DEGOF(gs.elto) > i*5. && gsAOS[i].first == 0.)
+        if (DEGOF(vis_elto) > i*5. && gsAOS[i].first == 0.)
         {
             in_gs = true;
             eventstruc gs_aos_event;
@@ -3501,12 +3876,20 @@ int32_t OrbitalEventGenerator::check_gs_event(const targetstruc& gs, bool force_
             {
                 gs_aos_event.flag |= EVENT_FLAG_TARG;
             }
+            if (in_earth)
+            {
+                gs_aos_event.flag |= EVENT_FLAG_EARTH;
+            }
+            if (in_moon)
+            {
+                gs_aos_event.flag |= EVENT_FLAG_MOON;
+            }
             gs_aos_event.pos = currentGeoidPos();
             currentinfo->event.push_back(gs_aos_event);
             gsAOS[i].first = gs_aos_event.utc;
         }
         // LoS
-        else if ((force_end || DEGOF(gs.elto) <= i*5.) && gsAOS[i].first != 0.)
+        else if ((force_end || DEGOF(vis_elto) <= i*5.) && gsAOS[i].first != 0.)
         {
             in_gs = false;
             // Add event to event list
@@ -3543,6 +3926,14 @@ int32_t OrbitalEventGenerator::check_gs_event(const targetstruc& gs, bool force_
             {
                 gs_aos_event.flag |= EVENT_FLAG_TARG;
             }
+            if (in_earth)
+            {
+                gs_aos_event.flag |= EVENT_FLAG_EARTH;
+            }
+            if (in_moon)
+            {
+                gs_aos_event.flag |= EVENT_FLAG_MOON;
+            }
             gs_aos_event.pos = currentGeoidPos();
             currentinfo->event.push_back(gs_aos_event);
             // Reset this AoS event
@@ -3552,15 +3943,15 @@ int32_t OrbitalEventGenerator::check_gs_event(const targetstruc& gs, bool force_
     }
     // MAXDEG event
     // Track max
-    if (gs.elto > 0. && gs.elto > gsAOS[DEGMAX].second)
+    if (vis_elto > 0. && vis_elto > gsAOS[DEGMAX].second)
     {
         // Keep track of when the max elevation was achieved
         gsAOS[DEGMAX].first = currentutc;
-        gsAOS[DEGMAX].second = gs.elto;
+        gsAOS[DEGMAX].second = vis_elto;
         in_gs =true;
     }
     // Reach max
-    else if (gsAOS[DEGMAX].first != 0. && (force_end || gs.elto < gsAOS[DEGMAX].second))
+    else if (gsAOS[DEGMAX].first != 0. && (force_end || vis_elto < gsAOS[DEGMAX].second))
     {
         in_gs =true;
         // Add event to event list
@@ -3589,12 +3980,20 @@ int32_t OrbitalEventGenerator::check_gs_event(const targetstruc& gs, bool force_
         {
             gs_aos_event.flag |= EVENT_FLAG_TARG;
         }
+        if (in_earth)
+        {
+            gs_aos_event.flag |= EVENT_FLAG_EARTH;
+        }
+        if (in_moon)
+        {
+            gs_aos_event.flag |= EVENT_FLAG_MOON;
+        }
         gs_aos_event.pos = currentGeoidPos();
         currentinfo->event.push_back(gs_aos_event);
         // Reset this AoS event
         gsAOS[DEGMAX].first = 0.;
     }
-    else if (gs.elto <= 0.)
+    else if (vis_elto <= 0.)
     {
         gsAOS[DEGMAX].second = 0.f;
         in_gs = false;
