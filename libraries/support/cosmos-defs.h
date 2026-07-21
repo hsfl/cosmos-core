@@ -194,6 +194,10 @@ enum NODE_FLAG : uint16_t
 #define EVENT_FLAG_UMBRA			0x800000
 //! Event in Umbra
 #define EVENT_FLAG_ASCENDING			0x1000000
+//! Earth is blocking line of sight to the Moon
+#define EVENT_FLAG_EARTH			0x2000000
+//! Moon is blocking line of sight to the Earth
+#define EVENT_FLAG_MOON			0x4000000
 //! @}
 
 //! \ingroup defs
@@ -220,6 +224,8 @@ enum NODE_FLAG : uint16_t
 #define EVENT_TYPE_PERIGEE 0x1202
 #define EVENT_TYPE_UMBRA 0x1204
 #define EVENT_TYPE_PENUMBRA 0x1208
+#define EVENT_TYPE_EARTH 0x1240
+#define EVENT_TYPE_MOON 0x1280
 #define EVENT_TYPE_LAND 0x1210
 #define EVENT_TYPE_TIME 0x1220
 

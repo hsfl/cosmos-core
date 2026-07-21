@@ -847,6 +847,24 @@ static int32_t att_restore_source(locstruc &loc, int att_kind, const qatt &saved
     \param loc Location structure (input/output).
     \return 0 on success, negative error code on failure.
 */
+int32_t pos_set_utc(locstruc &loc, double utc)
+{
+    if (!isfinite(utc) || utc == 0.) { return CONVERT_ERROR_UTC; }
+    loc.utc = loc.pos.utc = utc;
+    loc.pos.icrf.utc = utc;
+    loc.pos.eci.utc  = utc;
+    loc.pos.sci.utc  = utc;
+    loc.pos.geoc.utc = utc;
+    loc.pos.selc.utc = utc;
+    loc.pos.geod.utc = utc;
+    loc.pos.selg.utc = utc;
+    loc.pos.geos.utc = utc;
+    // extra.utc intentionally not set — managed by pos_extra's JPL cache.
+    return 0;
+}
+
+int32_t pos_set_utc(locstruc *loc, double utc) { return pos_set_utc(*loc, utc); }
+
 int32_t pos_set_icrf(locstruc *loc) { return pos_set_icrf(*loc); }
 
 int32_t pos_set_icrf(locstruc &loc)
