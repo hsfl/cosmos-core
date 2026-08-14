@@ -29,7 +29,7 @@ uint16_t settle=0;
 uint16_t printevent=0;
 uint16_t jsonevent=0;
 uint16_t postevent=0;
-double postrate = 10.;       // max postevent packets per second (0 = unlimited)
+double postrate = 100.;       // max postevent packets per second (0 = unlimited)
 uint16_t fileevent=0;
 string eventfilename = "events.json";
 std::ofstream eventfile_stream;
