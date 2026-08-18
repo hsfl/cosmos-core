@@ -13904,10 +13904,17 @@ int32_t load_target(cosmosstruc *cinfo)
     char inb[JSON_MAX_DATA];
     uint16_t count;
 
+    // Try targets.ini first; fall back to targets.dat (same format,
+    // alternate extension used by the simulator and other tools).
     fname = get_realmdir(cinfo->realm.name) + "/targets.ini";
-    //    fname = get_nodedir(cinfo->node.name) + "/target.ini";
+    op = fopen(fname.c_str(), "r");
+    if (op == nullptr)
+    {
+        fname = get_realmdir(cinfo->realm.name) + "/targets.dat";
+        op = fopen(fname.c_str(), "r");
+    }
     count = 0;
-    if ((op=fopen(fname.c_str(),"r")) != nullptr)
+    if (op != nullptr)
     {
         //JIMNOTE:  take away this resize
         //EJPNOTE: keep the resize, it is cleaned up later
@@ -13930,15 +13937,44 @@ int32_t load_target(cosmosstruc *cinfo)
             json_addentry("target_loc",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_LOCSTRUC, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_loc_pos_geod",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc.pos.geod)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_POS_GEOD, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_loc_pos_eci",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc.pos.eci)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_POS_ECI, (uint16_t)JSON_STRUCT_TARGET, cinfo);
-            if (json_parse(inb, cinfo) >= 0)
+            json_parse(inb, cinfo);
+            // Also parse short-form fields used in targets.dat / targets.ini:
+            //   name, type        — plain names rather than target_name / target_type
+            //   latitude          — geodetic latitude in degrees
+            //   rlatitude         — geodetic latitude in radians ('r' prefix = radians)
+            //   longitude         — geodetic longitude in degrees
+            //   rlongitude        — geodetic longitude in radians
+            //   altitude          — height above ellipsoid in metres
+            //   minelto           — minimum elevation threshold in radians
+            // This makes the rlatitude/rlongitude convention available to all
+            // COSMOS tools, not just the simulator.
             {
-                if (cinfo->target[count].loc.utc == 0.)
+                string jerr;
+                json11::Json p = json11::Json::parse(inb, jerr);
+                if (jerr.empty() && p.type() == json11::Json::OBJECT)
                 {
-                    cinfo->target[count].loc.utc = currentmjd(cinfo->node.utcoffset);
+                    if (!p["name"].is_null())
+                        cinfo->target[count].name = p["name"].string_value();
+                    if (!p["type"].is_null())
+                        cinfo->target[count].type = static_cast<uint16_t>(p["type"].int_value());
+                    if (!p["latitude"].is_null())
+                        cinfo->target[count].loc.pos.geod.s.lat = RADOF(p["latitude"].number_value());
+                    if (!p["rlatitude"].is_null())
+                        cinfo->target[count].loc.pos.geod.s.lat = p["rlatitude"].number_value();
+                    if (!p["longitude"].is_null())
+                        cinfo->target[count].loc.pos.geod.s.lon = RADOF(p["longitude"].number_value());
+                    if (!p["rlongitude"].is_null())
+                        cinfo->target[count].loc.pos.geod.s.lon = p["rlongitude"].number_value();
+                    if (!p["altitude"].is_null())
+                        cinfo->target[count].loc.pos.geod.s.h = p["altitude"].number_value();
+                    if (!p["minelto"].is_null())
+                        cinfo->target[count].min = static_cast<float>(p["minelto"].number_value());
+
+                    if (cinfo->target[count].loc.utc == 0.)
+                        cinfo->target[count].loc.utc = currentmjd(cinfo->node.utcoffset);
+                    loc_update(&cinfo->target[count].loc);
+                    ++count;
                 }
-                // This may cause problems, but location information won't be complete without it
-                loc_update(&cinfo->target[count].loc);
-                ++count;
             }
             json_addentry("target_size",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,size)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_GVECTOR, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_area",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,area)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_STRUCT_TARGET, cinfo);
