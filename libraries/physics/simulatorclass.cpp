@@ -1868,9 +1868,9 @@ int32_t Simulator::Target()
     int32_t iretn = 0;
     // uint32_t minlevel = 10000;
     // Synchronize progress of all targets
+    // update_target was already called for each node inside State::Propagate()
     for (uint16_t i=0; i<cnodes.size(); ++i)
     {
-        update_target(&cnodes[i]->currentinfo);
         for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
         {
             if (cnodes[i]->currentinfo.target[j].cover[0].count > targets[cnodes[i]->currentinfo.target[j].name].cover[0].count)

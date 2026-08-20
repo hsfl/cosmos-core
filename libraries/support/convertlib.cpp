@@ -139,6 +139,18 @@ int32_t pos_extra(double utc, locstruc &loc)
         return 0;
     }
 
+    // Cross-node cache: gcrf2itrs, jpllib, jplpos depend only on UTC, not on satellite
+    // position. All nodes at the same timestep share identical results. pos_set_eci calls
+    // pos_clear first, which zeros extra.utc and defeats the per-loc guard above, so we
+    // need this second layer to avoid recomputing for every node in the formation.
+    static double cached_utc = 0.;
+    static extrapos cached_extra;
+    if (cached_utc == utc)
+    {
+        loc.pos.extra = cached_extra;
+        return 0;
+    }
+
     double tt = utc2tt(utc);
     if (tt <= 0.)
     {
@@ -177,6 +189,9 @@ int32_t pos_extra(double utc, locstruc &loc)
     tloc.pos.eci.s = rv_sub(loc.pos.extra.sun2moon.s, loc.pos.extra.sun2earth.s);
     pos_eci2geoc(tloc);
     loc.pos.extra.moongeo = tloc.pos.geod.s;
+
+    cached_utc = utc;
+    cached_extra = loc.pos.extra;
 
     //    pos_lvlh(utc, loc);
     return 0;
@@ -392,7 +407,7 @@ int32_t pos_icrf(locstruc &loc)
         pos_icrf2eci(loc);
         pos_eci(loc);
     }
-    if (loc.pos.icrf.pass > loc.pos.sci.pass)
+    if (loc.pos.icrf.pass > loc.pos.sci.pass && loc.pos.extra.closest == COSMOS_MOON)
     {
         pos_icrf2sci(loc);
         pos_sci(loc);
@@ -448,7 +463,7 @@ int32_t pos_eci(locstruc &loc)
         pos_eci2icrf(loc);
         pos_icrf(loc);
     }
-    if (loc.pos.eci.pass > loc.pos.sci.pass)
+    if (loc.pos.eci.pass > loc.pos.sci.pass && loc.pos.extra.closest == COSMOS_MOON)
     {
         if (loc.pos.eci.pass > loc.pos.icrf.pass)
         {

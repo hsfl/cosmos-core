@@ -14083,6 +14083,18 @@ int32_t update_target(Convert::locstruc source, targetstruc &target)
         // (source.utc still 0), pos_eci never ran to restore closest — re-pin it.
         if (target.loc.pos.extra.closest == 0) target.loc.pos.extra.closest = COSMOS_MOON;
     } else {
+        // Spherical-Earth horizon check before the expensive loc_update + az/el path.
+        // dot(sat_geoc_m, tgt_unit) < R_earth ↔ target is below the geometric horizon.
+        // (R_sat cancels: cos_angle < R_earth/R_sat ↔ R_sat*cos_angle < R_earth ↔ dot < R_earth)
+        double clat = cos(target.loc.pos.geod.s.lat);
+        double dot = source.pos.geoc.s.col[0] * clat * cos(target.loc.pos.geod.s.lon)
+                   + source.pos.geoc.s.col[1] * clat * sin(target.loc.pos.geod.s.lon)
+                   + source.pos.geoc.s.col[2] * sin(target.loc.pos.geod.s.lat);
+        if (dot < REARTHM)
+        {
+            target.elto = -1.;
+            return 0;
+        }
         target.loc.pos.geod.pass++;
         Convert::loc_update(target.loc);
     }

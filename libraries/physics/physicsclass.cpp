@@ -526,9 +526,14 @@ Vector GravityAccel(posstruc pos, uint16_t model, uint32_t degree)
     Vector accel;
     double fr;
 
-    // Zero out vc and wc
-    memset(vc,0,sizeof(vc));
-    memset(wc,0,sizeof(wc));
+    // Zero only the (degree+3) x (degree+2) corner actually used by the recurrence.
+    // The full arrays are 361x361 (~2 MB each); zeroing all of them per call
+    // trashed the cache. For degree=12 this reduces the zero-fill to ~3 KB.
+    for (uint32_t i = 0; i <= degree+2 && i <= maxdegree; ++i)
+    {
+        memset(vc[i], 0, (degree+2) * sizeof(double));
+        memset(wc[i], 0, (degree+2) * sizeof(double));
+    }
 
     // Load Params
     GravityParams(model);
