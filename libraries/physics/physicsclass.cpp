@@ -790,6 +790,11 @@ locstruc shape2eci(double utc, double latitude, double longitude, double altitud
 
     // Initial position
     Vector s0(radius, 0., 0.);
+    // GEOC-frame velocity. pos_set_geoc() will add Earth's rotational velocity
+    // (ω×r) when converting to ECI, so the GEOC speed must pre-compensate by
+    // subtracting the projection of that rotation onto the orbital direction:
+    //   v_GEOC = sqrt(GM/r) - cos(inclination) * r * ω_earth
+    // For retrograde orbits cos < 0, so this adds velocity rather than subtracts.
     double velocity = sqrt(GM/radius) - cos(angle) * radius * D2PI / 86400.;
     Vector v0(0., velocity, 0.);
 
@@ -4712,9 +4717,14 @@ int32_t LvlhPositionPropagator::Propagate(locstruc &loc)
         currentinfo->node.loc.pos.lvlh.v += dt * (currentinfo->node.loc.pos.lvlh.a + (dt / 2.) * currentinfo->node.loc.pos.lvlh.j);
         currentinfo->node.loc.pos.lvlh.s += dt * (currentinfo->node.loc.pos.lvlh.v + dt * ((1/2.) * currentinfo->node.loc.pos.lvlh.a + dt * (1.6) * currentinfo->node.loc.pos.lvlh.j));
     }
+    // Build the child's new state from the new reference orbit (loc = mother's
+    // current state) plus the child's updated LVLH offset.  We work on a copy
+    // so pos_origin2lvlh never mutates the mother's locstruc through the reference.
     currentinfo->node.loc.tle.name = "";
-    currentinfo->node.loc = loc;
-    pos_origin2lvlh(currentinfo->node.loc);
+    locstruc newloc = loc;
+    newloc.pos.lvlh = currentinfo->node.loc.pos.lvlh;
+    pos_origin2lvlh(newloc);
+    currentinfo->node.loc = newloc;
 
     PosAccel(currentinfo->node.loc, currentinfo->node.phys);
 
