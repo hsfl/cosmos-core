@@ -405,6 +405,7 @@ int32_t Simulator::ParseOrbitFile(string filename)
         line.resize(1010);
         while (fgets((char *)line.data(), 1000, fp) != nullptr)
         {
+            if (line.front() == '#') { continue; }
             iretn = ParseOrbitString(line);
             if (iretn < 0)
             {
@@ -866,6 +867,7 @@ int32_t Simulator::ParseSatFile(string filename)
         line.resize(1010);
         while (fgets((char *)line.data(), 1000, fp) != nullptr)
         {
+            if (line.front() == '#') { continue; }
             iretn = ParseSatString(line);
             if (iretn < 0)
             {
@@ -1232,6 +1234,7 @@ int32_t Simulator::ParseTargetFile(string filename)
     line.resize(510);
     while (fgets((char *)line.data(), 500, fp) != nullptr)
     {
+        if (line.front() == '#') { continue; }
         iretn = ParseTargetString(line);
         if (iretn < 0)
         {
@@ -1769,9 +1772,31 @@ int32_t Simulator::Propagate(double nextutc)
         }
     }
 
+    // Use a copy of the mother's locstruc so that pos_geoc2lvlh's internal
+    // pos_set_geoc() call (which wipes and recomputes the first argument) does
+    // not corrupt the GJ integrator's primary ECI state variable.
+    locstruc mother_loc = cnodes[0]->currentinfo.node.loc;
     for (uint16_t i=1; i<cnodes.size(); ++i)
     {
-        pos_geoc2lvlh(cnodes[0]->currentinfo.node.loc, cnodes[i]->currentinfo.node.loc);
+        static int lvlh_diag = 0;
+        if (lvlh_diag < 6) {
+            fprintf(stderr, "[LVLH-pre  #%d] %s |eci_a|=%.6f  geoc_a_z=%.6f  geoc_utc=%.6f\n",
+                lvlh_diag,
+                cnodes[i]->currentinfo.node.name.c_str(),
+                length_rv(cnodes[i]->currentinfo.node.loc.pos.eci.a),
+                cnodes[i]->currentinfo.node.loc.pos.geoc.a.col[2],
+                cnodes[i]->currentinfo.node.loc.pos.geoc.utc);
+        }
+        pos_geoc2lvlh(mother_loc, cnodes[i]->currentinfo.node.loc);
+        if (lvlh_diag < 6) {
+            fprintf(stderr, "[LVLH-post #%d] %s |eci_a|=%.6f  geoc_a_z=%.6f  geoc_utc=%.6f\n",
+                lvlh_diag,
+                cnodes[i]->currentinfo.node.name.c_str(),
+                length_rv(cnodes[i]->currentinfo.node.loc.pos.eci.a),
+                cnodes[i]->currentinfo.node.loc.pos.geoc.a.col[2],
+                cnodes[i]->currentinfo.node.loc.pos.geoc.utc);
+            ++lvlh_diag;
+        }
         cnodes[i]->currentinfo.node.loc.pos.lvlh.s = -cnodes[i]->currentinfo.node.loc.pos.lvlh.s;
         cnodes[i]->currentinfo.node.loc.pos.lvlh.v = -cnodes[i]->currentinfo.node.loc.pos.lvlh.v;
         cnodes[i]->currentinfo.node.loc.pos.lvlh.a = -cnodes[i]->currentinfo.node.loc.pos.lvlh.a;

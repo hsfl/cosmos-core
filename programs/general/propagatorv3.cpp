@@ -512,6 +512,36 @@ int main(int argc, char *argv[])
             printf("}\n");
         }
         sim->Propagate();
+
+        // Physics sanity dump — first 3 steps only, written to stderr so
+        // it doesn't mix with the normal stdout telemetry stream.
+        if (elapsed < 3)
+        {
+            double GM_const = 3.986004418e14;
+            fprintf(stderr, "\n=== physics sanity step %d ===\n", (int)elapsed);
+            for (uint16_t i = 0; i < sim->cnodes.size(); ++i)
+            {
+                auto& phys = sim->cnodes[i]->currentinfo.node.phys;
+                auto& loc  = sim->cnodes[i]->currentinfo.node.loc;
+                double r    = length_rv(loc.pos.eci.s);
+                double gmag = length_rv(loc.pos.eci.a);
+                double grav2body = (r > 0.) ? GM_const / (r * r) : 0.;
+                double nongrav  = gmag - grav2body;
+                fprintf(stderr,
+                    "[%s] alt=%.1f m  mass=%.6f kg  area=%.6f m2  A/m=%.4e m2/kg\n"
+                    "       |adrag|=%.4e m/s2  |rdrag|=%.4e m/s2  |fdrag|=%.4e m/s2\n"
+                    "       |fpush|=%.4e N     |thrust|=%.4e N\n"
+                    "       |eci_a|=%.6f m/s2  grav_2body=%.6f  non-grav=%.4e m/s2\n",
+                    sim->cnodes[i]->currentinfo.node.name.c_str(),
+                    loc.pos.geod.s.h, (double)phys.mass, (double)phys.area,
+                    (phys.mass > 0.f) ? phys.area / phys.mass : 0.,
+                    phys.adrag.norm(), phys.rdrag.norm(), phys.fdrag.norm(),
+                    phys.fpush.norm(), phys.thrust.norm(),
+                    gmag, grav2body, nongrav);
+            }
+            fprintf(stderr, "  (density printed by PhysCalc above)\n");
+        }
+
         sim->Thrust();
         if (pointingfile.length())
         {
