@@ -405,6 +405,7 @@ int32_t Simulator::ParseOrbitFile(string filename)
         line.resize(1010);
         while (fgets((char *)line.data(), 1000, fp) != nullptr)
         {
+            if (line.front() == '#') { continue; }
             iretn = ParseOrbitString(line);
             if (iretn < 0)
             {
@@ -715,9 +716,9 @@ int32_t Simulator::ParseOrbitString(string args)
                   : values["a"].number_value();
             e_f = have_ecc ? values["e"].number_value() : 0.;
             flo_alt_m = a - FLO_RM;
-            std::fprintf(stderr, "[flo] Mode B: a=%.1f m  e=%.5f  i=%.2f°  "
-                         "raan=%.2f°  aop=%.2f°  ta=%.2f°\n",
-                         a, e_f, DEGOF(incl), DEGOF(raan), DEGOF(aop), DEGOF(ta));
+//            std::fprintf(stderr, "[flo] Mode B: a=%.1f m  e=%.5f  i=%.2f°  "
+//                         "raan=%.2f°  aop=%.2f°  ta=%.2f°\n",
+//                         a, e_f, DEGOF(incl), DEGOF(raan), DEGOF(aop), DEGOF(ta));
         }
         else if (!values["alt"].is_null() && have_ecc)
         {
@@ -725,9 +726,9 @@ int32_t Simulator::ParseOrbitString(string args)
             flo_alt_m = values["alt"].number_value();
             a         = FLO_RM + flo_alt_m;
             e_f       = values["e"].number_value();
-            std::fprintf(stderr, "[flo] Mode B (alt+e): alt=%.0f m  a=%.1f m  "
-                         "e=%.5f  i=%.2f°  raan=%.2f°  aop=%.2f°  ta=%.2f°\n",
-                         flo_alt_m, a, e_f, DEGOF(incl), DEGOF(raan), DEGOF(aop), DEGOF(ta));
+//            std::fprintf(stderr, "[flo] Mode B (alt+e): alt=%.0f m  a=%.1f m  "
+//                         "e=%.5f  i=%.2f°  raan=%.2f°  aop=%.2f°  ta=%.2f°\n",
+//                         flo_alt_m, a, e_f, DEGOF(incl), DEGOF(raan), DEGOF(aop), DEGOF(ta));
         }
         else
         {
@@ -735,9 +736,9 @@ int32_t Simulator::ParseOrbitString(string args)
             flo_alt_m = values["alt"].number_value();
             a         = FLO_RM + flo_alt_m;
             e_f       = flo_frozen_eccentricity(flo_alt_m, incl);
-            std::fprintf(stderr, "[flo] Mode A: alt=%.0f m  a=%.1f m  "
-                         "e_frozen=%.5f  i=%.2f°\n",
-                         flo_alt_m, a, e_f, DEGOF(incl));
+//            std::fprintf(stderr, "[flo] Mode A: alt=%.0f m  a=%.1f m  "
+//                         "e_frozen=%.5f  i=%.2f°\n",
+//                         flo_alt_m, a, e_f, DEGOF(incl));
         }
 
         // ── Convert Keplerian elements to ECI Cartesian ──────────────────────
@@ -784,16 +785,33 @@ int32_t Simulator::ParseOrbitString(string args)
         double Qzx = sw*sI;
         double Qzy = cw*sI;
 
-        initialloc.pos.eci.utc      = initialutc;
-        initialloc.pos.eci.s.col[0] = Qxx*rx_pf + Qxy*ry_pf;
-        initialloc.pos.eci.s.col[1] = Qyx*rx_pf + Qyy*ry_pf;
-        initialloc.pos.eci.s.col[2] = Qzx*rx_pf + Qzy*ry_pf;
-        initialloc.pos.eci.v.col[0] = Qxx*vx_pf + Qxy*vy_pf;
-        initialloc.pos.eci.v.col[1] = Qyx*vx_pf + Qyy*vy_pf;
-        initialloc.pos.eci.v.col[2] = Qzx*vx_pf + Qzy*vy_pf;
-        initialloc.pos.eci.a.col[0] = 0.;
-        initialloc.pos.eci.a.col[1] = 0.;
-        initialloc.pos.eci.a.col[2] = 0.;
+        // The Q rotation produced a vector in SELENOGRAPHIC axes (since
+        // incl/raan/aop are measured relative to Moon's equator/pole).
+        // Init() will copy pos.eci → pos.sci and call pos_sci(), so
+        // pos.eci must hold the selenocentric vector in J2000-ALIGNED
+        // (SCI) axes -- not selenographic body-fixed axes.
+        // Apply s2j (selenographic → SCI) at initialutc to get there.
+        pos_extra(initialutc, initialloc);   // populate s2j
+
+        rvector selc_s, selc_v;
+        selc_s.col[0] = Qxx*rx_pf + Qxy*ry_pf;
+        selc_s.col[1] = Qyx*rx_pf + Qyy*ry_pf;
+        selc_s.col[2] = Qzx*rx_pf + Qzy*ry_pf;
+        selc_v.col[0] = Qxx*vx_pf + Qxy*vy_pf;
+        selc_v.col[1] = Qyx*vx_pf + Qyy*vy_pf;
+        selc_v.col[2] = Qzx*vx_pf + Qzy*vy_pf;
+
+        initialloc.pos.eci.s   = rv_mmult(initialloc.pos.extra.s2j, selc_s);
+        initialloc.pos.eci.v   = rv_mmult(initialloc.pos.extra.s2j, selc_v);
+        initialloc.pos.eci.a   = rv_zero();
+        initialloc.pos.eci.utc = initialutc;
+
+//        std::fprintf(stderr, "[flo selg->sci] |eci.s|=%.1f km  "
+//                     "eci.s=(%.1f,%.1f,%.1f)  eci.v=(%.3f,%.3f,%.3f)\n",
+//                     length_rv(initialloc.pos.eci.s)/1000.,
+//                     initialloc.pos.eci.s.col[0], initialloc.pos.eci.s.col[1], initialloc.pos.eci.s.col[2],
+//                     initialloc.pos.eci.v.col[0], initialloc.pos.eci.v.col[1], initialloc.pos.eci.v.col[2]);
+//        std::fflush(stderr);
 
         // --- store FLO parameters for use in Propagate() ---
         flo_enabled        = true;
@@ -849,6 +867,7 @@ int32_t Simulator::ParseSatFile(string filename)
         line.resize(1010);
         while (fgets((char *)line.data(), 1000, fp) != nullptr)
         {
+            if (line.front() == '#') { continue; }
             iretn = ParseSatString(line);
             if (iretn < 0)
             {
@@ -1215,6 +1234,7 @@ int32_t Simulator::ParseTargetFile(string filename)
     line.resize(510);
     while (fgets((char *)line.data(), 500, fp) != nullptr)
     {
+        if (line.front() == '#') { continue; }
         iretn = ParseTargetString(line);
         if (iretn < 0)
         {
@@ -1752,9 +1772,13 @@ int32_t Simulator::Propagate(double nextutc)
         }
     }
 
+    // Use a copy of the mother's locstruc so that pos_geoc2lvlh's internal
+    // pos_set_geoc() call (which wipes and recomputes the first argument) does
+    // not corrupt the GJ integrator's primary ECI state variable.
+    locstruc mother_loc = cnodes[0]->currentinfo.node.loc;
     for (uint16_t i=1; i<cnodes.size(); ++i)
     {
-        pos_geoc2lvlh(cnodes[0]->currentinfo.node.loc, cnodes[i]->currentinfo.node.loc);
+        pos_geoc2lvlh(mother_loc, cnodes[i]->currentinfo.node.loc);
         cnodes[i]->currentinfo.node.loc.pos.lvlh.s = -cnodes[i]->currentinfo.node.loc.pos.lvlh.s;
         cnodes[i]->currentinfo.node.loc.pos.lvlh.v = -cnodes[i]->currentinfo.node.loc.pos.lvlh.v;
         cnodes[i]->currentinfo.node.loc.pos.lvlh.a = -cnodes[i]->currentinfo.node.loc.pos.lvlh.a;
@@ -1851,9 +1875,9 @@ int32_t Simulator::Target()
     int32_t iretn = 0;
     // uint32_t minlevel = 10000;
     // Synchronize progress of all targets
+    // update_target was already called for each node inside State::Propagate()
     for (uint16_t i=0; i<cnodes.size(); ++i)
     {
-        update_target(&cnodes[i]->currentinfo);
         for (uint16_t j=0; j<cnodes[i]->currentinfo.target.size(); ++j)
         {
             if (cnodes[i]->currentinfo.target[j].cover[0].count > targets[cnodes[i]->currentinfo.target[j].name].cover[0].count)

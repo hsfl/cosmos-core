@@ -10,6 +10,7 @@
 #include "support/configCosmos.h"
 #include "support/packetcomm.h"
 #include "support/timelib.h"
+#include "support/elapsedtime.h"
 
 namespace Cosmos {
     namespace Support {

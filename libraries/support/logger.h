@@ -33,8 +33,6 @@
 #include "support/configCosmos.h"
 #include "support/elapsedtime.h"
 #include "support/timelib.h"
-#include "support/stringlib.h"
-#include "support/datalib.h"
 #include "support/socketlib.h"
 //#include <stdarg.h>
 //#include <errno.h>

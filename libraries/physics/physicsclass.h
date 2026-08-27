@@ -33,7 +33,7 @@
 #include "support/configCosmos.h"
 #include "support/jsonlib.h"
 #include "support/convertlib.h"
-#include "support/timelib.h"
+#include "support/elapsedtime.h"
 #include "physics/nrlmsise-00.h"
 #include "support/datalib.h"
 #include "support/demlib.h"
@@ -530,6 +530,10 @@ namespace Cosmos
             bool in_umbra = false;
             bool in_gs = false;
             bool in_targ = false;
+            //! True when Earth is blocking line of sight to the Moon
+            bool in_earth = false;
+            //! True when Moon is blocking line of sight to the Earth
+            bool in_moon = false;
             double time_start = 0.;
             double time_end = 0.;
             ElapsedTime time_alarm;
@@ -545,6 +549,10 @@ namespace Cosmos
             double minlat = 0.;
             //! Track when an umbra region starts
             double umbra_start = 0.;
+            //! Track when Earth starts blocking view of the Moon
+            double earth_start = 0.;
+            //! Track when Moon starts blocking view of the Earth
+            double moon_start = 0.;
 //            //! Reference to target list in cosmosstruc
 //            vector<targetstruc>& targets;
 //            //! Reference to event list in cosmosstruc, orbital/physical events are appended to this as they occur
@@ -572,6 +580,12 @@ namespace Cosmos
             //! Checks for Umbra enter/exit event
             //! \param final If true, forces end of event if active
             int32_t check_umbra_event(bool force_end);
+            //! Checks for Earth blocking line of sight to the Moon
+            //! \param final If true, forces end of event if active
+            int32_t check_earth_event(bool force_end);
+            //! Checks for Moon blocking line of sight to the Earth
+            //! \param final If true, forces end of event if active
+            int32_t check_moon_event(bool force_end);
             //! Iterates over targets, then calls gs or target function depending on the type
             int32_t check_target_events(bool force_end);
             int32_t check_land_event(bool force_end);

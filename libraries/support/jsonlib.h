@@ -111,7 +111,7 @@
 #include "support/configCosmos.h"
 
 #include "support/jsondef.h"
-#include "support/datalib.h"
+//#include "support/datalib.h"
 #include "support/stringlib.h"
 
 //! \ingroup jsonlib
@@ -125,7 +125,6 @@ void json_init_reserve(cosmosstruc* cinfo);
 cosmosstruc *json_init(cosmosstruc *cinfo, string node="");
 cosmosstruc *json_init(string node="");
 int32_t json_create_node(cosmosstruc *cinfo, string &node_name, uint16_t node_type=NODE_TYPE_COMPUTER);
-int32_t json_create_cpu(string &node_name);
 int32_t json_shrink(cosmosstruc *cinfo);
 //int32_t json_clone(cosmosstruc *cinfo1, cosmosstruc *cinfo2);
 int32_t json_repoint(cosmosstruc *cinfo);

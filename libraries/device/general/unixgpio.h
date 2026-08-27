@@ -4,7 +4,8 @@
 #ifndef UnixGpio_H
 #define UnixGpio_H
 
-#include "device/serial/serialclass.h"
+//#include "device/serial/serialclass.h"
+#include "support/configCosmos.h"
 #include <fstream>
 namespace Cosmos {
     namespace Devices {

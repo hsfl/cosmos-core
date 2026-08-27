@@ -32,8 +32,6 @@
 */
 
 #include "support/timelib.h"
-#include "support/datalib.h"
-#include "support/ephemlib.h"
 #include "support/stringlib.h"
 #include "math/mathlib.h"
 
@@ -1016,28 +1014,6 @@ namespace Cosmos {
             return JD2MJD(jd);
         }
 
-        int32_t timed_countdown(int32_t seconds, int32_t step, string message)
-        {
-            ElapsedTime et;
-            ElapsedTime set;
-
-            if (message.length())
-            {
-                printf("%s - ", message.c_str());
-                fflush(stdout);
-            }
-
-            while (et.split() < seconds)
-            {
-                int32_t nextstep = static_cast <int32_t>((seconds - et.split()) / step);
-                secondsleep((seconds - et.split()) - nextstep * step);
-                printf("...%d", nextstep * step);
-                fflush(stdout);
-            }
-            printf("\n");
-            return 0;
-        }
-
         //! @}
 
 
@@ -1263,5 +1239,24 @@ namespace Cosmos {
         {
             return deci / 864000.+ newdecade();
         }
+
+        string to_iso8601(double value)
+        {
+            return mjd2iso8601(value);
+        }
+
+        string to_datename(double mjd)
+        {
+            calstruc cal = mjd2cal(mjd);
+            string output = to_unsigned(cal.year, 4);
+            output += to_unsigned(cal.month, 2, true);
+            output += to_unsigned(cal.dom, 2, true);
+            output += "_" + to_unsigned(cal.hour, 2, true);
+            output += to_unsigned(cal.minute, 2, true);
+            output += to_unsigned(cal.second, 2, true);
+            return output;
+        }
+
+
     }
 }

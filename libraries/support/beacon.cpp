@@ -1,4 +1,5 @@
 #include "beacon.h"
+#include "support/timelib.h"
 
 namespace Cosmos {
 namespace Support {

@@ -121,6 +121,12 @@ namespace Cosmos {
         //! \return 0 on success, negative error code on failure.
         int32_t pos_selg(locstruc *loc);
 
+        //! \brief Stamp all position frame UTC fields with the given epoch. Call before pos_set_xxx() when the locstruc was loaded without timestamps. Does not touch extra.utc (managed by pos_extra's cache).
+        //! \param loc Location structure (input/output).
+        //! \param utc Epoch to assign [MJD].
+        //! \return 0 on success, CONVERT_ERROR_UTC if utc is zero or non-finite.
+        int32_t pos_set_utc(locstruc *loc, double utc);
+
         //! \brief Save loc.pos.icrf, clear loc, restore as sole authoritative frame, propagate all others. Attitude is cleared; call att_set_xxx() afterwards.
         //! \param loc Location structure (input/output).
         //! \return 0 on success, negative error code on failure.
@@ -316,6 +322,7 @@ namespace Cosmos {
         //! \return 0 on success, negative error code on failure.
         int32_t pos_selg(locstruc &loc);
 
+        int32_t pos_set_utc(locstruc &loc, double utc);
         //! \brief Save loc.pos.icrf, clear loc, restore as sole authoritative frame, propagate all others (reference overload).
         //! \param loc Location structure (input/output).
         //! \return 0 on success, negative error code on failure.

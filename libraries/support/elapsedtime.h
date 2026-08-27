@@ -124,5 +124,6 @@ public:
 //};
 //! @}
 
+int32_t timed_countdown(int32_t seconds, int32_t step=10, string message="");
 
 #endif

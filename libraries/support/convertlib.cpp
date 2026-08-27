@@ -34,7 +34,6 @@
 #include "support/convertlib.h"
 #include "support/jsondef.h"
 #include "support/stringlib.h"
-#include "physics/physicsclass.h"
 
 // Used to mark unused variables as known
 #ifndef UNUSED_VARIABLE_LOCALDEF
@@ -140,6 +139,23 @@ int32_t pos_extra(double utc, locstruc &loc)
         return 0;
     }
 
+    // Cross-node cache: gcrf2itrs, jpllib, jplpos depend only on UTC, not on satellite
+    // position. All nodes at the same timestep share identical results. pos_set_eci calls
+    // pos_clear first, which zeros extra.utc and defeats the per-loc guard above, so we
+    // need this second layer to avoid recomputing for every node in the formation.
+    // thread_local: SimRun (background) and Tick() (Qt thread) both call pos_extra
+    // concurrently. A plain static would race on cached_extra writes (extrapos is ~500
+    // bytes, spans multiple cache lines → torn reads possible). thread_local gives each
+    // thread its own cache with no synchronisation cost; the cross-node sharing still
+    // works within each thread's formation Propagate() loop.
+    thread_local double cached_utc = 0.;
+    thread_local extrapos cached_extra;
+    if (cached_utc == utc)
+    {
+        loc.pos.extra = cached_extra;
+        return 0;
+    }
+
     double tt = utc2tt(utc);
     if (tt <= 0.)
     {
@@ -178,6 +194,9 @@ int32_t pos_extra(double utc, locstruc &loc)
     tloc.pos.eci.s = rv_sub(loc.pos.extra.sun2moon.s, loc.pos.extra.sun2earth.s);
     pos_eci2geoc(tloc);
     loc.pos.extra.moongeo = tloc.pos.geod.s;
+
+    cached_utc = utc;
+    cached_extra = loc.pos.extra;
 
     //    pos_lvlh(utc, loc);
     return 0;
@@ -393,7 +412,7 @@ int32_t pos_icrf(locstruc &loc)
         pos_icrf2eci(loc);
         pos_eci(loc);
     }
-    if (loc.pos.icrf.pass > loc.pos.sci.pass)
+    if (loc.pos.icrf.pass > loc.pos.sci.pass && loc.pos.extra.closest == COSMOS_MOON)
     {
         pos_icrf2sci(loc);
         pos_sci(loc);
@@ -449,7 +468,7 @@ int32_t pos_eci(locstruc &loc)
         pos_eci2icrf(loc);
         pos_icrf(loc);
     }
-    if (loc.pos.eci.pass > loc.pos.sci.pass)
+    if (loc.pos.eci.pass > loc.pos.sci.pass && loc.pos.extra.closest == COSMOS_MOON)
     {
         if (loc.pos.eci.pass > loc.pos.icrf.pass)
         {
@@ -848,6 +867,24 @@ static int32_t att_restore_source(locstruc &loc, int att_kind, const qatt &saved
     \param loc Location structure (input/output).
     \return 0 on success, negative error code on failure.
 */
+int32_t pos_set_utc(locstruc &loc, double utc)
+{
+    if (!isfinite(utc) || utc == 0.) { return CONVERT_ERROR_UTC; }
+    loc.utc = loc.pos.utc = utc;
+    loc.pos.icrf.utc = utc;
+    loc.pos.eci.utc  = utc;
+    loc.pos.sci.utc  = utc;
+    loc.pos.geoc.utc = utc;
+    loc.pos.selc.utc = utc;
+    loc.pos.geod.utc = utc;
+    loc.pos.selg.utc = utc;
+    loc.pos.geos.utc = utc;
+    // extra.utc intentionally not set — managed by pos_extra's JPL cache.
+    return 0;
+}
+
+int32_t pos_set_utc(locstruc *loc, double utc) { return pos_set_utc(*loc, utc); }
+
 int32_t pos_set_icrf(locstruc *loc) { return pos_set_icrf(*loc); }
 
 int32_t pos_set_icrf(locstruc &loc)
@@ -1361,8 +1398,16 @@ int32_t pos_eci2geoc(locstruc &loc)
     // Convert GEOC Position to GEOS
     pos_geoc2geos(loc);
 
-    // Convert ICRF attitude to ITRF
-    iretn = att_icrf2geoc(loc);
+    // Convert ICRF attitude to ITRF.
+    // att_icrf2geoc calls pos_extra(att.icrf.utc) internally. If att.icrf.utc is stale
+    // (e.g. attitude not propagated in propagatorv3), that call overwrites extra with
+    // matrices for the wrong epoch, corrupting the j2e used for gravity rotation.
+    // Save and restore extra so the position-epoch matrices survive.
+    {
+        extrapos saved_extra = loc.pos.extra;
+        iretn = att_icrf2geoc(loc);
+        loc.pos.extra = saved_extra;
+    }
     if (iretn < 0)
     {
         return iretn;

@@ -13,9 +13,9 @@
 //! maintain a given attitude.
 
 #include "support/configCosmos.h"
-#include "physics/physicslib.h"
-#include "support/datalib.h"
-#include "math/mathlib.h"
+//#include "physics/physicslib.h"
+//#include "support/datalib.h"
+//#include "math/mathlib.h"
 #include "support/convertdef.h"
 
 //! \ingroup controllib

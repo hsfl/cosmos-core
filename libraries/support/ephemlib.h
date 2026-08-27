@@ -38,7 +38,7 @@
         JPL Ephemeris.
 */
 
-#include "math/mathlib.h"
+//#include "math/mathlib.h"
 #include "support/convertdef.h"
 
 namespace Cosmos {

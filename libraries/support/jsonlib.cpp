@@ -35,12 +35,12 @@
 #include "support/jsonlib.h"
 #include "support/convertlib.h"
 #include "support/timelib.h"
-#include "support/ephemlib.h"
+//#include "support/ephemlib.h"
+#include "support/configCosmos.h"
 #include "support/jsonclass.h"
-#include "device/cpu/devicecpu.h"
-#include "device/disk/devicedisk.h"
 
 #include <sys/stat.h>
+#include <unistd.h>
 #include <iostream>
 #include <limits>
 #include <fstream>
@@ -570,8 +570,9 @@ int32_t json_create_node(cosmosstruc *cinfo, string &node_name, uint16_t node_ty
 {
     if (node_name.empty())
     {
-        DeviceCpu deviceCpu;
-        node_name = deviceCpu.getHostName();
+        char hostname[HOST_NAME_MAX + 1];
+        gethostname(hostname, sizeof(hostname));
+        node_name = hostname;
     }
 
     if (!get_nodedir(node_name, true).empty())
@@ -590,77 +591,6 @@ int32_t json_create_node(cosmosstruc *cinfo, string &node_name, uint16_t node_ty
     }
 }
 
-int32_t json_create_cpu(string &node_name)
-{
-    cosmosstruc *cinfo = nullptr;
-    DeviceCpu deviceCpu;
-    int32_t iretn = 0;
-
-    if (node_name.empty())
-    {
-        node_name = deviceCpu.getHostName();
-    }
-
-    if (get_nodedir(node_name).empty())
-    {
-        if (get_nodedir(node_name, true).empty())
-        {
-            return 1;
-        }
-
-        cinfo = json_init();
-        //        strncpy(cinfo->node.name, node_name.c_str(), COSMOS_MAX_NAME);
-        cinfo->node.name = node_name;
-        iretn = json_createpiece(cinfo, node_name + "_cpu", DeviceType::CPU);
-        if (iretn >= 0)
-        {
-            uint16_t cpu_cidx = cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-            uint16_t cpu_didx = cinfo->device[cpu_cidx]->didx;
-            cinfo->devspec.cpu[cpu_didx].load = static_cast <float>(deviceCpu.getLoad());
-            cinfo->devspec.cpu[cpu_didx].gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/1073741824.);
-            cinfo->devspec.cpu[cpu_didx].maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/1073741824.);
-            cinfo->devspec.cpu[cpu_didx].maxload = deviceCpu.getCpuCount();
-        }
-
-        DeviceDisk deviceDisk;
-        vector <DeviceDisk::info> dinfo = deviceDisk.getInfo();
-        for (uint16_t i=0; i<dinfo.size(); ++i)
-        {
-            string name = "disk_" + to_unsigned(i, 2, true);
-            iretn = json_createpiece(cinfo, name, DeviceType::DISK);
-            if (iretn < 0)
-            {
-                continue;
-            }
-            uint16_t cidx = cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-            uint16_t didx = cinfo->device[cidx]->didx;
-            if (dinfo[i].mount.size() > COSMOS_MAX_NAME)
-            {
-                dinfo[i].mount.resize(COSMOS_MAX_NAME);
-            }
-            cinfo->devspec.disk[didx].path = dinfo[i].mount;
-        }
-        json_addpiece(cinfo, "main_drive", DeviceType::DISK);
-        json_mappieceentry(cinfo->pieces.size()-1, cinfo);
-        json_togglepieceentry(cinfo->pieces.size()-1, cinfo, true);
-
-        cinfo->device_cnt = cinfo->piece_cnt;
-        cinfo->device.resize(cinfo->device_cnt);
-        cinfo->devspec.cpu_cnt = 1;
-        cinfo->devspec.disk_cnt = 1;
-        cinfo->port_cnt = 1;
-        cinfo->port.resize(cinfo->port_cnt);
-
-        //        int32_t iretn = json_dump_node(cinfo);
-        json_destroy(cinfo);
-        //        return iretn;
-        return 0;
-    }
-    else
-    {
-        return 0;
-    }
-}
 
 int32_t json_create_mcc(string &node_name)
 {
@@ -668,8 +598,9 @@ int32_t json_create_mcc(string &node_name)
 
     if (node_name.empty())
     {
-        DeviceCpu deviceCpu;
-        node_name = deviceCpu.getHostName();
+        char hostname[HOST_NAME_MAX + 1];
+        gethostname(hostname, sizeof(hostname));
+        node_name = hostname;
     }
 
     if (get_nodedir(node_name).empty())
@@ -8483,8 +8414,9 @@ int32_t json_setup_node(string &node, cosmosstruc *cinfo)
 
     if (node.empty())
     {
-        DeviceCpu deviceCpu;
-        node = deviceCpu.getHostName();
+        char hostname[HOST_NAME_MAX + 1];
+        gethostname(hostname, sizeof(hostname));
+        node = hostname;
         if (node.empty()) { return JSON_ERROR_NAME_LENGTH; }
     }
 
@@ -8546,37 +8478,46 @@ int32_t json_setup_realm(string &realm, cosmosstruc *cinfo)
             targ.type = data["type"].number_value();
         }
 
-        // Extract GEOD
-        targ.loc.pos.geod.s.lat = 0.0;
-        if (!data["latitude"].is_null())
-        {
-            targ.loc.pos.geod.s.lat = RADOF(data["latitude"].number_value());
+        // Determine coordinate frame and body from JSON structure.
+        // "selg":{"s":{"lat":..,"lon":..,"h":..}} → Moon surface target (selenographic)
+        // "geod":{"s":{"lat":..,"lon":..,"h":..}} → Earth surface target (geodetic)
+        // Flat "latitude"/"longitude"/"altitude" keys → Earth (backward compat)
+        // Angles in degrees; altitude/h in metres.
+        targ.loc.pos.geod.s = {0., 0., 0.};
+        targ.loc.pos.selg.s = {0., 0., 0.};
+
+        if (!data["selg"].is_null() && !data["selg"]["s"].is_null()) {
+            targ.loc.pos.selg.s.lat = RADOF(data["selg"]["s"]["lat"].number_value());
+            targ.loc.pos.selg.s.lon = RADOF(data["selg"]["s"]["lon"].number_value());
+            targ.loc.pos.selg.s.h   = data["selg"]["s"]["h"].number_value();
+            targ.loc.pos.extra.closest = COSMOS_MOON;
+        } else if (!data["geod"].is_null() && !data["geod"]["s"].is_null()) {
+            targ.loc.pos.geod.s.lat = RADOF(data["geod"]["s"]["lat"].number_value());
+            targ.loc.pos.geod.s.lon = RADOF(data["geod"]["s"]["lon"].number_value());
+            targ.loc.pos.geod.s.h   = data["geod"]["s"]["h"].number_value();
+            targ.loc.pos.extra.closest = COSMOS_EARTH;
+        } else {
+            // Legacy flat keys — Earth target
+            if (!data["latitude"].is_null())
+                targ.loc.pos.geod.s.lat = RADOF(data["latitude"].number_value());
+            if (!data["longitude"].is_null())
+                targ.loc.pos.geod.s.lon = RADOF(data["longitude"].number_value());
+            if (!data["altitude"].is_null())
+                targ.loc.pos.geod.s.h = data["altitude"].number_value();
+            targ.loc.pos.extra.closest = COSMOS_EARTH;
         }
 
-        targ.loc.pos.geod.s.lon = 0.0;
-        if (!data["longitude"].is_null())
-        {
-            targ.loc.pos.geod.s.lon = RADOF(data["longitude"].number_value());
-        }
-
-        targ.loc.pos.geod.s.h = 0.;
-        if (!data["altitude"].is_null())
-        {
-            targ.loc.pos.geod.s.h = data["altitude"].number_value();
-        }
-
+        double bodyRadius = (targ.loc.pos.extra.closest == COSMOS_MOON) ? RMOONM : REARTHM;
         targ.area = 1.;
-        if (!data["area"].is_null())
-        {
+        if (!data["area"].is_null()) {
             targ.area = data["area"].number_value();
-            targ.size = gvector(sqrt(targ.area/M_PI), sqrt(targ.area/M_PI), 0.);
+            double r = sqrt(targ.area / M_PI);
+            targ.size = gvector(r / bodyRadius, r / bodyRadius, 0.);
         }
-
-        if (!data["radius"].is_null())
-        {
-            targ.area = data["radius"].number_value();
-            targ.size = gvector(targ.area/REARTHM, targ.area/REARTHM, 0.);
-            targ.area *= M_PI * targ.area;
+        if (!data["radius"].is_null()) {
+            double r = data["radius"].number_value();
+            targ.size = gvector(r / bodyRadius, r / bodyRadius, 0.);
+            targ.area = M_PI * r * r;
         }
 
         cinfo->target.push_back(targ);
@@ -13963,10 +13904,17 @@ int32_t load_target(cosmosstruc *cinfo)
     char inb[JSON_MAX_DATA];
     uint16_t count;
 
+    // Try targets.ini first; fall back to targets.dat (same format,
+    // alternate extension used by the simulator and other tools).
     fname = get_realmdir(cinfo->realm.name) + "/targets.ini";
-    //    fname = get_nodedir(cinfo->node.name) + "/target.ini";
+    op = fopen(fname.c_str(), "r");
+    if (op == nullptr)
+    {
+        fname = get_realmdir(cinfo->realm.name) + "/targets.dat";
+        op = fopen(fname.c_str(), "r");
+    }
     count = 0;
-    if ((op=fopen(fname.c_str(),"r")) != nullptr)
+    if (op != nullptr)
     {
         //JIMNOTE:  take away this resize
         //EJPNOTE: keep the resize, it is cleaned up later
@@ -13989,15 +13937,44 @@ int32_t load_target(cosmosstruc *cinfo)
             json_addentry("target_loc",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_LOCSTRUC, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_loc_pos_geod",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc.pos.geod)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_POS_GEOD, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_loc_pos_eci",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc.pos.eci)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_POS_ECI, (uint16_t)JSON_STRUCT_TARGET, cinfo);
-            if (json_parse(inb, cinfo) >= 0)
+            json_parse(inb, cinfo);
+            // Also parse short-form fields used in targets.dat / targets.ini:
+            //   name, type        — plain names rather than target_name / target_type
+            //   latitude          — geodetic latitude in degrees
+            //   rlatitude         — geodetic latitude in radians ('r' prefix = radians)
+            //   longitude         — geodetic longitude in degrees
+            //   rlongitude        — geodetic longitude in radians
+            //   altitude          — height above ellipsoid in metres
+            //   minelto           — minimum elevation threshold in radians
+            // This makes the rlatitude/rlongitude convention available to all
+            // COSMOS tools, not just the simulator.
             {
-                if (cinfo->target[count].loc.utc == 0.)
+                string jerr;
+                json11::Json p = json11::Json::parse(inb, jerr);
+                if (jerr.empty() && p.type() == json11::Json::OBJECT)
                 {
-                    cinfo->target[count].loc.utc = currentmjd(cinfo->node.utcoffset);
+                    if (!p["name"].is_null())
+                        cinfo->target[count].name = p["name"].string_value();
+                    if (!p["type"].is_null())
+                        cinfo->target[count].type = static_cast<uint16_t>(p["type"].int_value());
+                    if (!p["latitude"].is_null())
+                        cinfo->target[count].loc.pos.geod.s.lat = RADOF(p["latitude"].number_value());
+                    if (!p["rlatitude"].is_null())
+                        cinfo->target[count].loc.pos.geod.s.lat = p["rlatitude"].number_value();
+                    if (!p["longitude"].is_null())
+                        cinfo->target[count].loc.pos.geod.s.lon = RADOF(p["longitude"].number_value());
+                    if (!p["rlongitude"].is_null())
+                        cinfo->target[count].loc.pos.geod.s.lon = p["rlongitude"].number_value();
+                    if (!p["altitude"].is_null())
+                        cinfo->target[count].loc.pos.geod.s.h = p["altitude"].number_value();
+                    if (!p["minelto"].is_null())
+                        cinfo->target[count].min = static_cast<float>(p["minelto"].number_value());
+
+                    if (cinfo->target[count].loc.utc == 0.)
+                        cinfo->target[count].loc.utc = currentmjd(cinfo->node.utcoffset);
+                    loc_update(&cinfo->target[count].loc);
+                    ++count;
                 }
-                // This may cause problems, but location information won't be complete without it
-                loc_update(&cinfo->target[count].loc);
-                ++count;
             }
             json_addentry("target_size",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,size)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_GVECTOR, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_area",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,area)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_STRUCT_TARGET, cinfo);
@@ -14091,9 +14068,36 @@ int32_t update_target(Convert::locstruc source, targetstruc &target)
     rvector topo, dv, ds;
     Convert::locstruc targetloc;
 
-    target.loc.pos.geod.utc = source.pos.geod.utc;
-    target.loc.pos.geod.pass++;
-    Convert::loc_update(target.loc);
+    // Route each target through the correct coordinate chain based on its body
+    // (set at load time by json_setup_realm; re-confirmed each tick by pos_eci).
+    bool isMoon = (target.loc.pos.extra.closest == COSMOS_MOON);
+
+    // Stamp all frame UTCs from the satellite's master time before propagating.
+    Convert::pos_set_utc(target.loc, source.utc);
+
+    if (isMoon) {
+        // selg.s holds the canonical selenographic position (set at load; preserved by
+        // pos_set_selg's save/restore).  Propagate selg→selc→sci→eci.
+        Convert::pos_set_selg(target.loc);
+        // pos_set_selg calls pos_clear internally; if propagation fails at startup
+        // (source.utc still 0), pos_eci never ran to restore closest — re-pin it.
+        if (target.loc.pos.extra.closest == 0) target.loc.pos.extra.closest = COSMOS_MOON;
+    } else {
+        // Spherical-Earth horizon check before the expensive loc_update + az/el path.
+        // dot(sat_geoc_m, tgt_unit) < R_earth ↔ target is below the geometric horizon.
+        // (R_sat cancels: cos_angle < R_earth/R_sat ↔ R_sat*cos_angle < R_earth ↔ dot < R_earth)
+        double clat = cos(target.loc.pos.geod.s.lat);
+        double dot = source.pos.geoc.s.col[0] * clat * cos(target.loc.pos.geod.s.lon)
+                   + source.pos.geoc.s.col[1] * clat * sin(target.loc.pos.geod.s.lon)
+                   + source.pos.geoc.s.col[2] * sin(target.loc.pos.geod.s.lat);
+        if (dot < REARTHM)
+        {
+            target.elto = -1.;
+            return 0;
+        }
+        target.loc.pos.geod.pass++;
+        Convert::loc_update(target.loc);
+    }
     targetloc = target.loc;
     if (target.size.lat)
     {
@@ -14152,30 +14156,69 @@ int32_t update_target(Convert::locstruc source, targetstruc &target)
         target.utc = targetloc.utc;
     }
 
-    // Calculate bearing and distance
-    double dx = cos(targetloc.pos.geod.s.lat) * sin(targetloc.pos.geod.s.lon - source.pos.geod.s.lon);
-    double dy = cos(source.pos.geod.s.lat) * sin(targetloc.pos.geod.s.lat) - sin(source.pos.geod.s.lat) * cos(targetloc.pos.geod.s.lat) * cos(targetloc.pos.geod.s.lon - source.pos.geod.s.lon);
-    target.bearing = atan2(dy, dx);
-    target.distance = sep_rv(source.pos.geoc.s, targetloc.pos.geoc.s);
+    if (isMoon) {
+        // Bearing and distance in selenographic frame.
+        double dx = cos(targetloc.pos.selg.s.lat) * sin(targetloc.pos.selg.s.lon - source.pos.selg.s.lon);
+        double dy = cos(source.pos.selg.s.lat) * sin(targetloc.pos.selg.s.lat)
+                  - sin(source.pos.selg.s.lat) * cos(targetloc.pos.selg.s.lat)
+                  * cos(targetloc.pos.selg.s.lon - source.pos.selg.s.lon);
+        target.bearing  = atan2(dy, dx);
+        target.distance = sep_rv(source.pos.selc.s, targetloc.pos.selc.s);
 
-    Convert::geoc2topo(targetloc.pos.geod.s, source.pos.geoc.s,topo);
-    Convert::topo2azel(topo, target.azto, target.elto);
-    if (target.elto <= 0.)
-    {
-        target.maxelto = target.elto;
-    }
-    else if (target.elto > target.maxelto)
-    {
-        target.maxelto = target.elto;
-    }
+        // Az/el using Moon-centric (SELC) coordinates.
+        // Moon is spherical (no oblateness), so topo transform simplifies to:
+        //   ENU rotation at observer's selg position, selc offset to observer.
+        auto selg2topo_moon = [](gvector sg, rvector targetSelc, rvector &topo_out) {
+            double clat = cos(sg.lat), slat = sin(sg.lat);
+            double clon = cos(sg.lon), slon = sin(sg.lon);
+            rmatrix g2t;
+            g2t.row[0].col[0] = -slon;       g2t.row[0].col[1] =  clon;       g2t.row[0].col[2] = 0.;
+            g2t.row[1].col[0] = -slat * clon; g2t.row[1].col[1] = -slat * slon; g2t.row[1].col[2] = clat;
+            g2t.row[2].col[0] =  clat * clon; g2t.row[2].col[1] =  clat * slon; g2t.row[2].col[2] = slat;
+            rvector src_selc;
+            src_selc.col[0] = (RMOONM + sg.h) * clat * clon;
+            src_selc.col[1] = (RMOONM + sg.h) * clat * slon;
+            src_selc.col[2] = (RMOONM + sg.h) * slat;
+            topo_out = rv_mmult(g2t, rv_sub(targetSelc, src_selc));
+        };
 
-    Convert::geoc2topo(source.pos.geod.s, targetloc.pos.geoc.s, topo);
-    Convert::topo2azel(topo, target.azfrom, target.elfrom);
-    // Calculate direct vector from source to target
-    ds = rv_sub(targetloc.pos.geoc.s, source.pos.geoc.s);
-    target.range = length_rv(ds);
-    // Calculate velocity of target WRT source
-    dv = rv_sub(targetloc.pos.geoc.v, source.pos.geoc.v);
+        // azto/elto: satellite as seen from target (ground looking up)
+        selg2topo_moon(targetloc.pos.selg.s, source.pos.selc.s, topo);
+        Convert::topo2azel(topo, target.azto, target.elto);
+        if (target.elto <= 0.) target.maxelto = target.elto;
+        else if (target.elto > target.maxelto) target.maxelto = target.elto;
+
+        // azfrom/elfrom: target as seen from satellite (satellite looking down)
+        selg2topo_moon(source.pos.selg.s, targetloc.pos.selc.s, topo);
+        Convert::topo2azel(topo, target.azfrom, target.elfrom);
+
+        ds = rv_sub(targetloc.pos.selc.s, source.pos.selc.s);
+        target.range = length_rv(ds);
+        dv = rv_sub(targetloc.pos.selc.v, source.pos.selc.v);
+    } else {
+        // Calculate bearing and distance
+        double dx = cos(targetloc.pos.geod.s.lat) * sin(targetloc.pos.geod.s.lon - source.pos.geod.s.lon);
+        double dy = cos(source.pos.geod.s.lat) * sin(targetloc.pos.geod.s.lat) - sin(source.pos.geod.s.lat) * cos(targetloc.pos.geod.s.lat) * cos(targetloc.pos.geod.s.lon - source.pos.geod.s.lon);
+        target.bearing = atan2(dy, dx);
+        target.distance = sep_rv(source.pos.geoc.s, targetloc.pos.geoc.s);
+
+        Convert::geoc2topo(targetloc.pos.geod.s, source.pos.geoc.s,topo);
+        Convert::topo2azel(topo, target.azto, target.elto);
+        if (target.elto <= 0.)
+        {
+            target.maxelto = target.elto;
+        }
+        else if (target.elto > target.maxelto)
+        {
+            target.maxelto = target.elto;
+        }
+
+        Convert::geoc2topo(source.pos.geod.s, targetloc.pos.geoc.s, topo);
+        Convert::topo2azel(topo, target.azfrom, target.elfrom);
+        ds = rv_sub(targetloc.pos.geoc.s, source.pos.geoc.s);
+        target.range = length_rv(ds);
+        dv = rv_sub(targetloc.pos.geoc.v, source.pos.geoc.v);
+    }
     // Closing speed is length of ds in 1 second minus length of ds now.
     target.close = length_rv(rv_sub(ds,dv)) - length_rv(ds);
     target.utc = targetloc.utc;

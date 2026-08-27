@@ -4,6 +4,8 @@
 #include "support/jsonclass.h"
 #include "device/cpu/devicecpu.h"
 #include "device/disk/devicedisk.h"
+#include <chrono>
+#include <fstream>
 
 
 int32_t parse_control(string args);
@@ -27,6 +29,11 @@ uint16_t settle=0;
 uint16_t printevent=0;
 uint16_t jsonevent=0;
 uint16_t postevent=0;
+double postrate = 100.;       // max postevent packets per second (0 = unlimited)
+uint16_t fileevent=0;
+string eventfilename = "events.json";
+std::ofstream eventfile_stream;
+uint16_t agentevent=0;
 double initialutc = 60107.01;
 double endutc = 0.;
 double deltautc = 0.;
@@ -160,6 +167,16 @@ int main(int argc, char *argv[])
     // Open socket for returning sim->cnodes[i] information to simulator
     iretn = socket_open(data_channel_out, CLIENT_PORT_OUT, 2000000);
 
+    // Open file for writing postevent-style data, if requested
+    if (fileevent)
+    {
+        eventfile_stream.open(eventfilename, std::ios::out | std::ios::trunc);
+        if (!eventfile_stream.is_open())
+        {
+            agent->debug_log.Printf("Error opening event file: %s\n", eventfilename.c_str());
+        }
+    }
+
     // Cosmos web output initializations
     open_cosmos_web_sockets(cosmos_web_addr);
     // Reset simulation db
@@ -199,6 +216,7 @@ int main(int argc, char *argv[])
     }
     while (agent->running() && elapsed < runcount)
     {
+        auto loop_iter_start = std::chrono::steady_clock::now();
         if (settle)
         {
             bool finished = true;
@@ -328,7 +346,7 @@ int main(int argc, char *argv[])
                         string output = jobj.dump();
                         printf("%s\n", output.c_str());
                     }
-                    if (postevent)
+                    if (postevent || fileevent)
                     {
                         json11::Json jobj = json11::Json::object({
                             {"mtype", "event"},
@@ -345,6 +363,10 @@ int main(int argc, char *argv[])
                         if (postevent)
                         {
                             iretn = socket_post(data_channel_out, output.c_str());
+                        }
+                        if (fileevent && eventfile_stream.is_open())
+                        {
+                            eventfile_stream << output << "\n";
                         }
 
                         // Post SOH
@@ -446,7 +468,7 @@ int main(int argc, char *argv[])
                        sim->cnodes[i]->currentinfo.node.loc.pos.lvlh.s.col[2]);
                 printf("}\n");
             }
-            if (postevent)
+            if (postevent || fileevent || agentevent)
             {
                 sim->cnodes[i]->currentinfo.devspec.cpu[0].load = static_cast <float>(deviceCpu.getLoad());
                 sim->cnodes[i]->currentinfo.devspec.cpu[0].gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/1073741824.);
@@ -470,9 +492,19 @@ int main(int argc, char *argv[])
                     {"memory", sim->cnodes[i]->currentinfo.devspec.cpu[0].gib / sim->cnodes[i]->currentinfo.devspec.cpu[0].maxgib}
                 });
                 string output = jobj.dump();
-                iretn = socket_post(data_channel_out, output.c_str());
-                // send_telem_to_cosmos_web(&sim->cnodes[i]->currentinfo);
-                agent->post(Agent::AgentMessage::SOH, output);
+                if (postevent)
+                {
+                    iretn = socket_post(data_channel_out, output.c_str());
+                }
+                if (agentevent)
+                {
+                    // send_telem_to_cosmos_web(&sim->cnodes[i]->currentinfo);
+                    agent->post(Agent::AgentMessage::SOH, output);
+                }
+                if (fileevent && eventfile_stream.is_open())
+                {
+                    eventfile_stream << output << "\n";
+                }
             }
         }
         if (jsonevent)
@@ -480,6 +512,7 @@ int main(int argc, char *argv[])
             printf("}\n");
         }
         sim->Propagate();
+
         sim->Thrust();
         if (pointingfile.length())
         {
@@ -623,6 +656,15 @@ int main(int argc, char *argv[])
         }
         else
         {
+            if (postrate > 0.)
+            {
+                double min_interval = 1.0 / postrate;
+                double iter_elapsed = std::chrono::duration<double>(std::chrono::steady_clock::now() - loop_iter_start).count();
+                if (iter_elapsed < min_interval)
+                {
+                    secondsleep(min_interval - iter_elapsed);
+                }
+            }
             ++elapsed;
         }
     }
@@ -1318,6 +1360,10 @@ int main(int argc, char *argv[])
         fclose(sfp);
 
     }
+    if (eventfile_stream.is_open())
+    {
+        eventfile_stream.close();
+    }
 }
 
 int32_t parse_control(string args)
@@ -1354,6 +1400,26 @@ int32_t parse_control(string args)
     {
         ++argcount;
         postevent = jargs["postevent"].number_value();
+    }
+    if (!jargs["postrate"].is_null())
+    {
+        ++argcount;
+        postrate = jargs["postrate"].number_value();
+    }
+    if (!jargs["fileevent"].is_null())
+    {
+        ++argcount;
+        fileevent = jargs["fileevent"].number_value();
+    }
+    if (!jargs["agentevent"].is_null())
+    {
+        ++argcount;
+        agentevent = jargs["agentevent"].number_value();
+    }
+    if (!jargs["eventfile"].is_null())
+    {
+        ++argcount;
+        eventfilename = jargs["eventfile"].string_value();
     }
     if (!jargs["runcount"].is_null())
     {

@@ -4,7 +4,8 @@
 #include <atomic>
 #include <tuple>
 #include "support/configCosmos.h"
-#include "agent/agentclass.h"
+#include "support/jsonlib.h"
+//#include "agent/agentclass.h"
 #include "math/mathlib.h"
 #include "support/enumlib.h"
 //#include "support/transferclass.h"

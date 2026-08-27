@@ -28,7 +28,7 @@
 ********************************************************************/
 
 #include "vector.h"
-#include "matrix.h"
+//#include "matrix.h"
 
 //! \addtogroup mathlib_functions
 //! @{
@@ -2883,13 +2883,13 @@ namespace Cosmos {
                 Quaternion rq;
                 if ((a + b).norm() < 1e-14)
                 {
-                    vec1 = Vector(rand(), rand(), rand());
+                    vec1 = Vectors::Vector(rand(), rand(), rand());
                     vec1.normalize();
                     vec2 = vec1.cross(b);
                     vec2.normalize();
                     if (vec2.norm() < D_SMALL)
                     {
-                        vec1 = Vector(rand(), rand(), rand());
+                        vec1 = Vectors::Vector(rand(), rand(), rand());
                         vec1.normalize();
                         vec2 = vec1.cross(b);
                         vec2.normalize();
@@ -3039,7 +3039,7 @@ namespace Cosmos {
                 return (a);
             }
 
-            Quaternion drotate_around(Vector around, double angle)
+            Quaternion drotate_around(Vectors::Vector around, double angle)
             {
                 double sa;
 

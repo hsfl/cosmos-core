@@ -40,8 +40,8 @@
 //!
 
 #include "support/configCosmos.h"
-#include "support/stringlib.h"
-#include "support/jsonlib.h"
+//#include "support/stringlib.h"
+//#include "support/jsonlib.h"
 #include "agentclass.h"
 #include "task.h"
 #include "event.h"
