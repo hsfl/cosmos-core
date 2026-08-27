@@ -736,7 +736,12 @@ namespace Cosmos {
         int32_t PacketHandler::ExternalCommand(PacketComm& packet, string &response, Agent* agent)
         {
             // Run command, return response
-            int32_t iretn = data_execute(string(packet.data.begin()+4, packet.data.end()), response);
+            // Format:
+            // Bytes 0-3: centisec timestamp
+            // Bytes 4-7: float timeout
+            // Bytes 8-end: command string
+            float timeout = floatfrom(&packet.data[4], ByteOrder::LITTLEENDIAN);
+            int32_t iretn = data_execute(string(packet.data.begin()+8, packet.data.end()), response, timeout);
             packet.response_id = uint32from(&packet.data[0], ByteOrder::LITTLEENDIAN);
             return iretn;
         }
@@ -745,7 +750,7 @@ namespace Cosmos {
         {
             // Run command in a thread, return response
             // Format:
-            // Bytes 0-3: unused?
+            // Bytes 0-3: centisec timestamp
             // Bytes 4-7: float timeout
             // Bytes 8-end: command string
             string source = lookup_node_id_name(agent->cinfo, packet.header.nodeorig);
