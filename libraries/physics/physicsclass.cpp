@@ -93,39 +93,6 @@ int32_t PhysCalc(locstruc* loc, physicsstruc* phys)
         }
     }
 
-    // Drag sanity — print first 10 PhysCalc calls to stderr so the diagnostic
-    // shows density, mass, and per-triangle areas without mixing with telemetry.
-    {
-        static int phys_debug_n = 0;
-        if (phys_debug_n < 10)
-        {
-            ++phys_debug_n;
-            double ext_shove_total = 0.;
-            int ext_count = 0;
-            for (trianglestruc tri : phys->triangles)
-            {
-                if (tri.external)
-                {
-                    ext_shove_total += tri.shove.norm();
-                    ++ext_count;
-                }
-            }
-            fprintf(stderr,
-                "[PhysCalc #%d] alt=%.1f m  density=%.4e kg/m3  speed=%.2f m/s\n"
-                "               mass=%.6f kg  ext_triangles=%d  ext_shove_sum=%.4e m2  A/m=%.4e m2/kg\n"
-                "               adrag_pressure=%.4e Pa\n"
-                "               |adrag|=%.4e m/s2  |rdrag|=%.4e m/s2  |fdrag|=%.4e m/s2\n"
-                "               |fpush|=%.4e N     |thrust|=%.4e N\n",
-                phys_debug_n,
-                loc->pos.geod.s.h, density, speed,
-                (double)phys->mass, ext_count, ext_shove_total,
-                (phys->mass > 0.f) ? ext_shove_total / phys->mass : 0.,
-                adrag,
-                phys->adrag.norm(), phys->rdrag.norm(), phys->fdrag.norm(),
-                phys->fpush.norm(), phys->thrust.norm());
-        }
-    }
-
     return 0;
 }
 
@@ -279,20 +246,7 @@ int32_t PosAccel(locstruc* loc, physicsstruc* phys)
 
         // Correct for earth rotation, polar motion, precession, nutation
 
-        static int pa_n = 0;
-        double grav_raw = da.norm();
         da = Matrix(loc->pos.extra.e2j) * da;
-        if (phys->mass < 15.f && (pa_n < 3 || grav_raw < 1.0 || da.norm() < 1.0)) {
-            fprintf(stderr, "[PA #%d] utc=%.6f  geos_r=%.0f  geoc_s=%.0f  e2j_00=%.6f  sun2e_norm=%.3e  da_raw=%.4f  da_rot=%.4f\n",
-                pa_n,
-                loc->pos.eci.utc,
-                loc->pos.geos.s.r,
-                length_rv(loc->pos.geoc.s),
-                loc->pos.extra.e2j.row[0].col[0],
-                Vector(loc->pos.extra.sun2earth.s).norm(),
-                grav_raw, da.norm());
-        }
-        ++pa_n;
     }
     else
     {
@@ -300,15 +254,6 @@ int32_t PosAccel(locstruc* loc, physicsstruc* phys)
         da = -GM/(radius*radius*radius) * Vector(loc->pos.eci.s);
     }
     loc->pos.eci.a = rv_add(loc->pos.eci.a, da.to_rv());
-
-    static int acc_n = 0;
-    bool acc_print = (phys->mass < 15.f && length_rv(loc->pos.eci.a) < 1.0);
-    if (acc_print) {
-        fprintf(stderr, "[ACC #%d] utc=%.6f after_grav: eci_a=%.6f  sun2e=%.3e  sun2m=%.3e\n",
-            acc_n++, loc->pos.eci.utc, length_rv(loc->pos.eci.a),
-            Vector(loc->pos.extra.sun2earth.s).norm(),
-            Vector(loc->pos.extra.sun2moon.s).norm());
-    }
 
     // Sun gravity
     // Calculate Satellite to Sun vector
@@ -324,27 +269,15 @@ int32_t PosAccel(locstruc* loc, physicsstruc* phys)
     loc->pos.eci.a = rv_add(loc->pos.eci.a, da.to_rv());
 
     // Moon gravity
-    // Calculate Satellite to Moon vector
-    bodypos.s = rv_sub( loc->pos.extra.sun2earth.s, loc->pos.extra.sun2moon.s);
-    ctpos = rv_sub(bodypos.s, loc->pos.eci.s);
+    bodypos.s = rv_sub(loc->pos.extra.sun2earth.s, loc->pos.extra.sun2moon.s);
+    ctpos = rv_sub(rv_smult(-1., bodypos.s), loc->pos.eci.s);
     radius = ctpos.norm();
     da = GMOON/(radius*radius*radius) * ctpos;
     loc->pos.eci.a = rv_add(loc->pos.eci.a, da.to_rv());
-
-    // Adjust for acceleration of frame due to moon
     radius = length_rv(bodypos.s);
-    if (phys->mass < 15.f && radius < 1.0) {
-        static int moon_n = 0;
-        fprintf(stderr, "[MoonR #%d] utc=%.6f  bodypos_s=(%.3e,%.3e,%.3e) radius=%.3e\n",
-            moon_n++, loc->pos.eci.utc,
-            bodypos.s.col[0], bodypos.s.col[1], bodypos.s.col[2], radius);
-        fprintf(stderr, "  sun2earth=(%.3e,%.3e,%.3e)  sun2moon=(%.3e,%.3e,%.3e)\n",
-            loc->pos.extra.sun2earth.s.col[0], loc->pos.extra.sun2earth.s.col[1], loc->pos.extra.sun2earth.s.col[2],
-            loc->pos.extra.sun2moon.s.col[0], loc->pos.extra.sun2moon.s.col[1], loc->pos.extra.sun2moon.s.col[2]);
-    }
-    da = rv_smult(GMOON/(radius*radius*radius),bodypos.s);
+    da = rv_smult(GMOON/(radius*radius*radius), bodypos.s);
     tda -= da;
-    loc->pos.eci.a = rv_sub(loc->pos.eci.a, da.to_rv());
+    loc->pos.eci.a = rv_add(loc->pos.eci.a, da.to_rv());
 
     // Add thrust
     //            loc->pos.eci.a = rv_add(loc->pos.eci.a, rv_smult(1./phys->mass, phys->fpush.to_rv()));
@@ -393,14 +326,6 @@ int32_t PosAccel(locstruc* loc, physicsstruc* phys)
     //        loc->pos.eci.a = rv_add(loc->pos.eci.a, da.to_rv());
     //    }
 
-    if (phys->mass < 15.f && (std::isnan(loc->pos.eci.a.col[0]) || std::isnan(loc->pos.eci.a.col[1]) || std::isnan(loc->pos.eci.a.col[2]))) {
-        static int nan_n = 0;
-        fprintf(stderr, "[NaN #%d] utc=%.6f  eci_a=(%g,%g,%g)  sun2e=(%g,%g,%g)  sun2m_norm=%.3e\n",
-            nan_n++, loc->pos.eci.utc,
-            loc->pos.eci.a.col[0], loc->pos.eci.a.col[1], loc->pos.eci.a.col[2],
-            loc->pos.extra.sun2earth.s.col[0], loc->pos.extra.sun2earth.s.col[1], loc->pos.extra.sun2earth.s.col[2],
-            Vector(loc->pos.extra.sun2moon.s).norm());
-    }
     if (std::isnan( loc->pos.eci.a.col[0]))
     {
         loc->pos.eci.a.col[0] = 0.;
@@ -413,19 +338,7 @@ int32_t PosAccel(locstruc* loc, physicsstruc* phys)
     {
         loc->pos.eci.a.col[2] = 0.;
     }
-    if (phys->mass < 15.f) {
-        static int prespe_n = 0;
-        double pre_a = length_rv(loc->pos.eci.a);
-        iretn = pos_set_eci(loc);
-        double post_a = length_rv(loc->pos.eci.a);
-        if (prespe_n < 40 || (pre_a > 1.0 && post_a < 1.0)) {
-            fprintf(stderr, "[PreSPE #%d] utc=%.6f  eci_a_before=%.6f  eci_a_after=%.6f  iretn=%d\n",
-                prespe_n, loc->pos.eci.utc, pre_a, post_a, iretn);
-        }
-        ++prespe_n;
-    } else {
-        iretn = pos_set_eci(loc);
-    }
+    iretn = pos_set_eci(loc);
     if (iretn < 0)
     {
         return iretn;
@@ -924,6 +837,21 @@ locstruc shape2eci(double utc, double latitude, double longitude, double altitud
     loc.pos.geoc.s.col[2] = s3.z;
     loc.pos.geoc.v.col[2] = v3.z;
     pos_set_geoc(loc);
+
+    // The GEOC velocity formula is an approximation (cos(inclination) × r × ω)
+    // that leaves a ~15 m/s error in the ECI speed, making the orbit slightly
+    // elliptical and causing GJ to diverge after a few orbital periods.
+    // Correct pos.eci.v to be exactly sqrt(GM/r) in the tangential direction,
+    // preserving the orbital plane established by the rotations above.
+    {
+        double r_mag = length_rv(loc.pos.eci.s);
+        double v_circ = sqrt(GM / r_mag);
+        rvector L_hat = rv_normal(rv_cross(loc.pos.eci.s, loc.pos.eci.v));
+        rvector r_hat = rv_normal(loc.pos.eci.s);
+        rvector t_hat = rv_cross(L_hat, r_hat);
+        loc.pos.eci.v = rv_smult(v_circ, t_hat);
+        pos_set_eci(loc);
+    }
 
     return loc;
 }
@@ -2123,13 +2051,6 @@ int32_t State::Propagate(double nextutc)
     // the archive with only the events from the last (empty) call.
     currentinfo.event.clear();
 
-    {
-        static FILE *dbg = fopen("/tmp/propdebug.txt", "a");
-        if (dbg) fprintf(dbg, "[State::Propagate] %s nextutc=%.6f node.utc=%.6f dtj=%.6f\n",
-            currentinfo.node.name.c_str(), nextutc, currentinfo.node.utc, dtj);
-    }
-    fprintf(stderr, "[State::Propagate] %s nextutc=%.6f node.utc=%.6f dtj=%.6f\n",
-        currentinfo.node.name.c_str(), nextutc, currentinfo.node.utc, dtj);
     while ((nextutc - currentinfo.node.utc) > dtj / 2.)
     {
         PhysCalc(&currentinfo.node.loc, &currentinfo.node.phys);
@@ -2150,24 +2071,8 @@ int32_t State::Propagate(double nextutc)
             static_cast<InertialPositionPropagator *>(inposition)->Propagate(nextutc);
             break;
         case Propagator::Type::PositionGaussJackson:
-        {
-            static int gj_diag = 0;
-            if (gj_diag < 10) {
-                fprintf(stderr, "[GJ-pre  #%d] %s mass=%.2f |eci_a|=%.6f\n",
-                    gj_diag, currentinfo.node.name.c_str(),
-                    (double)currentinfo.node.phys.mass,
-                    length_rv(currentinfo.node.loc.pos.eci.a));
-            }
             static_cast<GaussJacksonPositionPropagator *>(gjposition)->Propagate(nextutc, currentinfo.node.loc.att.icrf.s);
-            if (gj_diag < 10) {
-                fprintf(stderr, "[GJ-post #%d] %s |eci_a|=%.6f  geoc_a_z=%.6f\n",
-                    gj_diag, currentinfo.node.name.c_str(),
-                    length_rv(currentinfo.node.loc.pos.eci.a),
-                    currentinfo.node.loc.pos.geoc.a.col[2]);
-                ++gj_diag;
-            }
             break;
-        }
         case Propagator::Type::PositionGeo:
             static_cast<GeoPositionPropagator *>(geoposition)->Propagate(nextutc);
             break;
@@ -2199,15 +2104,6 @@ int32_t State::Propagate(double nextutc)
         else
         {
             pos_set_eci(currentinfo.node.loc);
-            static int psei_diag = 0;
-            if (psei_diag < 6 && currentinfo.node.phys.mass < 15.f) {
-                fprintf(stderr, "[PSE-post #%d] %s |eci_a|=%.6f  geoc_a_z=%.6f  geoc_utc=%.6f\n",
-                    psei_diag, currentinfo.node.name.c_str(),
-                    length_rv(currentinfo.node.loc.pos.eci.a),
-                    currentinfo.node.loc.pos.geoc.a.col[2],
-                    currentinfo.node.loc.pos.geoc.utc);
-                ++psei_diag;
-            }
         }
         if (atype == Propagator::AttitudeGeo)
         {
@@ -5347,15 +5243,6 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
             return GENERAL_ERROR_TOO_LOW;
         }
 
-        static int gjwhile_n = 0;
-        if (currentinfo->node.phys.mass < 15.f && gjwhile_n < 5) {
-            fprintf(stderr, "[GJw #%d] step[3..5].eci_a: %.4f / %.4f / %.4f\n",
-                gjwhile_n,
-                length_rv(step[3].loc.pos.eci.a),
-                length_rv(step[4].loc.pos.eci.a),
-                length_rv(step[5].loc.pos.eci.a));
-            ++gjwhile_n;
-        }
         step[order+1].loc.utc = step[order+1].loc.pos.utc = step[order+1].loc.pos.eci.utc = step[order].loc.pos.eci.utc + dtj;
         step[order+1].loc.att.icrf.s = icrf;
 
@@ -5403,15 +5290,6 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
             step[j] = step[j+1];
         }
 
-        static int gjinner_n = 0;
-        if (currentinfo->node.phys.mass < 15.f) {
-            fprintf(stderr, "[GJi-shift #%d] step[o2].eci_a=%.6f  step[o2].geoc_a_z=%.6f  fpush=%.4e\n",
-                gjinner_n,
-                length_rv(step[order2].loc.pos.eci.a),
-                step[order2].loc.pos.geoc.a.col[2],
-                currentinfo->node.phys.fpush.norm());
-        }
-
         // Adjust for any thrust
         if (currentinfo->node.phys.fpush.norm() && currentinfo->node.phys.mass)
         {
@@ -5419,24 +5297,12 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
             step[order2].loc.pos.eci.s = rv_add(step[order2].loc.pos.eci.s, 0.5 * dtsq * dacc.to_rv());
             step[order2].loc.pos.eci.v = rv_add(step[order2].loc.pos.eci.v, dt * dacc.to_rv());
             Update();
-            if (currentinfo->node.phys.mass < 15.f) {
-                fprintf(stderr, "[GJi-updt #%d] step[o2].eci_a=%.6f  step[o2].geoc_a_z=%.6f\n",
-                    gjinner_n,
-                    length_rv(step[order2].loc.pos.eci.a),
-                    step[order2].loc.pos.geoc.a.col[2]);
-            }
         }
-        if (currentinfo->node.phys.mass < 15.f) ++gjinner_n;
 
     }
 
     cartpos tlvlh = currentinfo->node.loc.pos.lvlh;
     currentinfo->node.loc.pos = step[order2].loc.pos;
-    if (currentinfo->node.phys.mass < 15.f) {
-        fprintf(stderr, "[GJi-copy ] eci_a_after_copy=%.6f  geoc_a_z=%.6f\n",
-            length_rv(currentinfo->node.loc.pos.eci.a),
-            currentinfo->node.loc.pos.geoc.a.col[2]);
-    }
     currentinfo->node.loc.pos.lvlh = tlvlh;
 
     // Sync sci frame from eci using pos_extra ephemeris, bypassing pass-counter cascade.
@@ -5444,23 +5310,8 @@ int32_t GaussJacksonPositionPropagator::Propagate(double nextutc, quaternion icr
     // eci.s with SCI-derived values. Instead, directly convert eci→icrf→sci here.
     {
         pos_extra(currentinfo->node.loc.pos.eci.utc, currentinfo->node.loc);
-        if (currentinfo->node.phys.mass < 15.f) {
-            fprintf(stderr, "[GJi-extra] eci_a_after_extra=%.6f  geoc_a_z=%.6f\n",
-                length_rv(currentinfo->node.loc.pos.eci.a),
-                currentinfo->node.loc.pos.geoc.a.col[2]);
-        }
         pos_eci2icrf(currentinfo->node.loc);
-        if (currentinfo->node.phys.mass < 15.f) {
-            fprintf(stderr, "[GJi-icrf ] eci_a_after_eci2icrf=%.6f  geoc_a_z=%.6f\n",
-                length_rv(currentinfo->node.loc.pos.eci.a),
-                currentinfo->node.loc.pos.geoc.a.col[2]);
-        }
         pos_icrf2sci(currentinfo->node.loc);
-        if (currentinfo->node.phys.mass < 15.f) {
-            fprintf(stderr, "[GJi-sci  ] eci_a_after_icrf2sci=%.6f  geoc_a_z=%.6f\n",
-                length_rv(currentinfo->node.loc.pos.eci.a),
-                currentinfo->node.loc.pos.geoc.a.col[2]);
-        }
         currentinfo->node.loc.pos.sci.pass = currentinfo->node.loc.pos.eci.pass;
     }
     for (uint16_t i=order; i<=order; --i)
@@ -5587,30 +5438,11 @@ int32_t GaussJacksonPositionPropagator::Converge()
                 step[order2+i*n].loc.pos.eci.s.col[2] = this->dtsq * (step[order2+i*n].ss.col[2] + step[order2+i*n].sa.col[2]);
 
                 // Perform conversions between different systems
-                if (currentinfo->node.phys.mass < 15.f && (order2+i*n) >= (int)order2+1) {
-                    fprintf(stderr, "[Conv step%d] pre-pse  eci_s_norm=%.0f  eci_a=%.4f  utc=%.6f\n",
-                        order2+i*n,
-                        length_rv(step[order2+i*n].loc.pos.eci.s),
-                        length_rv(step[order2+i*n].loc.pos.eci.a),
-                        step[order2+i*n].loc.pos.eci.utc);
-                }
                 pos_set_eci(step[order2+i*n].loc);
-                if (currentinfo->node.phys.mass < 15.f && (order2+i*n) >= (int)order2+1) {
-                    fprintf(stderr, "[Conv step%d] post-pse eci_s_norm=%.0f  eci_a=%.4f\n",
-                        order2+i*n,
-                        length_rv(step[order2+i*n].loc.pos.eci.s),
-                        length_rv(step[order2+i*n].loc.pos.eci.a));
-                }
                 //		eci2earth(&step[order2+i*n].loc.pos,&step[order2+i*n].att);
 
                 // Calculate acceleration at new position
                 PosAccel(step[order2+i*n].loc, currentinfo->node.phys);
-                if (currentinfo->node.phys.mass < 15.f && (order2+i*n) >= (int)order2+1) {
-                    fprintf(stderr, "[Conv step%d] post-poa eci_s_norm=%.0f  eci_a=%.4f\n",
-                        order2+i*n,
-                        length_rv(step[order2+i*n].loc.pos.eci.s),
-                        length_rv(step[order2+i*n].loc.pos.eci.a));
-                }
 
                 // Compare acceleration at new position to previous iteration
                 if (fabs(oldsa.col[0]-step[order2+i*n].loc.pos.eci.a.col[0])>1e-14 || fabs(oldsa.col[1]-step[order2+i*n].loc.pos.eci.a.col[1])>1e-14 || fabs(oldsa.col[2]-step[order2+i*n].loc.pos.eci.a.col[2])>1e-14)
@@ -5635,6 +5467,13 @@ int32_t GaussJacksonPositionPropagator::Update()
     kepstruc kep;
     double dea;
     quaternion q1;
+
+    // Central bin position should already be set; sync attitude from current state
+    // because step bins may have been initialized before the attitude propagator ran
+    // (GJ Init runs before IterativeAttitudePropagator Init), leaving att.icrf.s=(0,0,0,0).
+    // AttAccel with a zero quaternion produces NaN via Vector::normalize() on a zero vector,
+    // which then propagates through att.icrf.v into subsequent step bins.
+    step[order2].loc.att.icrf = currentinfo->node.loc.att.icrf;
 
     // Central bin should already be set
     PosAccel(step[order2].loc, currentinfo->node.phys);
@@ -5700,15 +5539,7 @@ int32_t GaussJacksonPositionPropagator::Update()
         // Calculate new v from da
         step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(dt,step[i].loc.att.icrf.a));
         step[i].loc.att.icrf.utc = kep.utc;
-        if (currentinfo->node.phys.mass < 15.f) {
-            fprintf(stderr, "[Upd-fut step%u] pre-PA  utc=%.6f  eci_s=%.0f  eci_a=%.4f\n",
-                i, step[i].loc.pos.eci.utc, length_rv(step[i].loc.pos.eci.s), length_rv(step[i].loc.pos.eci.a));
-        }
         PosAccel(step[i].loc, currentinfo->node.phys);
-        if (currentinfo->node.phys.mass < 15.f) {
-            fprintf(stderr, "[Upd-fut step%u] post-PA utc=%.6f  eci_s=%.0f  eci_a=%.4f\n",
-                i, step[i].loc.pos.eci.utc, length_rv(step[i].loc.pos.eci.s), length_rv(step[i].loc.pos.eci.a));
-        }
     }
     currentutc = step[order2].loc.utc;
     currentinfo->node.phys.utc = step[order2].loc.utc;
