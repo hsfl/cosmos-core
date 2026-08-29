@@ -64,7 +64,7 @@ namespace Cosmos
             int32_t ParseTargetString(string line);
             int32_t ParseTargetJson(json11::Json jargs);
             int32_t GetError();
-            int32_t Propagate(double nextutc=0.);
+            int32_t Propagate(double nextutc=0., bool enablethrust=false, bool enabletorque=false);
             int32_t Propagate(vector<vector<cosmosstruc> > &results, uint32_t runcount);
             int32_t Target(map<uint32_t, vector<pointing_info> > &pschedule);
             int32_t Target();
@@ -86,6 +86,8 @@ namespace Cosmos
             StateList::const_iterator GetEnd() const;
             StateList GetNodes();
             int32_t NudgeNode(string name, cartpos pos=cartpos(), qatt att=qatt());
+            void    SetFormation(string type, double spacing);
+            void    SetTracking(int mode);
             int32_t UpdatePush(string name, Vector fpush);
             int32_t UpdateThrust(string name, Vector thrust);
             int32_t UpdateTorque(string name, Vector torque);
@@ -114,6 +116,18 @@ namespace Cosmos
         private:
             bool server;
             int32_t error;
+
+            // Formation and tracking plans
+            string m_formationType;
+            double m_formationSpacing = 0.;
+            int    m_trackingMode     = 0;   // 0=off, 1=nearest, 2=nearest unclaimed
+
+            // Per-step attitude control (called from Propagate when enabletorque=true)
+            void AttitudeStep();
+            static void slewBodyAxis(Physics::State &state,
+                                     const rvector &bodyAxis,
+                                     const rvector &targetDirIcrf,
+                                     double dt, double currentutc);
 
             State RunState = State::Halted;
             //    socket_channel data_channel;
