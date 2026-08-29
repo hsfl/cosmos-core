@@ -2278,6 +2278,21 @@ void Simulator::slewBodyAxis(Physics::State &state,
 // enabletorque is true.
 void Simulator::AttitudeStep()
 {
+    // One-time diagnostic.
+    static bool diagDone = false;
+    if (!diagDone && !cnodes.empty()) {
+        diagDone = true;
+        auto &ci = cnodes[0]->currentinfo;
+        fprintf(stderr, "[AttitudeStep] mode=%d nodes=%d targets=%d maxtorque=%.4f\n",
+                m_trackingMode, (int)cnodes.size(), (int)ci.target.size(),
+                ci.node.phys.maxtorque);
+        int shown = 0;
+        for (int i = 0; i < (int)ci.target.size() && shown < 6; ++i, ++shown)
+            fprintf(stderr, "  target[%d] type=%d elfrom=%.3f name=%s\n",
+                    i, ci.target[i].type, ci.target[i].elfrom,
+                    ci.target[i].name.c_str());
+    }
+
     // For mode 2 (nearest unclaimed), reset claims each step.
     std::set<int> claimed;
 
