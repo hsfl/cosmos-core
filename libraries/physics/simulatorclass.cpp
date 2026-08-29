@@ -2287,13 +2287,15 @@ void Simulator::AttitudeStep()
         auto   &loc = ci.node.loc;
 
         // ── 1. GS contact (type 1/2, highest priority) ───────────────────
+        // elto = satellite elevation as seen from target (ground looking up).
+        // elfrom is always negative for Earth-surface targets; use elto instead.
         int   bestGS = -1;
         float bestEl = 0.f;
         for (int ti = 0; ti < (int)ci.target.size(); ++ti)
         {
             const auto &t = ci.target[ti];
             if (t.type != 1 && t.type != 2) continue;
-            if (t.elfrom >= t.min && t.elfrom > bestEl) { bestGS = ti; bestEl = t.elfrom; }
+            if (t.elto >= t.min && t.elto > bestEl) { bestGS = ti; bestEl = t.elto; }
         }
 
         if (bestGS >= 0)
@@ -2312,9 +2314,9 @@ void Simulator::AttitudeStep()
             {
                 const auto &t = ci.target[ti];
                 if (t.type != 5) continue;
-                if (t.elfrom <= 0.f) continue;
+                if (t.elto <= 0.f) continue;          // satellite below horizon
                 if (m_trackingMode == 2 && claimed.count(ti)) continue;
-                if (t.elfrom > bestTEl) { bestTgt = ti; bestTEl = t.elfrom; }
+                if (t.elto > bestTEl) { bestTgt = ti; bestTEl = t.elto; }
             }
             if (bestTgt >= 0)
             {
