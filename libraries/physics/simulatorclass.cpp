@@ -1,6 +1,7 @@
 #include "simulatorclass.h"
 #include "support/jsonclass.h"
 #include "support/stringlib.h"
+#include <set>
 
 namespace Cosmos
 {
@@ -1677,7 +1678,7 @@ int32_t Simulator::Reset()
     return error;
 }
 
-int32_t Simulator::Propagate(double nextutc)
+int32_t Simulator::Propagate(double nextutc, bool enablethrust, bool enabletorque)
 {
     int iretn = 0;
     if (nextutc == 0.)
@@ -1687,6 +1688,14 @@ int32_t Simulator::Propagate(double nextutc)
     else {
         currentutc = nextutc;
     }
+
+    // Formation geometry + thrust: set loc_req.pos for children, then compute fpush.
+    if (enablethrust && cnodes.size() > 1 && !m_formationType.empty())
+    {
+        Formation(m_formationType, m_formationSpacing);
+        Thrust();
+    }
+
     for (auto &state : cnodes)
     {
         switch(state->ptype)
@@ -1783,6 +1792,12 @@ int32_t Simulator::Propagate(double nextutc)
         cnodes[i]->currentinfo.node.loc.pos.lvlh.v = -cnodes[i]->currentinfo.node.loc.pos.lvlh.v;
         cnodes[i]->currentinfo.node.loc.pos.lvlh.a = -cnodes[i]->currentinfo.node.loc.pos.lvlh.a;
     }
+
+    // Attitude control: slerp each node toward its desired pointing direction.
+    // Runs after position propagation so update_target() results are current.
+    if (enabletorque)
+        AttitudeStep();
+
     return iretn;
 }
 
@@ -2202,6 +2217,137 @@ Simulator::StateList::const_iterator Simulator::GetNode(string name) const
 Simulator::StateList::const_iterator Simulator::GetEnd() const
 {
     return cnodes.end();
+}
+
+void Simulator::SetFormation(string type, double spacing)
+{
+    m_formationType    = type;
+    m_formationSpacing = spacing;
+}
+
+void Simulator::SetTracking(int mode)
+{
+    m_trackingMode = mode;
+}
+
+// Slerp `state`'s att.icrf so that `bodyAxis` (body frame, unit vector) points at
+// `targetDirIcrf` (ICRF, unit vector). Advances by one bang-bang time-step fraction.
+void Simulator::slewBodyAxis(Physics::State &state,
+                             const rvector  &bodyAxis,
+                             const rvector  &targetDirIcrf,
+                             double dt, double currentutc)
+{
+    qatt &catt        = state.currentinfo.node.loc.att.icrf;
+    double maxtorque  = state.currentinfo.node.phys.maxtorque;
+    const Vector &moi = state.currentinfo.node.phys.moi;
+    if (maxtorque <= 0.) return;
+
+    // Current direction of bodyAxis in ICRF frame.
+    rvector curDir = transform_q(q_conjugate(catt.s), bodyAxis);
+
+    double cosA = dot_rv(curDir, targetDirIcrf);
+    cosA = std::max(-1.0, std::min(1.0, cosA));
+    double angle = std::acos(cosA);
+    if (angle < 1e-9) return;
+
+    // Bang-bang slew time: t = 2*sqrt(angle * I_min / tau_max)
+    double I_min   = std::min({moi.x, moi.y, moi.z});
+    double t_slew  = 2.0 * std::sqrt(angle * I_min / maxtorque);
+    double stepAng = angle * std::min(1.0, dt / std::max(t_slew, dt));
+
+    // Rotation axis in ICRF (cross of current to target direction).
+    rvector axis = rv_normal(rv_cross(curDir, targetDirIcrf));
+
+    // Step rotation quaternion (in ICRF).
+    quaternion step_q;
+    double sha = std::sin(stepAng / 2.);
+    step_q.d.x = axis.col[0] * sha;
+    step_q.d.y = axis.col[1] * sha;
+    step_q.d.z = axis.col[2] * sha;
+    step_q.w = std::cos(stepAng / 2.);
+
+    // q_{ICRF→body}(new) = q_{ICRF→body}(old) * q_conjugate(step_q)
+    // (step_q rotates body→ICRF, conjugate reverses it into the ICRF→body map)
+    catt.s   = q_mult(catt.s, q_conjugate(step_q));
+    catt.utc = currentutc;
+    att_set_icrf(state.currentinfo.node.loc);
+}
+
+// Per-step attitude control: for each node, determine desired pointing direction
+// and slerp att.icrf toward it using bang-bang rate. Called from Propagate() when
+// enabletorque is true.
+void Simulator::AttitudeStep()
+{
+    // For mode 2 (nearest unclaimed), reset claims each step.
+    std::set<int> claimed;
+
+    for (int ni = 0; ni < (int)cnodes.size(); ++ni)
+    {
+        auto   &ci  = cnodes[ni]->currentinfo;
+        auto   &loc = ci.node.loc;
+
+        // ── 1. GS contact (type 1/2, highest priority) ───────────────────
+        // elto = satellite elevation as seen from target (ground looking up).
+        // elfrom is always negative for Earth-surface targets; use elto instead.
+        int   bestGS = -1;
+        float bestEl = 0.f;
+        for (int ti = 0; ti < (int)ci.target.size(); ++ti)
+        {
+            const auto &t = ci.target[ti];
+            if (t.type != 1 && t.type != 2) continue;
+            if (t.elto >= t.min && t.elto > bestEl) { bestGS = ti; bestEl = t.elto; }
+        }
+
+        if (bestGS >= 0)
+        {
+            rvector tdir = rv_normal(rv_sub(ci.target[bestGS].loc.pos.eci.s, loc.pos.eci.s));
+            slewBodyAxis(*cnodes[ni], rv_smult(-1., rv_unitz()), tdir, dt, currentutc);
+            continue;
+        }
+
+        // ── 2. Imaging target (type 5, tracking mode 1 or 2) ─────────────
+        if (m_trackingMode > 0)
+        {
+            int   bestTgt = -1;
+            float bestTEl = 0.f;
+            for (int ti = 0; ti < (int)ci.target.size(); ++ti)
+            {
+                const auto &t = ci.target[ti];
+                if (t.type != 5) continue;
+                if (t.elto <= 0.f) continue;          // satellite below horizon
+                if (m_trackingMode == 2 && claimed.count(ti)) continue;
+                if (t.elto > bestTEl) { bestTgt = ti; bestTEl = t.elto; }
+            }
+            if (bestTgt >= 0)
+            {
+                if (m_trackingMode == 2) claimed.insert(bestTgt);
+                rvector tdir = rv_normal(rv_sub(ci.target[bestTgt].loc.pos.eci.s, loc.pos.eci.s));
+                slewBodyAxis(*cnodes[ni], rv_smult(-1., rv_unitz()), tdir, dt, currentutc);
+                continue;
+            }
+        }
+
+        // ── 3. Sun pointing: average PV panel com = panel-normal in body ─
+        if (!ci.devspec.pvstrg.empty())
+        {
+            Vector panelSum;
+            for (const auto &pv : ci.devspec.pvstrg) panelSum += ci.pieces[pv.pidx].com;
+            double plen = panelSum.norm();
+            if (plen > 0.)
+            {
+                panelSum /= plen;
+                rvector panelBodyAxis{panelSum.x, panelSum.y, panelSum.z};
+
+                bool lunar = (loc.pos.extra.closest == COSMOS_MOON);
+                rvector sunDir = rv_normal(rv_smult(-1.,
+                    lunar ? loc.pos.extra.sun2moon.s : loc.pos.extra.sun2earth.s));
+
+                slewBodyAxis(*cnodes[ni], panelBodyAxis, sunDir, dt, currentutc);
+                continue;
+            }
+        }
+        // No pvstrg or no active target → leave LVLH attitude unchanged
+    }
 }
 
 int32_t Simulator::UpdatePush(string name, Vector fpush)
