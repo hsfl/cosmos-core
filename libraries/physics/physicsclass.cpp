@@ -875,16 +875,28 @@ int32_t load_loc(string fname, locstruc& loc)
         return (-errno);
     }
 
+#ifdef COSMOS_WIN_OS
+    char wgetline_buf[65536];
+    char* input = fgets(wgetline_buf, sizeof(wgetline_buf), fdes);
+    iretn = (input != nullptr) ? (int32_t)strlen(input) : -1;
+    if (iretn < 0)
+    {
+        return -errno;
+    }
+#else
     char* input = nullptr;
     size_t n = 0;
     if ((iretn=getline(&input, &n, fdes)) < 0)
     {
         return -errno;
     }
+#endif
 
     string estring;
     json11::Json jargs = json11::Json::parse(input, estring);
+#ifndef COSMOS_WIN_OS
     free(input);
+#endif
     if (!jargs["phys"].is_null())
     {
         json11::Json::object values = jargs["phys"].object_items();

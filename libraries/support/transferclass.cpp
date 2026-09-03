@@ -2113,8 +2113,18 @@ namespace Cosmos {
         {
             std::ifstream file_name;
 
+#ifdef COSMOS_WIN_OS
+            bool meta_ok = false;
+            {
+                std::ifstream meta_probe(tx.temppath + ".meta", std::ios::binary | std::ios::ate);
+                auto meta_sz = meta_probe.is_open() ? (std::streamsize)meta_probe.tellg() : (std::streamsize)-1;
+                meta_ok = (meta_sz >= (std::streamsize)COSMOS_SIZEOF(file_progress));
+            }
+            if (meta_ok)
+#else
             struct stat statbuf;
             if (!stat((tx.temppath + ".meta").c_str(), &statbuf) && statbuf.st_size >= COSMOS_SIZEOF(file_progress))
+#endif
             {
                 file_name.open(tx.temppath + ".meta", std::ios::in|std::ios::binary);
                 if(!file_name.is_open())

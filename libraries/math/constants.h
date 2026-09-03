@@ -48,6 +48,15 @@ const double D_SMALL=static_cast <double>(1e-76);
 #undef BIGENDIAN
 #undef LITTLEENDIAN
 
+// Windows headers (winsock2/ws2tcpip) define LITTLEENDIAN and BIGENDIAN as
+// numeric macros, which breaks the enum class enumerator names below.
+#ifdef LITTLEENDIAN
+#  undef LITTLEENDIAN
+#endif
+#ifdef BIGENDIAN
+#  undef BIGENDIAN
+#endif
+
 //! Enumeration of possible byte orders
 enum class ByteOrder : std::uint8_t {
     //! Big Endian byte order

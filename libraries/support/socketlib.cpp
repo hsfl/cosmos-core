@@ -581,11 +581,13 @@ int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *addr
     strncpy(channel.address,address,17);
     channel.type = ntype;
     channel.addrlen = sizeof(struct sockaddr_in);
+#ifndef COSMOS_WIN_OS
     struct ifreq ifr;
     if (ioctl(channel.cudp, SIOCGIFFLAGS, &ifr) == 0)
     {
         channel.mtu = ifr.ifr_mtu;
     }
+#endif
 
     return 0;
 }
@@ -1141,6 +1143,20 @@ int32_t socket_recv(socket_channel &channel, vector<uint8_t> &buffer, size_t max
 
 int32_t socket_recvmmsg(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags)
 {
+#ifdef COSMOS_WIN_OS
+    buffer.resize(maxlen);
+    int32_t nbytes = (int32_t)recvfrom(channel.cudp, (char*)buffer.data(), (int)maxlen, flags, nullptr, nullptr);
+    if (nbytes < 0)
+    {
+        buffer.clear();
+        int err = WSAGetLastError();
+        if (err == WSAEWOULDBLOCK || err == WSAETIMEDOUT)
+            return 0;
+        return -err;
+    }
+    buffer.resize(nbytes);
+    return nbytes;
+#else
     static size_t cmaxlen = 0;
     int32_t nbytes;
     static int32_t nmsg = 0;
@@ -1205,6 +1221,7 @@ int32_t socket_recvmmsg(socket_channel &channel, vector<uint8_t> &buffer, size_t
         }
     }
     return nbytes;
+#endif // COSMOS_WIN_OS
 }
 
 int32_t socket_post(socket_bus &channel, const string &buffer, int flags)
@@ -1425,16 +1442,14 @@ int32_t Udp::socketOpen()
     switch (sok.role)
     {
     case SOCKET_LISTEN:
-#ifdef COSMOS_MAC_OS
+#if defined(COSMOS_MAC_OS) || defined(COSMOS_LINUX_OS)
         if (setsockopt(sok.handle,SOL_SOCKET,SO_REUSEPORT,(char*)&on,sizeof(on)) < 0)
-#else
-        if (setsockopt(sok.handle,SOL_SOCKET,SO_REUSEPORT,(char*)&on,sizeof(on)) < 0)
-#endif
         {
             CLOSE_SOCKET(sok.handle);
             sok.handle = -errno;
             return (-errno);
         }
+#endif
         setsockopt(sok.handle,SOL_SOCKET,SO_REUSEADDR,(char*)&on,sizeof(on));
         sok.server.sin_addr.s_addr = htonl(INADDR_ANY);
 
@@ -1563,7 +1578,10 @@ int32_t hostnameToIP(const string hostname, string& ipaddr, string& response)
     iretn = getaddrinfo(hostname.c_str(), NULL, &hints, &addrs);
     if (iretn != 0)
     {
-        response = "Failed to resolve hostname " + hostname + ": " + std::to_string(iretn) + " " + gai_strerror(iretn);
+        response = "Failed to resolve hostname " + hostname + ": " + std::to_string(iretn);
+#ifndef COSMOS_WIN_OS
+        response += std::string(" ") + gai_strerror(iretn);
+#endif
         return iretn;
     }
     char addr_string[100];

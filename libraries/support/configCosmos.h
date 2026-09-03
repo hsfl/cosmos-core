@@ -107,6 +107,17 @@ using std::map;
 #include <windows.h>
 #include <mmsystem.h>
 
+// Windows headers define LITTLEENDIAN/BIGENDIAN as numeric macros.
+// These clash with the ByteOrder enum class in math/constants.h.
+// Undefine them here, immediately after all Windows includes, so they
+// do not pollute any COSMOS headers or source files.
+#ifdef LITTLEENDIAN
+#  undef LITTLEENDIAN
+#endif
+#ifdef BIGENDIAN
+#  undef BIGENDIAN
+#endif
+
 // for MinGW
 #ifdef __MINGW32__
 #include <pthread.h>

@@ -40,7 +40,14 @@
 #include "support/jsonclass.h"
 
 #include <sys/stat.h>
-#include <unistd.h>
+#ifndef _WIN32
+#  include <unistd.h>
+#else
+#  include <winsock2.h>   // gethostname on Windows
+#  ifndef HOST_NAME_MAX
+#    define HOST_NAME_MAX 255
+#  endif
+#endif
 #include <iostream>
 #include <limits>
 #include <fstream>
