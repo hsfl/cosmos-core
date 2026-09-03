@@ -128,7 +128,20 @@ namespace Cosmos {
             struct tm *localt = localtime(&thetime);
             // struct tm *gmt = gmtime(thetime);
 
+#ifdef _WIN32
+            long tz_seconds;
+#ifdef __MINGW32__
+            tz_seconds = _timezone;
+#else
+            _get_timezone(&tz_seconds);
+#endif
+            // _timezone is seconds WEST; tm_gmtoff is seconds EAST — negate.
+            // Also add DST offset when active.
+            long dst = (localt->tm_isdst > 0) ? 3600L : 0L;
+            double timediff = (-tz_seconds + dst) / 86400.;
+#else
             double timediff = localt->tm_gmtoff / 86400.;
+#endif
             return timediff;
         }
 

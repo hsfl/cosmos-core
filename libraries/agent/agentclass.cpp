@@ -3497,7 +3497,11 @@ int32_t Agent::post(AgentMessage type, vector <uint8_t> message)
                 return (AGENT_ERROR_BUFLEN);
             memcpy(&post[nbytes], &message[0], message.size());
         }
+#ifdef COSMOS_WIN_OS
+        if (cinfo->agent0.pub[i].flags & IFF_POINTTOPOINT)
+#else
         if (cinfo->agent0.pub[i].flags & IFF_POINTOPOINT)
+#endif
         {
             iretn = sendto(cinfo->agent0.pub[i].cudp,       // socket
                            (const char *)post,                         // buffer to send

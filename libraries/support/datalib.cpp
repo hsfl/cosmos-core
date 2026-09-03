@@ -39,10 +39,41 @@
 #include "support/stringlib.h"
 #include <algorithm>
 #include <sys/stat.h>
-#include <glob.h>
-#ifdef _WIN32
-#include <stdlib.h>
-#define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
+#ifndef _WIN32
+#  include <glob.h>
+#else
+#  include <windows.h>
+#  include <stdlib.h>
+#  define realpath(N,R) _fullpath((R),(N),_MAX_PATH)
+// Minimal glob/globfree for Windows using FindFirstFile/FindNextFile.
+#  include <vector>
+struct glob_t {
+    size_t gl_pathc = 0;
+    char **gl_pathv = nullptr;
+    std::vector<std::string> _storage;
+};
+inline int glob(const char *pattern, int, int(*)(const char*,int), glob_t *g)
+{
+    g->gl_pathc = 0; g->gl_pathv = nullptr; g->_storage.clear();
+    std::string pat(pattern);
+    std::string dir;
+    auto slash = pat.find_last_of("/\\");
+    if (slash != std::string::npos) dir = pat.substr(0, slash + 1);
+    WIN32_FIND_DATAA fd;
+    HANDLE h = FindFirstFileA(pattern, &fd);
+    if (h == INVALID_HANDLE_VALUE) return 1;
+    do { g->_storage.push_back(dir + fd.cFileName); } while (FindNextFileA(h, &fd));
+    FindClose(h);
+    g->gl_pathc = g->_storage.size();
+    g->gl_pathv = new char*[g->gl_pathc];
+    for (size_t i = 0; i < g->gl_pathc; ++i)
+        g->gl_pathv[i] = const_cast<char*>(g->_storage[i].c_str());
+    return g->gl_pathc ? 0 : 1;
+}
+inline void globfree(glob_t *g)
+{
+    delete[] g->gl_pathv; g->gl_pathv = nullptr; g->gl_pathc = 0;
+}
 #endif
 //! \ingroup datalib
 //! \defgroup datalib_statics Static variables for Data functions.

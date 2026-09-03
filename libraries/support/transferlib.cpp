@@ -859,9 +859,18 @@ namespace Cosmos {
         */
         int32_t get_file_size(string filename, PACKET_FILE_SIZE_TYPE& size)
         {
+#ifdef COSMOS_WIN_OS
+            std::ifstream f(filename, std::ios::binary | std::ios::ate);
+            if (!f.is_open())
+                return -ENOENT;
+            auto sz = f.tellg();
+            if (sz < 0)
+                return -EIO;
+            size = static_cast<PACKET_FILE_SIZE_TYPE>(sz);
+            return 0;
+#else
             struct stat stat_buf;
-
-            if ((stat(filename.c_str(), &stat_buf)) == 0)
+            if ((::stat(filename.c_str(), &stat_buf)) == 0)
             {
                 size = static_cast<PACKET_FILE_SIZE_TYPE>(stat_buf.st_size);
                 return 0;
@@ -870,6 +879,7 @@ namespace Cosmos {
             {
                 return -errno;
             }
+#endif
         }
 
         int32_t get_file_size(const char* filename, PACKET_FILE_SIZE_TYPE& size)
