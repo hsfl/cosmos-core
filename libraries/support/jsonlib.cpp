@@ -888,7 +888,8 @@ int32_t json_addpiece(cosmosstruc *cinfo, uint32_t struc_idx, DeviceType ctype, 
 
     if (ctype < DeviceType::COUNT)
     {
-        iretn = json_adddevice(cinfo, static_cast <uint16_t>(cinfo->pieces.size()) - 1, ctype);
+        // The piece is pushed below, so its index is the current size
+        iretn = json_adddevice(cinfo, static_cast <uint16_t>(cinfo->pieces.size()), ctype);
         if (iretn < 0)
         {
             return iretn;
@@ -956,7 +957,8 @@ int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double 
 
     if (ctype < DeviceType::COUNT)
     {
-        iretn = json_adddevice(cinfo, static_cast <uint16_t>(cinfo->pieces.size()) - 1, ctype);
+        // The piece is pushed below, so its index is the current size
+        iretn = json_adddevice(cinfo, static_cast <uint16_t>(cinfo->pieces.size()), ctype);
         if (iretn < 0)
         {
             return iretn;
