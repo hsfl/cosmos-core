@@ -5249,7 +5249,7 @@ int32_t Agent::channel_maximum(uint8_t number)
     return channels.channel[number].maximum;
 }
 
-int32_t Agent::task_add(string command, string source, float timeout)
+uint32_t Agent::task_add(string command, string source, float timeout)
 {
     return tasks.Add(command, source, timeout);
 }

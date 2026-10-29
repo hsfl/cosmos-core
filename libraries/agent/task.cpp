@@ -74,6 +74,7 @@ namespace Cosmos {
                             }
                             (*iter).state = 2;
                             log_move_file((*iter).path, string_replace((*iter).path, "/temp/", "/outgoing/"), true);
+                            printf("Moving output to %s.gz\n", string_replace((*iter).path, "/temp/", "/outgoing/").c_str());
                         }
                     }
                     ++iter;
@@ -85,7 +86,7 @@ namespace Cosmos {
             return;
         }
 
-        int32_t Task::Add(string command, string node, float timeout)
+        uint32_t Task::Add(string command, string node, float timeout)
         {
             mtx.lock();
             tasks.resize(tasks.size()+1);

@@ -1139,8 +1139,8 @@ namespace Cosmos
             //! \param command Shell command string to execute.
             //! \param source Optional label identifying the source that requested this task.
             //! \param timeout Maximum wall-clock time (s) before the task is killed.
-            //! \return Non-negative task slot index on success, negative error code on failure.
-            int32_t task_add(string command, string source="", float timeout=60.);
+            //! \return Non-negative identifier. No error return!
+            uint32_t task_add(string command, string source="", float timeout=60.);
 
             //! \brief Remove a tracked task by its decisecond timestamp.
             //! \param deci Decisecond-resolution timestamp identifying the task to remove.

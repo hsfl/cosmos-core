@@ -58,7 +58,7 @@ namespace Cosmos
             ~Task();
             void Start();
             void Runner();
-            int32_t Add(string command, string node="", float timeout=60.);
+            uint32_t Add(string command, string node="", float timeout=60.);
             int32_t Del(uint32_t deci);
             int32_t Exists(uint32_t deci);
             int32_t Iretn(uint16_t number);
