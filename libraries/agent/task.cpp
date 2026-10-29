@@ -74,7 +74,6 @@ namespace Cosmos {
                             }
                             (*iter).state = 2;
                             log_move_file((*iter).path, string_replace((*iter).path, "/temp/", "/outgoing/"), true);
-                            printf("Moving output to %s.gz\n", string_replace((*iter).path, "/temp/", "/outgoing/").c_str());
                         }
                     }
                     ++iter;
