@@ -210,6 +210,8 @@ enum NODE_FLAG : uint16_t
 
 
 #define EVENT_TYPE_REQUEST 0x1001
+//! Event data holds a hex encoded, wrapped PacketComm packet
+#define EVENT_TYPE_PACKET 0x1002
 
 //! Physical Events
 

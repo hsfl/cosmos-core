@@ -22,16 +22,23 @@ namespace Module
 
         packethandler.init(agent);
 
+        // Set here rather than in Loop(), so a shutdown() before the thread starts is not lost
+        is_running = true;
+
         agent->debug_log.Printf("Subagent %s Init success!\n", mychannel_name.c_str());
 
         return 0;
+    }
+
+    int32_t PacketHandlerModule::add_func(PacketComm::TypeId type, PacketHandler::ExternalFunc function)
+    {
+        return packethandler.add_func(type, function);
     }
 
     void PacketHandlerModule::Loop()
     {
         agent->debug_log.Printf("Starting %s loop.\n", mychannel_name.c_str());
         PacketComm packet;
-        is_running = true;
         while(is_running)
         {
             // Comm - Internal
@@ -45,8 +52,11 @@ namespace Module
                     agent->push_response(packet.header.chanin, mychannel, packet.header.nodeorig, packet.response_id, response);
                 }
             }
-
-            std::this_thread::yield();
+            else
+            {
+                // Nothing pending, so avoid spinning a core
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
         }
 
         return;

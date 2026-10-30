@@ -359,6 +359,10 @@ namespace Cosmos {
             bool AX25Packetize(string dest_call="", string sour_call="", uint8_t flagcount=2, uint8_t dest_stat=0x60, uint8_t sour_stat=0x61, uint8_t cont=0x03, uint8_t prot=0xf0);
             bool HDLCPacketize(uint8_t flagcount=10);
             bool SLIPPacketize();
+            //! Encode the wrapped packet as a hex string, for storage or transport as text
+            string ToHexString();
+            //! Set the packet from a string created by ToHexString()
+            int32_t FromHexString(const string &hex);
 
         private:
 

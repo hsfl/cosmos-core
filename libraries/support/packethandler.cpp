@@ -1,5 +1,6 @@
 #include "packethandler.h"
 #include "beacon.h"
+#include "json11.hpp"
 
 namespace Cosmos {
     namespace Support {
@@ -1478,6 +1479,68 @@ namespace Cosmos {
             packet.header.chanout = agent->channel_number(channelout);
             iretn = agent->channel_push(packet);
             return iretn;
+        }
+
+        //! Queue a request for the destination's agent_exec to add an Event to its command queue
+        /*!
+            \param event_json Event as a JSON string, as produced by Event::get_event_string()
+            \return Size of the channel queue on success, negative on error
+        */
+        int32_t PacketHandler::QueueExecAddCommand(const string& event_json, Agent* agent, NODE_ID_TYPE dest, const string& channelout, const string& radioin)
+        {
+            PacketComm packet;
+            packet.header.type = PacketComm::TypeId::CommandExecAddCommand;
+            packet.header.nodeorig = agent->nodeId;
+            packet.header.nodedest = dest;
+            packet.header.chanin = agent->channel_number(radioin);
+            packet.header.chanout = agent->channel_number(channelout);
+
+            // Must fit in a single packet on the channel it is sent out on
+            int32_t datasize = agent->channel_datasize(packet.header.chanout);
+            if (datasize < 0)
+            {
+                return datasize;
+            }
+            if (event_json.size() > static_cast<size_t>(datasize))
+            {
+                return GENERAL_ERROR_BAD_SIZE;
+            }
+
+            packet.data.assign(event_json.begin(), event_json.end());
+            return agent->channel_push(packet);
+        }
+
+        //! Queue a request for the destination's agent_exec to push a packet to its EXEC channel at a given time
+        /*!
+            The inner packet is hex encoded into an EVENT_TYPE_PACKET Event, so it may be at most
+            a little under half of PACKETCOMM_DATA_SIZE once wrapped.
+            \param inner Packet to be executed by the destination
+            \param utc Time (MJD) at which the destination should execute it
+            \param name Event name. An existing Event of the same name is replaced.
+            \param flag Event flags (EVENT_FLAG_*)
+            \param condition Condition equation, used if flag has EVENT_FLAG_CONDITIONAL
+            \return Size of the channel queue on success, negative on error
+        */
+        int32_t PacketHandler::QueueExecAddPacket(PacketComm& inner, double utc, const string& name, Agent* agent, uint32_t flag, const string& condition, NODE_ID_TYPE dest, const string& channelout, const string& radioin)
+        {
+            string hex = inner.ToHexString();
+            if (hex.empty())
+            {
+                return GENERAL_ERROR_INPUT;
+            }
+
+            json11::Json::object event = {
+                {"utc", utc},
+                {"name", name},
+                {"type", EVENT_TYPE_PACKET},
+                {"flag", static_cast<double>(flag)},
+                {"data", hex},
+            };
+            if (flag & EVENT_FLAG_CONDITIONAL)
+            {
+                event["condition"] = condition;
+            }
+            return QueueExecAddCommand(json11::Json(event).dump(), agent, dest, channelout, radioin);
         }
     }
 }

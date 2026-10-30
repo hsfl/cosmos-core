@@ -397,5 +397,55 @@ namespace Cosmos {
             packetized = axhandle.get_hdlc_packet();
             return true;
         }
+
+        //! Only V2 packets are supported, since FromHexString() expects that format.
+        //! \return Lowercase hex digits of the wrapped packet, two per byte with no separators,
+        //! or an empty string if the packet could not be wrapped
+        string PacketComm::ToHexString()
+        {
+            static const char digits[] = "0123456789abcdef";
+            if (style != PacketStyle::V2 || !Wrap())
+            {
+                return "";
+            }
+            string hex;
+            hex.reserve(wrapped.size() * 2);
+            for (uint8_t byte : wrapped)
+            {
+                hex.push_back(digits[byte >> 4]);
+                hex.push_back(digits[byte & 0x0f]);
+            }
+            return hex;
+        }
+
+        //! \param hex String created by ToHexString()
+        //! \return Data size on success, negative on error (including CRC failure)
+        int32_t PacketComm::FromHexString(const string &hex)
+        {
+            auto nibble = [](char c) -> int16_t
+            {
+                if (c >= '0' && c <= '9') return c - '0';
+                if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+                if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+                return -1;
+            };
+
+            if (hex.empty() || hex.size() % 2)
+            {
+                return GENERAL_ERROR_BAD_SIZE;
+            }
+            wrapped.resize(hex.size() / 2);
+            for (size_t i=0; i<wrapped.size(); ++i)
+            {
+                int16_t hi = nibble(hex[2*i]);
+                int16_t lo = nibble(hex[2*i+1]);
+                if (hi < 0 || lo < 0)
+                {
+                    return GENERAL_ERROR_ARGS;
+                }
+                wrapped[i] = (hi << 4) | lo;
+            }
+            return Unwrap();
+        }
     }
 }

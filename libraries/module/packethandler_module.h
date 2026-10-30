@@ -26,6 +26,17 @@ namespace Cosmos
             int32_t Init(Agent* parent_agent, const string& channel_name);
 
             /**
+             * \brief Register or override the function that handles a packet type.
+             *
+             * Call after Init(), which registers the default functions, and before Loop().
+             *
+             * \param type Packet type to handle
+             * \param function Function to call for packets of this type
+             * \return 0 on success, negative on error
+             */
+            int32_t add_func(PacketComm::TypeId type, PacketHandler::ExternalFunc function);
+
+            /**
              * \brief Loops endlessly until agent is shutdown.
              * 
              * Call this function in a new thread.
@@ -45,7 +56,7 @@ namespace Cosmos
             Agent *agent;
 
             //! Returns from loop if this is set to false
-            bool is_running = false;
+            std::atomic<bool> is_running{false};
 
             string mychannel_name = "";
             int32_t mychannel = 0;

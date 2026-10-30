@@ -45,6 +45,8 @@
 #include "agentclass.h"
 #include "task.h"
 #include "event.h"
+#include "support/packetcomm.h"
+#include <functional>
 
 namespace Cosmos
 {
@@ -64,6 +66,26 @@ namespace Cosmos
             bool queue_changed = false;
 
             bool queue_blocked = false;
+
+            /** Guards commands and events. Recursive because a queued request may call back into the queue */
+            std::recursive_mutex queue_mutex;
+
+            /** Name of the agent channel that queued packets are pushed to */
+            string packet_channel = "SELF";
+
+            /** If set, packet events whose packet fails this test are refused by add_command() */
+            std::function<bool(const PacketComm&)> packet_filter;
+
+            //! Check that a packet event holds a valid packet that passes packet_filter
+            /*!
+                \param	cmd	Packet event to check
+                \param	packet	Set to the decoded packet
+                \return	0 if acceptable, negative on error
+            */
+            int32_t check_packet_event(Event &cmd, PacketComm &packet);
+
+            //! Run the given Event according to its type, advancing logdate_exec if it ran
+            int32_t dispatch(Agent *agent, Event &cmd, string nodename, double &logdate_exec);
 
         public:
             //! Ensure all threads are joined before destruction.
@@ -158,6 +180,54 @@ namespace Cosmos
             */
             int32_t run_command(Agent* agent, Event &cmd, string nodename, double logdate_exec);
 
+            //! Run the given Packet Event
+            /*!
+            Decode the PacketComm packet held in the event data and push it to the
+            packet channel, where a PacketHandler is expected to execute it. Once the
+            packet has been pushed, the time of execution (utcexec) is set, the flag
+            EVENT_FLAG_ACTUAL is set to true, and this updated command information is
+            logged to the OUTPUT directory. If the push fails, none of these happen.
+
+                \param  agent Pointer to Agent object (for channel access)
+                \param	cmd	Reference to event to run
+                \param	nodename	Name of node
+                \param	logdate_exec	Time of execution (for logging purposes)
+                \return Size of the channel queue on success, negative on error
+            */
+            int32_t run_packet(Agent* agent, Event &cmd, string nodename, double logdate_exec);
+
+            //! Add a PacketComm packet to the queue
+            /*!
+                \param	packet	Packet to schedule
+                \param	utc	Time (MJD) at which to push the packet
+                \param	name	Name of the event. An existing event of the same name is replaced.
+                \param	flag	Event flags (EVENT_FLAG_*)
+                \param	condition	Condition equation, used if flag has EVENT_FLAG_CONDITIONAL
+                \return	1 if added, 0 if an existing event was replaced, negative if refused by the packet filter
+            */
+            int32_t add_packet(PacketComm &packet, double utc, string name, uint32_t flag=0, string condition="");
+
+            //! Parse an Event JSON string and add it to the queue, rejecting invalid commands and packets
+            /*!
+                \param	line	Event as a JSON string, as produced by Event::get_event_string()
+                \param	response	Description of the result
+                \param	packets_only	Refuse any event that is not an EVENT_TYPE_PACKET
+                \return	0 on success, negative on error
+            */
+            int32_t add_command_string(const string &line, string &response, bool packets_only=false);
+
+            //! Set the name of the agent channel that queued packets are pushed to
+            void set_packet_channel(string name) { packet_channel = name; }
+
+            //! Restrict which packets may be queued
+            /*!
+                Applies to every packet event added, including those loaded from files.
+                Set before loading or restoring the queue.
+
+                \param	filter	Returns true if the packet may be queued. Empty to allow all.
+            */
+            void set_packet_filter(std::function<bool(const PacketComm&)> filter) { packet_filter = filter; }
+
             //!	Traverse the entire queue of Events, clearing those that have finished.
             /*!
 
@@ -183,12 +253,11 @@ namespace Cosmos
             */
             int32_t run_commands(Agent *agent, string nodename, double logdate_exec);
 
-            //!	Remove **all** matching Event from the queue
+            //!	Add an Event to the queue, replacing any existing Event of the same name
             /*!
-                \param	c	Event to remove
-                \return	The number of Events removed
-
-                JIMNOTE:	this only adds given Event to the queue if the Event has flag for EVENT_TYPE_COMMAND set to true
+                \param	c	Event to add
+                \return	1 if added, 0 if an existing Event was replaced, negative if a packet
+                Event was refused for an invalid packet or by the packet filter
             */
             int32_t add_command(Event& c);
 
@@ -214,7 +283,7 @@ namespace Cosmos
             /*!
                 This function is called after new Events are loaded.
             */
-            void sort()	{ commands.sort([](Event & c1, Event & c2) { return c1.getTime() < c2.getTime(); });	}
+            void sort()	{ std::lock_guard<std::recursive_mutex> lock(queue_mutex); commands.sort([](Event & c1, Event & c2) { return c1.getTime() < c2.getTime(); });	}
             //!	Extraction operator
             /*!
                 \param	out	Reference to ostream

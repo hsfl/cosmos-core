@@ -38,7 +38,7 @@ target_link_libraries(agent_forward CosmosAgent)
 target_link_libraries(agent_route CosmosAgent)
 target_link_libraries(agent_tunnel2 CosmosAgent CosmosDeviceSerial)
 target_link_libraries(agent_cpu CosmosAgent CosmosDeviceDisk)
-target_link_libraries(agent_exec CosmosEvent CosmosAgent CosmosCommand)
+target_link_libraries(agent_exec CosmosEvent CosmosAgent CosmosCommand CosmosModule)
 target_link_libraries(agent_propagator CosmosPacketHandler CosmosAgent CosmosPhysics CosmosAgent)
 
 if(${BUILD_AGENTS_TYPE} MATCHES "ALL")

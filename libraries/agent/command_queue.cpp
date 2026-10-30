@@ -123,6 +123,138 @@ namespace Cosmos
             return 0;
         }
 
+
+        int32_t CommandQueue::run_packet(Agent* agent, Event& cmd, string node_name, double logdate_exec)
+        {
+            queue_changed = true;
+
+            PacketComm packet;
+            int32_t iretn = packet.FromHexString(cmd.get_data());
+            if (iretn < 0)
+            {
+                printf("CMD: failed to decode packet [%s] for %d\n", cmd.get_name().c_str(), iretn);
+                return iretn;
+            }
+
+            printf("CMD: pushing packet [%s] type 0x%x to channel [%s]\n", cmd.get_name().c_str(), static_cast<uint16_t>(packet.header.type), packet_channel.c_str());
+            iretn = agent->channel_push(packet_channel, packet);
+            if (iretn < 0)
+            {
+                // Not marked actual or logged, so the event log only shows packets that were handed off
+                printf("CMD: failed to push packet [%s] to channel [%s] for %d\n", cmd.get_name().c_str(), packet_channel.c_str(), iretn);
+                return iretn;
+            }
+
+            // set time executed & actual flag
+            cmd.set_utcexec();
+            cmd.set_actual();
+            // log to event file
+            log_write(node_name, "exec", logdate_exec, "", "event", cmd.get_event_string().c_str(), "outgoing");
+            return iretn;
+        }
+
+        int32_t CommandQueue::dispatch(Agent *agent, Event &cmd, string node_name, double &logdate_exec)
+        {
+            int32_t iretn = 0;
+            switch (cmd.type)
+            {
+            case EVENT_TYPE_COMMAND:
+                iretn = run_command(agent, cmd, node_name, logdate_exec);
+                break;
+            case EVENT_TYPE_REQUEST:
+                iretn = run_request(agent, cmd, node_name, logdate_exec);
+                break;
+            case EVENT_TYPE_PACKET:
+                iretn = run_packet(agent, cmd, node_name, logdate_exec);
+                break;
+            default:
+                return 0;
+            }
+            logdate_exec += 1./864000.;
+            return iretn;
+        }
+
+        //! Parse an Event JSON string and add it to the queue
+        /*!
+            \param line Event as a JSON string
+            \param response Description of the result
+            \return 0 on success, negative on error
+        */
+        int32_t CommandQueue::add_command_string(const string &line, string &response, bool packets_only)
+        {
+            Event cmd;
+            cmd.set_command(line);
+
+            if (!cmd.is_command())
+            {
+                response =  "Not a valid command: " + line;
+                return GENERAL_ERROR_ARGS;
+            }
+
+            if (cmd.type == EVENT_TYPE_PACKET)
+            {
+                // Checked again by add_command(), but here we can say why
+                PacketComm packet;
+                int32_t iretn = check_packet_event(cmd, packet);
+                if (iretn == GENERAL_ERROR_INPUT)
+                {
+                    response = "Packet type 0x" + to_hex(static_cast<uint16_t>(packet.header.type)) + " may not be queued: " + line;
+                    return iretn;
+                }
+                else if (iretn < 0)
+                {
+                    response =  "Not a valid packet: " + line;
+                    return iretn;
+                }
+            }
+            else if (packets_only)
+            {
+                response = "Only packet events (type " + std::to_string(EVENT_TYPE_PACKET) + ") may be queued this way: " + line;
+                return GENERAL_ERROR_INPUT;
+            }
+
+            std::lock_guard<std::recursive_mutex> lock(queue_mutex);
+            int32_t iretn = add_command(cmd);
+            if (iretn < 0)
+            {
+                response =  "Unable to queue: " + line;
+                return iretn;
+            }
+            sort();
+            response =  "Command added to queue: " + line;
+            return 0;
+        }
+
+        int32_t CommandQueue::check_packet_event(Event &cmd, PacketComm &packet)
+        {
+            int32_t iretn = packet.FromHexString(cmd.get_data());
+            if (iretn < 0)
+            {
+                return iretn;
+            }
+            if (packet_filter && !packet_filter(packet))
+            {
+                return GENERAL_ERROR_INPUT;
+            }
+            return 0;
+        }
+
+        int32_t CommandQueue::add_packet(PacketComm &packet, double utc, string name, uint32_t flag, string condition)
+        {
+            Event cmd;
+            cmd.mjd = utc;
+            cmd.name = name;
+            cmd.type = EVENT_TYPE_PACKET;
+            cmd.flag = flag;
+            cmd.data = packet.ToHexString();
+            cmd.condition = condition;
+
+            std::lock_guard<std::recursive_mutex> lock(queue_mutex);
+            int32_t iretn = add_command(cmd);
+            sort();
+            return iretn;
+        }
+
         //!	Traverse the entire queue of Events, and run those which qualify.
         /*!
 
@@ -136,6 +268,7 @@ namespace Cosmos
         */
         int32_t CommandQueue::run_commands(Agent *agent, string node_name, double logdate_exec)
         {
+            std::lock_guard<std::recursive_mutex> lock(queue_mutex);
             for(std::list<Event>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
             {
                 // if command is not solo
@@ -168,16 +301,7 @@ namespace Cosmos
                                         //                                        strncpy(agent->cinfo->node.lastevent, ii->name.c_str(), COSMOS_MAX_NAME);
                                         agent->cinfo->node.lastevent = ii->name;
                                         agent->cinfo->node.lasteventutc = currentmjd();
-                                        if (ii->type == EVENT_TYPE_COMMAND)
-                                        {
-                                            run_command(agent, *ii, node_name, logdate_exec);
-                                            logdate_exec += 1./864000.;
-                                        }
-                                        else if (ii->type == EVENT_TYPE_REQUEST)
-                                        {
-                                            run_request(agent, *ii, node_name, logdate_exec);
-                                            logdate_exec += 1./864000.;
-                                        }
+                                        dispatch(agent, *ii, node_name, logdate_exec);
                                         ii->set_alreadyrun(true);
                                         events.push_back(*ii);
                                         if (events.size() > 10)
@@ -191,16 +315,7 @@ namespace Cosmos
                                 // else command is non-repeatable
                                 else
                                 {
-                                    if (ii->type == EVENT_TYPE_COMMAND)
-                                    {
-                                        run_command(agent, *ii, node_name, logdate_exec);
-                                        logdate_exec += 1./864000.;
-                                    }
-                                    else if (ii->type == EVENT_TYPE_REQUEST)
-                                    {
-                                        run_request(agent, *ii, node_name, logdate_exec);
-                                        logdate_exec += 1./864000.;
-                                    }
+                                    dispatch(agent, *ii, node_name, logdate_exec);
                                     events.push_back(*ii);
                                     if (events.size() > 10)
                                     {
@@ -219,16 +334,7 @@ namespace Cosmos
                         // else command is non-conditional
                         else
                         {
-                            if (ii->type == EVENT_TYPE_COMMAND)
-                            {
-                                run_command(agent, *ii, node_name, logdate_exec);
-                                logdate_exec += 1./864000.;
-                            }
-                            else if (ii->type == EVENT_TYPE_REQUEST)
-                            {
-                                run_request(agent, *ii, node_name, logdate_exec);
-                                logdate_exec += 1./864000.;
-                            }
+                            dispatch(agent, *ii, node_name, logdate_exec);
                             events.push_back(*ii);
                             if (events.size() > 10)
                             {
@@ -256,6 +362,7 @@ namespace Cosmos
         */
         int32_t CommandQueue::save_commands(string temp_dir, string name)
         {
+            std::lock_guard<std::recursive_mutex> lock(queue_mutex);
             if (!queue_changed)
             {
                 return 0;
@@ -288,6 +395,7 @@ namespace Cosmos
         */
         int32_t CommandQueue::restore_commands(string temp_dir, string name)
         {
+            std::lock_guard<std::recursive_mutex> lock(queue_mutex);
             queue_changed = false;
 
             // Reload existing queue
@@ -323,6 +431,7 @@ namespace Cosmos
         */
         int32_t CommandQueue::load_commands(string incoming_dir)
         {
+            std::lock_guard<std::recursive_mutex> lock(queue_mutex);
             DIR *dir = nullptr;
             struct dirent *dir_entry = nullptr;
 
@@ -391,6 +500,7 @@ namespace Cosmos
         */
         int32_t CommandQueue::del_command(Event& c)
         {
+            std::lock_guard<std::recursive_mutex> lock(queue_mutex);
             size_t prev_sz = commands.size();
             for (std::list<Event>::iterator ii = commands.begin();
                  ii != commands.end();
@@ -414,6 +524,7 @@ namespace Cosmos
         */
         int32_t CommandQueue::del_command(int pos)
         {
+            std::lock_guard<std::recursive_mutex> lock(queue_mutex);
             size_t prev_sz = commands.size();
             std::list<Event>::iterator b = commands.begin();
 
@@ -425,6 +536,19 @@ namespace Cosmos
 
         int32_t CommandQueue::add_command(Event& c)
         {
+            // Refuse packets now rather than at release time
+            if (c.type == EVENT_TYPE_PACKET)
+            {
+                PacketComm packet;
+                int32_t iretn = check_packet_event(c, packet);
+                if (iretn < 0)
+                {
+                    printf("CMD: refused packet event [%s] for %d\n", c.get_name().c_str(), iretn);
+                    return iretn;
+                }
+            }
+
+            std::lock_guard<std::recursive_mutex> lock(queue_mutex);
             // Replace if it matches an existing command, otherwise add to queue
             for (std::list<Event>::iterator ii = commands.begin(); ii != commands.end(); ++ii) {
                 if (c.get_name() == ii->get_name()) {
@@ -450,6 +574,7 @@ namespace Cosmos
         */
         ::std::ostream& operator<<(::std::ostream& out, CommandQueue& cmdq)
         {
+            std::lock_guard<std::recursive_mutex> lock(cmdq.queue_mutex);
             for(std::list<Event>::iterator ii = cmdq.commands.begin(); ii != cmdq.commands.end(); ++ii)
                 out << *ii << std::endl;
             return out;

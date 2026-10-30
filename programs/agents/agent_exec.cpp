@@ -34,6 +34,7 @@
 #include "support/convertlib.h"
 #include "support/datalib.h"
 #include "agent/command_queue.h"
+#include "module/packethandler_module.h"
 
 #include <iostream>
 #include <iomanip>
@@ -74,6 +75,13 @@ static Agent *agent;
 static vector<string> realm;
 
 static CommandQueue cmd_queue;
+
+// Executes packets pushed to the EXEC channel, including those released by cmd_queue
+static Module::PacketHandlerModule exec_packethandler;
+static thread phthread;
+int32_t ExecAddCommand(PacketComm &packet, string &response, Agent *agent);
+int32_t ExecUnsupported(PacketComm &packet, string &response, Agent *agent);
+bool exec_can_run(const PacketComm &packet);
 
 void move_and_compress_exec ();
 static double logdate_exec=0.;
@@ -291,8 +299,23 @@ int main(int argc, char *argv[])
 
     load_dictionary(eventdict, agent->cinfo, "events.dict");
 
-    // Reload existing queue
+    // Reload existing queue, only accepting packets we can actually run
+    cmd_queue.set_packet_filter(exec_can_run);
     cmd_queue.restore_commands(temp_dir);
+
+    // Start thread to execute packets on the EXEC channel
+    if ((iretn = exec_packethandler.Init(agent, "EXEC")) >= 0)
+    {
+        exec_packethandler.add_func(PacketComm::TypeId::CommandExecAddCommand, ExecAddCommand);
+        // The default handlers forward these to EXEC, which would loop them back to us forever
+        exec_packethandler.add_func(PacketComm::TypeId::CommandExecLoadCommand, ExecUnsupported);
+        exec_packethandler.add_func(PacketComm::TypeId::CommandExecSetOpsMode, ExecUnsupported);
+        phthread = thread([=] { exec_packethandler.Loop(); });
+    }
+    else
+    {
+        printf("Unable to start EXEC packet handler, queued packets will not run: %s\n", cosmos_error_string(iretn).c_str());
+    }
 
     // Start thread to collect SOH data
     bool log_data_flag = true;
@@ -456,6 +479,8 @@ int main(int argc, char *argv[])
         }
 
         // Perform Executive specific functions
+        // Unlike ExecAddCommand packets, .command files may queue any event type,
+        // including shell commands. Packet events in them are still subject to exec_can_run().
         cmd_queue.load_commands(immediate_dir);
         vector<string> nodes = data_list_nodes();
         for (string& node : nodes)
@@ -480,6 +505,13 @@ int main(int argc, char *argv[])
             }
         }
         agent->finish_active_loop();
+    }
+
+    // Stop handling packets before the agent's data is released by shutdown()
+    exec_packethandler.shutdown();
+    if (phthread.joinable())
+    {
+        phthread.join();
     }
 
     agent->shutdown();
@@ -722,7 +754,6 @@ int32_t request_del_command(string &request, string &response, Agent *)
 // Add Queue Entry
 int32_t request_add_command(string &request, string &response, Agent *)
 {
-    Event cmd;
     string line(request);
 
     // Check for valid request
@@ -732,21 +763,49 @@ int32_t request_add_command(string &request, string &response, Agent *)
     }
 
     line.erase(0, line.find(" ")+1);
-    cmd.set_command(line);
-
-    // add command
-    if(cmd.is_command())
-    {
-        cmd_queue.add_command(cmd);
-        response =  "Command added to queue: " + line;
-    }
-    else {
-        response =  "Not a valid command: " + line;
-    }
-
-    // sort the queue
-    cmd_queue.sort();
+    cmd_queue.add_command_string(line, response);
     return 0;
+}
+
+//! Add the Event JSON string carried in the packet data to the command queue
+/*!
+    Only packet events are accepted, so anything queued this way is executed by
+    the same handler, with the same checks, as if it had been sent directly.
+*/
+int32_t ExecAddCommand(PacketComm &packet, string &response, Agent *)
+{
+    packet.response_id = centisec();
+    return cmd_queue.add_command_string(string(packet.data.begin(), packet.data.end()), response, true);
+}
+
+//! Packet types that take effect when executed from within agent_exec
+/*!
+    Other types are either forwarded to channels that nothing in this process reads
+    (EPS, ADCS, FILE, ...), act only on this process's own channels, or only produce
+    a response, so queueing them here would silently do nothing.
+*/
+bool exec_can_run(const PacketComm &packet)
+{
+    switch (packet.header.type)
+    {
+    case PacketComm::TypeId::CommandObcReboot:
+    case PacketComm::TypeId::CommandObcHalt:
+    case PacketComm::TypeId::CommandObcSetTime:
+    case PacketComm::TypeId::CommandObcExternalCommand:
+    case PacketComm::TypeId::CommandObcExternalTask:
+    case PacketComm::TypeId::CommandObcInternalRequest:
+    case PacketComm::TypeId::CommandExecAddCommand:
+        return true;
+    default:
+        return false;
+    }
+}
+
+int32_t ExecUnsupported(PacketComm &packet, string &response, Agent *)
+{
+    packet.response_id = centisec();
+    response = "Unsupported by agent_exec: packet type 0x" + to_hex(static_cast<uint16_t>(packet.header.type));
+    return GENERAL_ERROR_UNDEFINED;
 }
 
 // Run the command and return the output in the response.

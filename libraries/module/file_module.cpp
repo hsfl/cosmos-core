@@ -29,6 +29,7 @@ namespace Cosmos
                 }
                 contact_nodes.push_back(static_cast<uint8_t>(iretn));
             }
+            is_running.store(true, std::memory_order_relaxed);
 
             return 0;
         }
@@ -42,7 +43,6 @@ namespace Cosmos
             mychannel = agent->channel_number("FILE");
 
             agent->debug_log.Printf("Starting File Loop\n");
-            is_running = true;
 
             ElapsedTime active_mode_timer;
 
